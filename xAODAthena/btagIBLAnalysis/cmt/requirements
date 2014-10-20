@@ -18,9 +18,10 @@ end_private
 branches src src/components doc python share
 
 private
-use  xAODEventInfo              xAODEventInfo-*                 Event/xAOD
-use xAODJet                 xAODJet-*                   Event/xAOD
-use  xAODTruth                  xAODTruth-*                     Event/xAOD
+use  xAODEventInfo	xAODEventInfo-*		Event/xAOD
+use  xAODJet		xAODJet-*		Event/xAOD
+use  xAODTruth		xAODTruth-*		Event/xAOD
+use  AtlasROOT 		AtlasROOT-* 		External
 
 ## default is to make component library
 library btagIBLAnalysis *.cxx components/*.cxx

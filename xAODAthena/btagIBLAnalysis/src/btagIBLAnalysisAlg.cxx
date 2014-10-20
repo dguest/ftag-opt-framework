@@ -11,8 +11,7 @@
 #include "xAODJet/JetContainer.h"
 #include "xAODTruth/TruthEventContainer.h"
 
-
-btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthHistogramAlgorithm( name, pSvcLocator ){
+btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthAlgorithm( name, pSvcLocator ){
 
   //declareProperty( "Property", m_nProperty ); //example property declaration
 
@@ -25,14 +24,31 @@ btagIBLAnalysisAlg::~btagIBLAnalysisAlg() {}
 StatusCode btagIBLAnalysisAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
 
-  ATH_CHECK( book( TH1F("hist_Lxy_denom", "Lxy", 200, 0.0, 100.0) ) );
-  ATH_CHECK( book( TH1F("hist_Lxy", "Lxy", 200, 0.0, 100.0) ) );
+  //ATH_CHECK( book( TH1F("hist_Lxy_denom", "Lxy", 200, 0.0, 100.0) ) );
+  //ATH_CHECK( book( TH1F("hist_Lxy", "Lxy", 200, 0.0, 100.0) ) );
+
+  // define output file for ntuple, tree and branches
+  output = new TFile("outputntuple.root","recreate");
+  tree = new TTree("bTag","bTag");
+
+  tree->Branch("jet_pt",&v_jet_pt);
+  tree->Branch("jet_eta",&v_jet_eta);
+  tree->Branch("jet_phi",&v_jet_phi);
+
+  v_jet_pt->clear();
+  v_jet_eta->clear();
+  v_jet_phi->clear();
 
   return StatusCode::SUCCESS;
 }
 
 StatusCode btagIBLAnalysisAlg::finalize() {
   ATH_MSG_INFO ("Finalizing " << name() << "...");
+
+  // Write tree into ntuple and close file
+  output->cd();
+  tree->Write();
+  output->Close();
 
   return StatusCode::SUCCESS;
 }
@@ -102,6 +118,10 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
   for ( const auto* jet : *jets ) {
     
+    v_jet_pt->push_back(jet->pt());
+    v_jet_eta->push_back(jet->eta());
+    v_jet_phi->push_back(jet->phi());
+
     if(jet->pt() > 25000 && fabs( jet->eta() ) < 2.5){
 
       // still need to figure out how to compute official Lxy for denominator since here haven't truth matched yet 
@@ -140,7 +160,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	    const xAOD::TruthVertex* thisvtx = (truth->truthParticle(k))->decayVtx();
 	    float myLxy = sqrt( pow(thisvtx->x(),2)+ pow(thisvtx->y(),2) );
 	    //std::cout << " myLxy = " << myLxy << std::endl;
-	    hist("hist_Lxy")->Fill(myLxy, 1.0);
+	    //hist("hist_Lxy")->Fill(myLxy, 1.0);
 	  }
 	}
       }
@@ -162,6 +182,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
   
   } // jet loop
  
+  tree->Fill();
 
   // clear all the things that need clearing
   truth_bhadrons.clear();

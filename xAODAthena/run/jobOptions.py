@@ -28,25 +28,26 @@ algSeq = CfgMgr.AthSequencer("AthAlgSeq")
 # ====================================================================
 # Add own algorithm
 # ====================================================================
-algSeq += CfgMgr.btagIBLAnalysisAlg("MyTry", RootStreamName = streamName, RootDirName = "/Histograms", OutputLevel=INFO) #DEBUG
+#algSeq += CfgMgr.btagIBLAnalysisAlg("MyTry", RootStreamName = streamName, RootDirName = "/Histograms", OutputLevel=INFO) #DEBUG
+algSeq += CfgMgr.btagIBLAnalysisAlg(OutputLevel=INFO) #DEBUG
 # ====================================================================
 # Define an output root file for histograms
 # ====================================================================
-from OutputStreamAthenaPool.MultipleStreamManager import MSMgr
-HistoXAODStream = MSMgr.NewRootStream( streamName, fileName )
+#from OutputStreamAthenaPool.MultipleStreamManager import MSMgr
+#HistoXAODStream = MSMgr.NewRootStream( streamName, fileName )
 # ====================================================================
 # Create a new xAOD
 # ====================================================================
-XAODStream = MSMgr.NewPoolRootStream( "xAODStream", "xAOD.pool.root" )
+#XAODStream = MSMgr.NewPoolRootStream( "xAODStream", "xAOD.pool.root" )
 ## XAODStream.AddItem(['xAOD::EventInfo_v1#EventInfo'])
 ## XAODStream.AddItem(['xAOD::EventInfo_v1#EventInfoAux.'])
-XAODStream.AddItem(['xAOD::JetContainer_v1#AntiKt4LCTopoJets'])
-XAODStream.AddItem(['xAOD::JetAuxContainer_v1#AntiKt4LCTopoJetsAux.'])
-XAODStream.AddItem(['xAOD::BTaggingContainer_v1#BTagging_AntiKt4LCTopo'])
-XAODStream.AddItem(['xAOD::BTaggingAuxContainer_v1#BTagging_AntiKt4LCTopoAux.'])
-XAODStream.AddItem(['xAOD::TruthEventContainer_v1#TruthEvent'])
-XAODStream.AddItem(['xAOD::TruthEventAuxContainer_v1#TruthEventAux.'])
-XAODStream.AddItem(['xAOD::TruthParticleContainer_v1#TruthParticle'])
-XAODStream.AddItem(['xAOD::TruthParticleAuxContainer_v1#TruthParticleAux.'])
-XAODStream.AddItem(['xAOD::TruthVertexContainer_v1#TruthVertex'])
-XAODStream.AddItem(['xAOD::TruthVertexAuxContainer_v1#TruthVertexAux.'])
+#XAODStream.AddItem(['xAOD::JetContainer_v1#AntiKt4LCTopoJets'])
+#XAODStream.AddItem(['xAOD::JetAuxContainer_v1#AntiKt4LCTopoJetsAux.'])
+#XAODStream.AddItem(['xAOD::BTaggingContainer_v1#BTagging_AntiKt4LCTopo'])
+#XAODStream.AddItem(['xAOD::BTaggingAuxContainer_v1#BTagging_AntiKt4LCTopoAux.'])
+#XAODStream.AddItem(['xAOD::TruthEventContainer_v1#TruthEvent'])
+#XAODStream.AddItem(['xAOD::TruthEventAuxContainer_v1#TruthEventAux.'])
+#XAODStream.AddItem(['xAOD::TruthParticleContainer_v1#TruthParticle'])
+#XAODStream.AddItem(['xAOD::TruthParticleAuxContainer_v1#TruthParticleAux.'])
+#XAODStream.AddItem(['xAOD::TruthVertexContainer_v1#TruthVertex'])
+#XAODStream.AddItem(['xAOD::TruthVertexAuxContainer_v1#TruthVertexAux.'])
