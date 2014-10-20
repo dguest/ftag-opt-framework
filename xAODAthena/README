@@ -1,0 +1,16 @@
+============
+To compile:
+============
+asetup AthAnalysisBase,2.0.X,rel_1,here
+cd btagIBLAnalysis/cmt
+cmt make
+
+============
+To run:
+============
+cd ../../run
+athena jobOptions.py
+
+============
+Result: job should have created a histos.root file (with basic plots) and a xAOD.pool.root file (which is a new xAOD file with only a few containers written out)
+============
