@@ -12,5 +12,6 @@ cd ../../run
 athena jobOptions.py
 
 ============
-Result: job should have created a histos.root file (with basic plots) and a xAOD.pool.root file (which is a new xAOD file with only a few containers written out)
+Result: job should have created a outputntuple.root file with several branches
+[can also create a histos.root file (with basic plots) and a xAOD.pool.root file (which is a new xAOD file with only a few containers written out) but this is commented out for now]
 ============
