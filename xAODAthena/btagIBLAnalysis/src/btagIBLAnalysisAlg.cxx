@@ -36,9 +36,17 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   //output = new TFile("flavntuple_110401_ttbar.root","recreate");
   //tree = new TTree("bTag","bTag");
 
+  tree->Branch("runnb",&runnumber);
+  tree->Branch("eventnb",&eventnumber);
+  tree->Branch("mcchan",&mcchannel);
+  tree->Branch("mcwg",&mcweight);
+
   tree->Branch("jet_pt",&v_jet_pt);
   tree->Branch("jet_eta",&v_jet_eta);
   tree->Branch("jet_phi",&v_jet_phi);
+  tree->Branch("jet_E",&v_jet_E);
+  tree->Branch("jet_m",&v_jet_m);
+  tree->Branch("jet_n",&v_jet_n);
   tree->Branch("jet_truthflav",&v_jet_truthflav);
 
   tree->Branch("jet_ip2d_pb",&v_jet_ip2d_pb);
@@ -73,6 +81,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_jf_ntrkAtVx",&v_jet_jf_ntrkAtVx);
   tree->Branch("jet_jf_nvtx",&v_jet_jf_nvtx);
   tree->Branch("jet_jf_sig3d",&v_jet_jf_sig3d);
+  tree->Branch("jet_jf_nvtx1t",&v_jet_jf_nvtx1t);
+  tree->Branch("jet_jf_n2t",&v_jet_jf_n2t);
 
   tree->Branch("jet_jfcombnn_pb",&v_jet_jfcombnn_pb);
   tree->Branch("jet_jfcombnn_pc",&v_jet_jfcombnn_pc);
@@ -91,6 +101,9 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_pt->clear();
   v_jet_eta->clear();
   v_jet_phi->clear();
+  v_jet_E->clear();
+  v_jet_m->clear();
+  v_jet_n->clear();
   v_jet_truthflav->clear();
 
   v_jet_ip2d_pb->clear();
@@ -125,6 +138,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_jf_ntrkAtVx->clear();
   v_jet_jf_nvtx->clear();
   v_jet_jf_sig3d->clear();
+  v_jet_jf_nvtx1t->clear();
+  v_jet_jf_n2t->clear();
 
   v_jet_jfcombnn_pb->clear();
   v_jet_jfcombnn_pc->clear();
@@ -160,19 +175,20 @@ StatusCode btagIBLAnalysisAlg::execute() {
   //---------------------------
   // Event information
   //--------------------------- 
-  /*const xAOD::EventInfo* eventInfo = 0;
-  //CHECK( evtStore()->retrieve(eventInfo, "EventInfo") );  // with key name
-  CHECK( evtStore()->retrieve(eventInfo) ); // without key name
+  const xAOD::EventInfo* eventInfo = 0;
+  CHECK( evtStore()->retrieve(eventInfo, "EventInfo") );  // with key name
   
   // check if data or MC
   if(!eventInfo->eventType(xAOD::EventInfo::IS_SIMULATION ) ){
     ATH_MSG_DEBUG( "DATA. Will stop processing this algorithm for the current event.");
     return StatusCode::SUCCESS;
-    }*/
+  }
 
-  //  some more event-level information
-  //int datasetID =  eventInfo->mcChannelNumber();
-  //double eventWeight = eventInfo->mcEventWeight() ;
+  runnumber = eventInfo->runNumber();
+  eventnumber = eventInfo->eventNumber();
+  mcchannel = eventInfo->mcChannelNumber();
+  mcweight = eventInfo->mcEventWeight();
+
 
   //---------------------------
   // Truth stuff
@@ -217,6 +233,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
   std::vector<TLorentzVector> bjets_matched;
   std::vector<int> matched_index;
 
+  v_jet_n->push_back(jets->size()); //todo: issues with mismatching counts if no jets with pt>25 and eta<2.5
+
   for ( const auto* jet : *jets ) {
 
     if( (jet->pt() > 20000) && (fabs( jet->eta() ) < 2.5) ){
@@ -224,6 +242,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_pt->push_back(jet->pt());
       v_jet_eta->push_back(jet->eta());
       v_jet_phi->push_back(jet->phi());
+      v_jet_E->push_back(jet->e());
+      v_jet_m->push_back(jet->m());
       
       // Get flavour truth label
       int thisJetTruthLabel;
@@ -232,16 +252,20 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
       // Get b-tag object
       const xAOD::BTagging* bjet = jet->btagging();
+
+      // IP2D
       v_jet_ip2d_pb->push_back(bjet->IP2D_pb());
       v_jet_ip2d_pc->push_back(bjet->IP2D_pc());
       v_jet_ip2d_pu->push_back(bjet->IP2D_pu());
       v_jet_ip2d_llr->push_back(bjet->IP2D_loglikelihoodratio());
 
+      // IP3D
       v_jet_ip3d_pb->push_back(bjet->IP3D_pb());
       v_jet_ip3d_pc->push_back(bjet->IP3D_pc());
       v_jet_ip3d_pu->push_back(bjet->IP3D_pu());
       v_jet_ip3d_llr->push_back(bjet->IP3D_loglikelihoodratio());
 
+      // SV0
       v_jet_sv0_sig3d->push_back(bjet->SV0_significance3D());
       int sv0ntrkv;
       bjet->taggerInfo(sv0ntrkv, xAOD::SV0_NGTinSvx);
@@ -256,11 +280,13 @@ StatusCode btagIBLAnalysisAlg::execute() {
       bjet->taggerInfo(sv0n2t, xAOD::SV0_N2Tpair);
       v_jet_sv0_n2t->push_back(sv0n2t);
 
+      // SV1
       v_jet_sv1_pb->push_back(bjet->SV1_pb());
       v_jet_sv1_pc->push_back(bjet->SV1_pc());
       v_jet_sv1_pu->push_back(bjet->SV1_pu());
       v_jet_sv1_llr->push_back(bjet->SV1_loglikelihoodratio());
 
+      // JetFitter
       v_jet_jf_pb->push_back(bjet->JetFitter_pb());
       v_jet_jf_pc->push_back(bjet->JetFitter_pc());
       v_jet_jf_pu->push_back(bjet->JetFitter_pu());
@@ -286,12 +312,20 @@ StatusCode btagIBLAnalysisAlg::execute() {
       float jfsig3d;
       bjet->taggerInfo(jfsig3d, xAOD::JetFitter_significance3d);
       v_jet_jf_sig3d->push_back(jfsig3d);
+      int jfnvtx1t;
+      bjet->taggerInfo(jfnvtx1t, xAOD::JetFitter_nSingleTracks);
+      v_jet_jf_nvtx1t->push_back(jfnvtx1t);
+      int jfn2t;
+      bjet->taggerInfo(jfn2t, xAOD::JetFitter_N2Tpair);
+      v_jet_jf_n2t->push_back(jfn2t);
 
+      // JetFitterCombNN
       v_jet_jfcombnn_pb->push_back(bjet->JetFitterCombNN_pb());
       v_jet_jfcombnn_pc->push_back(bjet->JetFitterCombNN_pc());
       v_jet_jfcombnn_pu->push_back(bjet->JetFitterCombNN_pu());
       v_jet_jfcombnn_llr->push_back(bjet->JetFitterCombNN_loglikelihoodratio());
 
+      // Other
       v_jet_sv1ip3d_discr->push_back(bjet->SV1plusIP3D_discriminant());
       v_jet_mv1_discr->push_back(bjet->MV1_discriminant());
 
@@ -349,7 +383,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     // Get b-tag object and print out some things
     //const xAOD::BTagging* bjet = jet->btagging();
-    //std::cout << "IP3D: pb = " << bjet->IP3D_pb() << ", LL ratio = " << bjet->IP3D_loglikelihoodratio() << std::endl;
     //int ntrk;
     //std::cout << bjet->taggerInfo(ntrk,xAOD::IP3D_ntrk) << std::endl; // this currently always returns false
     //std::cout << ntrk << std::endl;
