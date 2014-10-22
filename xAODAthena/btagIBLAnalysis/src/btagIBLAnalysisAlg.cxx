@@ -11,7 +11,7 @@
 #include "xAODJet/JetContainer.h"
 #include "xAODTruth/TruthEventContainer.h"
 
-btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthAlgorithm( name, pSvcLocator ){
+btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthHistogramAlgorithm( name, pSvcLocator ){
 
   //declareProperty( "Property", m_nProperty ); //example property declaration
 
@@ -26,18 +26,85 @@ StatusCode btagIBLAnalysisAlg::initialize() {
 
   //ATH_CHECK( book( TH1F("hist_Lxy_denom", "Lxy", 200, 0.0, 100.0) ) );
   //ATH_CHECK( book( TH1F("hist_Lxy", "Lxy", 200, 0.0, 100.0) ) );
+  //ATH_CHECK( book( TH1F("hist_jet_pt_denom", "jetpT", 1000, 0.0, 1000.0) ) );
+  //ATH_CHECK( book( TH1F("hist_jet_pt", "jetpT", 1000, 0.0, 1000.0) ) );
 
   // define output file for ntuple, tree and branches
-  output = new TFile("outputntuple.root","recreate");
+  output = new TFile("flavntuple_110401_ttbar.root","recreate");
   tree = new TTree("bTag","bTag");
 
   tree->Branch("jet_pt",&v_jet_pt);
   tree->Branch("jet_eta",&v_jet_eta);
   tree->Branch("jet_phi",&v_jet_phi);
+  tree->Branch("jet_truthflav",&v_jet_truthflav);
+
+  tree->Branch("jet_ip3d_pb",&v_jet_ip3d_pb);
+  tree->Branch("jet_ip3d_pc",&v_jet_ip3d_pc);
+  tree->Branch("jet_ip3d_pu",&v_jet_ip3d_pu);
+  tree->Branch("jet_ip3d_llr",&v_jet_ip3d_llr);
+
+  tree->Branch("jet_sv1_pb",&v_jet_sv1_pb);
+  tree->Branch("jet_sv1_pc",&v_jet_sv1_pc);
+  tree->Branch("jet_sv1_pu",&v_jet_sv1_pu);
+  tree->Branch("jet_sv1_llr",&v_jet_sv1_llr);
+
+  tree->Branch("jet_jf_pb",&v_jet_jf_pb);
+  tree->Branch("jet_jf_pc",&v_jet_jf_pc);
+  tree->Branch("jet_jf_pu",&v_jet_jf_pu);
+  tree->Branch("jet_jf_llr",&v_jet_jf_llr);
+
+  tree->Branch("jet_jfcombnn_pb",&v_jet_jfcombnn_pb);
+  tree->Branch("jet_jfcombnn_pc",&v_jet_jfcombnn_pc);
+  tree->Branch("jet_jfcombnn_pu",&v_jet_jfcombnn_pu);
+  tree->Branch("jet_jfcombnn_llr",&v_jet_jfcombnn_llr);
+
+  tree->Branch("jet_sv1ip3d_discr",&v_jet_sv1ip3d_discr);
+  tree->Branch("jet_mv1_discr",&v_jet_mv1_discr);
+
+  tree->Branch("bH_pt",&v_bH_pt);
+  tree->Branch("bH_eta",&v_bH_eta);
+  tree->Branch("bH_phi",&v_bH_phi);
+  tree->Branch("bH_Lxy",&v_bH_Lxy);
+  //tree->Branch("jet_Lxy_denom",&v_jet_Lxy_denom);
 
   v_jet_pt->clear();
   v_jet_eta->clear();
   v_jet_phi->clear();
+  v_jet_truthflav->clear();
+
+  v_jet_ip3d_pb->clear();
+  v_jet_ip3d_pc->clear();
+  v_jet_ip3d_pu->clear();
+  v_jet_ip3d_llr->clear();
+
+  v_jet_ip3d_pb->clear();
+  v_jet_ip3d_pc->clear();
+  v_jet_ip3d_pu->clear();
+  v_jet_ip3d_llr->clear();
+
+  v_jet_sv1_pb->clear();
+  v_jet_sv1_pc->clear();
+  v_jet_sv1_pu->clear();
+  v_jet_sv1_llr->clear();
+
+  v_jet_jf_pb->clear();
+  v_jet_jf_pc->clear();
+  v_jet_jf_pu->clear();
+  v_jet_jf_llr->clear();
+
+  v_jet_jfcombnn_pb->clear();
+  v_jet_jfcombnn_pc->clear();
+  v_jet_jfcombnn_pu->clear();
+  v_jet_jfcombnn_llr->clear();
+
+  v_jet_sv1ip3d_discr->clear();
+  v_jet_mv1_discr->clear();
+
+  v_bH_pt->clear();
+  v_bH_eta->clear();
+  v_bH_phi->clear();
+  v_bH_Lxy->clear();
+  //v_jet_Lxy_denom->clear();
 
   return StatusCode::SUCCESS;
 }
@@ -117,60 +184,94 @@ StatusCode btagIBLAnalysisAlg::execute() {
   std::vector<int> matched_index;
 
   for ( const auto* jet : *jets ) {
-    
-    v_jet_pt->push_back(jet->pt());
-    v_jet_eta->push_back(jet->eta());
-    v_jet_phi->push_back(jet->phi());
 
-    if(jet->pt() > 25000 && fabs( jet->eta() ) < 2.5){
+    if( (jet->pt() > 20000) && (fabs( jet->eta() ) < 2.5) ){
 
-      // still need to figure out how to compute official Lxy for denominator since here haven't truth matched yet 
-      //float Lxy_denom = sqrt( pow( event->jet_AntiKt4LCTopo[i].flavor_truth_vx_x(),2)+ pow( event->jet_AntiKt4LCTopo[i].flavor_truth_vx_y(),2) );
-      //hist("hist_Lxy_denom")->Fill(Lxy_denom, 1.0);
-
-      // get b-tag object
-      const xAOD::BTagging* bjet = jet->btagging();
-      //std::cout << "MV1 = " << bjet->MV1_discriminant() << std::endl;
-      if(bjet->MV1_discriminant() > 0.983){
+      v_jet_pt->push_back(jet->pt());
+      v_jet_eta->push_back(jet->eta());
+      v_jet_phi->push_back(jet->phi());
       
-	TLorentzVector reco_bjet;
-	reco_bjet.SetPtEtaPhiM(jet->pt(), jet->eta(), jet->phi(), jet->m());
-	bjets.push_back( reco_bjet );
-	
-	float dR = 100000;
-	int k = 0;
-	for (unsigned int j = 0; j < truth_bhadrons.size(); j++){
-	  float dR_tmp = reco_bjet.DeltaR(truth_bhadrons.at(j).first);
-	  if(dR_tmp < 0.3){
-	    if(dR > dR_tmp){
-	      dR = dR_tmp;
-	      k = truth_bhadrons.at(j).second;
-	    }
-	  }
-	}
-	
-	if(dR < 0.3){
-	  //std::cout << "bjet matched to a B hadron with delta R = " << dR << std::endl;
-	  bjets_matched.push_back( reco_bjet );
-	  matched_index.push_back(k);
-	  //h_bjet_pt->Fill(reco_bjet.Pt()/1000);
-	  
-	  // now figure out transverse decay length (N.B. make some plots here for all bjets and only those truth matched)
-	  for ( const auto* truth : *xTruthEventContainer ) {
-	    const xAOD::TruthVertex* thisvtx = (truth->truthParticle(k))->decayVtx();
-	    float myLxy = sqrt( pow(thisvtx->x(),2)+ pow(thisvtx->y(),2) );
-	    //std::cout << " myLxy = " << myLxy << std::endl;
-	    //hist("hist_Lxy")->Fill(myLxy, 1.0);
+      // Get flavour truth label
+      int thisJetTruthLabel;
+      jet->getAttribute("TruthLabelID",thisJetTruthLabel);
+      v_jet_truthflav->push_back(thisJetTruthLabel);
+
+      // Get b-tag object
+      const xAOD::BTagging* bjet = jet->btagging();
+      v_jet_ip3d_pb->push_back(bjet->IP3D_pb());
+      v_jet_ip3d_pc->push_back(bjet->IP3D_pc());
+      v_jet_ip3d_pu->push_back(bjet->IP3D_pu());
+      v_jet_ip3d_llr->push_back(bjet->IP3D_loglikelihoodratio());
+
+      v_jet_sv1_pb->push_back(bjet->SV1_pb());
+      v_jet_sv1_pc->push_back(bjet->SV1_pc());
+      v_jet_sv1_pu->push_back(bjet->SV1_pu());
+      v_jet_sv1_llr->push_back(bjet->SV1_loglikelihoodratio());
+
+      v_jet_jf_pb->push_back(bjet->JetFitter_pb());
+      v_jet_jf_pc->push_back(bjet->JetFitter_pc());
+      v_jet_jf_pu->push_back(bjet->JetFitter_pu());
+      v_jet_jf_llr->push_back(bjet->JetFitter_loglikelihoodratio());
+
+      v_jet_jfcombnn_pb->push_back(bjet->JetFitterCombNN_pb());
+      v_jet_jfcombnn_pc->push_back(bjet->JetFitterCombNN_pc());
+      v_jet_jfcombnn_pu->push_back(bjet->JetFitterCombNN_pu());
+      v_jet_jfcombnn_llr->push_back(bjet->JetFitterCombNN_loglikelihoodratio());
+
+      v_jet_sv1ip3d_discr->push_back(bjet->SV1plusIP3D_discriminant());
+      v_jet_mv1_discr->push_back(bjet->MV1_discriminant());
+
+
+      // matching      
+      TLorentzVector reco_bjet;
+      reco_bjet.SetPtEtaPhiM(jet->pt(), jet->eta(), jet->phi(), jet->m());
+      bjets.push_back( reco_bjet );
+      
+      float dR = 100000;
+      int k = 0;
+      for (unsigned int j = 0; j < truth_bhadrons.size(); j++){
+	float dR_tmp = reco_bjet.DeltaR(truth_bhadrons.at(j).first);
+	if(dR_tmp < 0.3){
+	  if(dR > dR_tmp){
+	    dR = dR_tmp;
+	    k = truth_bhadrons.at(j).second;
 	  }
 	}
       }
+      
+      if(dR < 0.3 && thisJetTruthLabel == 5){
+	//std::cout << "bjet matched to a B hadron with delta R = " << dR << std::endl;
+	bjets_matched.push_back( reco_bjet );
+	matched_index.push_back(k);
+	//h_bjet_pt->Fill(reco_bjet.Pt()/1000);
+	
+	// now figure out transverse decay length (N.B. make some plots here for all bjets and only those truth matched)
+	for ( const auto* truth : *xTruthEventContainer ) {
+	  const xAOD::TruthVertex* thisvtx = (truth->truthParticle(k))->decayVtx();
+	  float myLxy = sqrt( pow(thisvtx->x(),2)+ pow(thisvtx->y(),2) );
+	  //std::cout << " myLxy = " << myLxy << std::endl;
+	  //hist("hist_Lxy_denom")->Fill(myLxy, 1.0);
+	  //hist("hist_jet_pt_denom")->Fill(jet->pt()/1000., 1.0);
+	  //v_jet_Lxy_denom->push_back(myLxy);
+	  //if(bjet->MV1_discriminant() > 0.983){
+	  v_bH_pt->push_back(truth->truthParticle(k)->pt());
+	  v_bH_eta->push_back(truth->truthParticle(k)->eta());
+	  v_bH_phi->push_back(truth->truthParticle(k)->phi());
+	  v_bH_Lxy->push_back(myLxy);
+	    //hist("hist_Lxy")->Fill(myLxy, 1.0);
+	    //hist("hist_jet_pt")->Fill(jet->pt()/1000., 1.0);
+	  //}
+	}
+      }
+      else{
+	v_bH_pt->push_back(-999);
+	v_bH_eta->push_back(-999);
+	v_bH_phi->push_back(-999);
+	v_bH_Lxy->push_back(-999);
+	//std::cout << "this happened" << std::endl;
+      }
     }
 
-    
-    // Get flavour truth label
-    //int thisJetTruthLabel;
-    //jet->getAttribute("TruthLabelID",thisJetTruthLabel);
-    //ATH_MSG_DEBUG( "  truth label = " << thisJetTruthLabel );
 
     // Get b-tag object and print out some things
     //const xAOD::BTagging* bjet = jet->btagging();
