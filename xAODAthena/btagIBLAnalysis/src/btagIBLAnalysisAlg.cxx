@@ -13,6 +13,9 @@
 
 btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthHistogramAlgorithm( name, pSvcLocator ){
 
+  output = new TFile("flavntuple_110401_ttbar.root","recreate");
+  tree = new TTree("bTag","bTag");
+
   //declareProperty( "Property", m_nProperty ); //example property declaration
 
 }
@@ -30,18 +33,29 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   //ATH_CHECK( book( TH1F("hist_jet_pt", "jetpT", 1000, 0.0, 1000.0) ) );
 
   // define output file for ntuple, tree and branches
-  output = new TFile("flavntuple_110401_ttbar.root","recreate");
-  tree = new TTree("bTag","bTag");
+  //output = new TFile("flavntuple_110401_ttbar.root","recreate");
+  //tree = new TTree("bTag","bTag");
 
   tree->Branch("jet_pt",&v_jet_pt);
   tree->Branch("jet_eta",&v_jet_eta);
   tree->Branch("jet_phi",&v_jet_phi);
   tree->Branch("jet_truthflav",&v_jet_truthflav);
 
+  tree->Branch("jet_ip2d_pb",&v_jet_ip2d_pb);
+  tree->Branch("jet_ip2d_pc",&v_jet_ip2d_pc);
+  tree->Branch("jet_ip2d_pu",&v_jet_ip2d_pu);
+  tree->Branch("jet_ip2d_llr",&v_jet_ip2d_llr);
+
   tree->Branch("jet_ip3d_pb",&v_jet_ip3d_pb);
   tree->Branch("jet_ip3d_pc",&v_jet_ip3d_pc);
   tree->Branch("jet_ip3d_pu",&v_jet_ip3d_pu);
   tree->Branch("jet_ip3d_llr",&v_jet_ip3d_llr);
+
+  tree->Branch("jet_sv0_sig3d",&v_jet_sv0_sig3d);
+  tree->Branch("jet_sv0_ntrkv",&v_jet_sv0_ntrkv);
+  tree->Branch("jet_sv0_m",&v_jet_sv0_m);
+  tree->Branch("jet_sv0_efc",&v_jet_sv0_efc);
+  tree->Branch("jet_sv0_n2t",&v_jet_sv0_n2t);
 
   tree->Branch("jet_sv1_pb",&v_jet_sv1_pb);
   tree->Branch("jet_sv1_pc",&v_jet_sv1_pc);
@@ -52,6 +66,13 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_jf_pc",&v_jet_jf_pc);
   tree->Branch("jet_jf_pu",&v_jet_jf_pu);
   tree->Branch("jet_jf_llr",&v_jet_jf_llr);
+  tree->Branch("jet_jf_m",&v_jet_jf_m);
+  tree->Branch("jet_jf_efc",&v_jet_jf_efc);
+  tree->Branch("jet_jf_deta",&v_jet_jf_deta);
+  tree->Branch("jet_jf_dphi",&v_jet_jf_dphi);
+  tree->Branch("jet_jf_ntrkAtVx",&v_jet_jf_ntrkAtVx);
+  tree->Branch("jet_jf_nvtx",&v_jet_jf_nvtx);
+  tree->Branch("jet_jf_sig3d",&v_jet_jf_sig3d);
 
   tree->Branch("jet_jfcombnn_pb",&v_jet_jfcombnn_pb);
   tree->Branch("jet_jfcombnn_pc",&v_jet_jfcombnn_pc);
@@ -72,15 +93,21 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_phi->clear();
   v_jet_truthflav->clear();
 
-  v_jet_ip3d_pb->clear();
-  v_jet_ip3d_pc->clear();
-  v_jet_ip3d_pu->clear();
-  v_jet_ip3d_llr->clear();
+  v_jet_ip2d_pb->clear();
+  v_jet_ip2d_pc->clear();
+  v_jet_ip2d_pu->clear();
+  v_jet_ip2d_llr->clear();
 
   v_jet_ip3d_pb->clear();
   v_jet_ip3d_pc->clear();
   v_jet_ip3d_pu->clear();
   v_jet_ip3d_llr->clear();
+
+  v_jet_sv0_sig3d->clear();
+  v_jet_sv0_ntrkv->clear();
+  v_jet_sv0_m->clear();
+  v_jet_sv0_efc->clear();
+  v_jet_sv0_n2t->clear();
 
   v_jet_sv1_pb->clear();
   v_jet_sv1_pc->clear();
@@ -91,6 +118,13 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_jf_pc->clear();
   v_jet_jf_pu->clear();
   v_jet_jf_llr->clear();
+  v_jet_jf_m->clear();
+  v_jet_jf_efc->clear();
+  v_jet_jf_deta->clear();
+  v_jet_jf_dphi->clear();
+  v_jet_jf_ntrkAtVx->clear();
+  v_jet_jf_nvtx->clear();
+  v_jet_jf_sig3d->clear();
 
   v_jet_jfcombnn_pb->clear();
   v_jet_jfcombnn_pc->clear();
@@ -198,10 +232,29 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
       // Get b-tag object
       const xAOD::BTagging* bjet = jet->btagging();
+      v_jet_ip2d_pb->push_back(bjet->IP2D_pb());
+      v_jet_ip2d_pc->push_back(bjet->IP2D_pc());
+      v_jet_ip2d_pu->push_back(bjet->IP2D_pu());
+      v_jet_ip2d_llr->push_back(bjet->IP2D_loglikelihoodratio());
+
       v_jet_ip3d_pb->push_back(bjet->IP3D_pb());
       v_jet_ip3d_pc->push_back(bjet->IP3D_pc());
       v_jet_ip3d_pu->push_back(bjet->IP3D_pu());
       v_jet_ip3d_llr->push_back(bjet->IP3D_loglikelihoodratio());
+
+      v_jet_sv0_sig3d->push_back(bjet->SV0_significance3D());
+      int sv0ntrkv;
+      bjet->taggerInfo(sv0ntrkv, xAOD::SV0_NGTinSvx);
+      v_jet_sv0_ntrkv->push_back(sv0ntrkv);
+      float sv0m;
+      bjet->taggerInfo(sv0m, xAOD::SV0_masssvx);
+      v_jet_sv0_m->push_back(sv0m);
+      float sv0efc;
+      bjet->taggerInfo(sv0efc, xAOD::SV0_efracsvx);
+      v_jet_sv0_efc->push_back(sv0efc);
+      int sv0n2t;
+      bjet->taggerInfo(sv0n2t, xAOD::SV0_N2Tpair);
+      v_jet_sv0_n2t->push_back(sv0n2t);
 
       v_jet_sv1_pb->push_back(bjet->SV1_pb());
       v_jet_sv1_pc->push_back(bjet->SV1_pc());
@@ -212,6 +265,27 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_jf_pc->push_back(bjet->JetFitter_pc());
       v_jet_jf_pu->push_back(bjet->JetFitter_pu());
       v_jet_jf_llr->push_back(bjet->JetFitter_loglikelihoodratio());
+      float jfm;
+      bjet->taggerInfo(jfm, xAOD::JetFitter_mass);
+      v_jet_jf_m->push_back(jfm);
+      float jfefc;
+      bjet->taggerInfo(jfefc, xAOD::JetFitter_energyFraction);
+      v_jet_jf_efc->push_back(jfefc);
+      float jfdeta;
+      bjet->taggerInfo(jfdeta, xAOD::JetFitter_deltaeta);
+      v_jet_jf_deta->push_back(jfdeta);
+      float jfdphi;
+      bjet->taggerInfo(jfdphi, xAOD::JetFitter_deltaphi);
+      v_jet_jf_dphi->push_back(jfdphi);
+      int jfntrkAtVx;
+      bjet->taggerInfo(jfntrkAtVx, xAOD::JetFitter_nTracksAtVtx);
+      v_jet_jf_ntrkAtVx->push_back(jfntrkAtVx);
+      int jfnvtx;
+      bjet->taggerInfo(jfnvtx, xAOD::JetFitter_nVTX);
+      v_jet_jf_nvtx->push_back(jfnvtx);
+      float jfsig3d;
+      bjet->taggerInfo(jfsig3d, xAOD::JetFitter_significance3d);
+      v_jet_jf_sig3d->push_back(jfsig3d);
 
       v_jet_jfcombnn_pb->push_back(bjet->JetFitterCombNN_pb());
       v_jet_jfcombnn_pc->push_back(bjet->JetFitterCombNN_pc());
