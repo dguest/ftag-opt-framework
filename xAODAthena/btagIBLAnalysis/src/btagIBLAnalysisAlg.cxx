@@ -11,12 +11,15 @@
 #include "xAODJet/JetContainer.h"
 #include "xAODTruth/TruthEventContainer.h"
 
-btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthHistogramAlgorithm( name, pSvcLocator ){
+#include "JetInterface/IJetSelector.h"
+
+
+btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthHistogramAlgorithm( name, pSvcLocator ),  m_jetCleaningTool("JetCleaningTool/JetCleaningTool",this) {
 
   output = new TFile("flavntuple_110401_ttbar.root","recreate");
   tree = new TTree("bTag","bTag");
 
-  //declareProperty( "Property", m_nProperty ); //example property declaration
+  declareProperty( "JetCleaningTool", m_jetCleaningTool );
 
 }
 
@@ -36,11 +39,16 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   //output = new TFile("flavntuple_110401_ttbar.root","recreate");
   //tree = new TTree("bTag","bTag");
 
+  // Retrieve the jet cleaning tool
+  CHECK( m_jetCleaningTool.retrieve() );
+
   tree->Branch("runnb",&runnumber);
   tree->Branch("eventnb",&eventnumber);
   tree->Branch("mcchan",&mcchannel);
   tree->Branch("mcwg",&mcweight);
 
+  tree->Branch("njets",&njets);
+  tree->Branch("nbjets",&nbjets);
   tree->Branch("jet_pt",&v_jet_pt);
   tree->Branch("jet_eta",&v_jet_eta);
   tree->Branch("jet_phi",&v_jet_phi);
@@ -89,8 +97,13 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_jfcombnn_pu",&v_jet_jfcombnn_pu);
   tree->Branch("jet_jfcombnn_llr",&v_jet_jfcombnn_llr);
 
-  tree->Branch("jet_sv1ip3d_discr",&v_jet_sv1ip3d_discr);
-  tree->Branch("jet_mv1_discr",&v_jet_mv1_discr);
+  tree->Branch("jet_sv1ip3d",&v_jet_sv1ip3d);
+  tree->Branch("jet_mv1",&v_jet_mv1);
+  tree->Branch("jet_mv1c",&v_jet_mv1c);
+  tree->Branch("jet_mv2c00",&v_jet_mv2c00);
+  tree->Branch("jet_mv2c10",&v_jet_mv2c10);
+  tree->Branch("jet_mv2c20",&v_jet_mv2c20);
+  tree->Branch("jet_mvb",&v_jet_mvb);
 
   tree->Branch("bH_pt",&v_bH_pt);
   tree->Branch("bH_eta",&v_bH_eta);
@@ -146,8 +159,13 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_jfcombnn_pu->clear();
   v_jet_jfcombnn_llr->clear();
 
-  v_jet_sv1ip3d_discr->clear();
-  v_jet_mv1_discr->clear();
+  v_jet_sv1ip3d->clear();
+  v_jet_mv1->clear();
+  v_jet_mv1c->clear();
+  v_jet_mv2c00->clear();
+  v_jet_mv2c10->clear();
+  v_jet_mv2c20->clear();
+  v_jet_mvb->clear();
 
   v_bH_pt->clear();
   v_bH_eta->clear();
@@ -166,11 +184,25 @@ StatusCode btagIBLAnalysisAlg::finalize() {
   tree->Write();
   output->Close();
 
+  // Clean up
+  CHECK( m_jetCleaningTool.release() );
+
   return StatusCode::SUCCESS;
 }
 
 StatusCode btagIBLAnalysisAlg::execute() {  
   ATH_MSG_DEBUG ("Executing " << name() << "...");
+
+  //---------------------------
+  // Jet cleaning
+  //--------------------------- 
+  const xAOD::JetContainer* jets = 0;
+  CHECK( evtStore()->retrieve( jets, "AntiKt4LCTopoJets") ); // what about BTagging_AntiKt4Truth?
+
+  for ( const auto* jet : *jets ) {
+    if( (!m_jetCleaningTool->keep( *jet )) && (jet->pt() > 20000) ) return StatusCode::SUCCESS;
+  }
+
 
   //---------------------------
   // Event information
@@ -224,21 +256,18 @@ StatusCode btagIBLAnalysisAlg::execute() {
   //---------------------------
   // Jets
   //--------------------------- 
-  const xAOD::JetContainer* jets = 0;
-  CHECK( evtStore()->retrieve( jets, "AntiKt4LCTopoJets") ); // what about BTagging_AntiKt4Truth?
-  //std::cout << "jet size = " << jets->size() << std::endl;
-  
   // find reconstructed b jets and see if there is a delta R match with a truth B hadron
   std::vector<TLorentzVector> bjets;
   std::vector<TLorentzVector> bjets_matched;
   std::vector<int> matched_index;
 
-  v_jet_n->push_back(jets->size()); //todo: issues with mismatching counts if no jets with pt>25 and eta<2.5
+  int numj = 0;
+  int numbj = 0;
 
   for ( const auto* jet : *jets ) {
 
     if( (jet->pt() > 20000) && (fabs( jet->eta() ) < 2.5) ){
-
+      numj++;
       v_jet_pt->push_back(jet->pt());
       v_jet_eta->push_back(jet->eta());
       v_jet_phi->push_back(jet->phi());
@@ -249,6 +278,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       int thisJetTruthLabel;
       jet->getAttribute("TruthLabelID",thisJetTruthLabel);
       v_jet_truthflav->push_back(thisJetTruthLabel);
+      if(thisJetTruthLabel == 5) numbj++;
 
       // Get b-tag object
       const xAOD::BTagging* bjet = jet->btagging();
@@ -326,9 +356,13 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_jfcombnn_llr->push_back(bjet->JetFitterCombNN_loglikelihoodratio());
 
       // Other
-      v_jet_sv1ip3d_discr->push_back(bjet->SV1plusIP3D_discriminant());
-      v_jet_mv1_discr->push_back(bjet->MV1_discriminant());
-
+      v_jet_sv1ip3d->push_back(bjet->SV1plusIP3D_discriminant());
+      v_jet_mv1->push_back(bjet->MV1_discriminant());
+      v_jet_mv1c->push_back(bjet->auxdata<double>("MV1c_discriminant"));
+      v_jet_mv2c00->push_back(bjet->auxdata<double>("MV2c00_discriminant"));
+      v_jet_mv2c10->push_back(bjet->auxdata<double>("MV2c10_discriminant"));
+      v_jet_mv2c20->push_back(bjet->auxdata<double>("MV2c20_discriminant"));
+      v_jet_mvb->push_back(bjet->auxdata<double>("MVb_discriminant"));
 
       // matching      
       TLorentzVector reco_bjet;
@@ -389,6 +423,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
   
   } // jet loop
+
+  njets = numj;
+  nbjets = numbj;
  
   tree->Fill();
 

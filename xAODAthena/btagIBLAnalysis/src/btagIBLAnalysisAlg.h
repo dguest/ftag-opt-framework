@@ -2,9 +2,13 @@
 #define BTAGIBLANALYSIS_BTAGIBLANALYSISALG_H 1
 
 #include "AthenaBaseComps/AthHistogramAlgorithm.h"
+#include "GaudiKernel/ToolHandle.h" 
 
 #include "TFile.h"
 #include "TTree.h"
+
+// forward declarations
+class IJetSelector;
 
 class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm { 
  public: 
@@ -15,10 +19,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   virtual StatusCode  execute();
   virtual StatusCode  finalize();
 
-
- private: 
-
-  bool isBHadron(int pdgid);
+  //JetCleaningTool *m_jetCleaning;
 
   TFile* output;
   TTree* tree;
@@ -31,6 +32,8 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   // to add: npv, mu
 
   // jet info
+  int njets;
+  int nbjets;
   std::vector<float> *v_jet_pt;
   std::vector<float> *v_jet_eta;
   std::vector<float> *v_jet_phi;
@@ -38,7 +41,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_jet_m;
   std::vector<int> *v_jet_n;
   std::vector<int> *v_jet_truthflav;
-  // to add: jet jvf, nbjet
+  // to add: jvf
 
 
   // IP2D
@@ -88,8 +91,13 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_jet_jfcombnn_llr;
 
   // Other
-  std::vector<double> *v_jet_sv1ip3d_discr;
-  std::vector<double> *v_jet_mv1_discr;
+  std::vector<double> *v_jet_sv1ip3d;
+  std::vector<double> *v_jet_mv1;
+  std::vector<double> *v_jet_mv1c;
+  std::vector<double> *v_jet_mv2c00;
+  std::vector<double> *v_jet_mv2c10;
+  std::vector<double> *v_jet_mv2c20;
+  std::vector<double> *v_jet_mvb;
 
   // B hadron
   std::vector<float> *v_bH_pt;
@@ -97,6 +105,14 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_bH_phi;
   std::vector<float> *v_bH_Lxy;
   //std::vector<float> *v_jet_Lxy_denom;
+
+ private: 
+
+  /// The tool handle to our jet cleaning tool
+  ToolHandle< IJetSelector > m_jetCleaningTool;
+
+  // determine whether particle is B hadron or not
+  bool isBHadron(int pdgid);
 
 }; 
 

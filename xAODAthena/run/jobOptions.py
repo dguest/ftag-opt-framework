@@ -13,7 +13,7 @@ svcMgr.EventSelector.InputCollections = [
     #foldername + "AOD.01598032._000097.pool.root.1",
     #foldername + "AOD.01598032._000151.pool.root.1",
     foldername + "AOD.01529511._000075.pool.root.1",
-    #foldername + "AOD.01529511._000109.pool.root.1",
+#foldername + "AOD.01529511._000109.pool.root.1",
     #foldername + "AOD.01529511._000112.pool.root.1",
     #foldername + "AOD.01529511._000183.pool.root.2",
     #foldername + "AOD.01529511._000226.pool.root.1",
@@ -62,7 +62,9 @@ algSeq = CfgMgr.AthSequencer("AthAlgSeq")
 # Add own algorithm
 # ====================================================================
 #algSeq += CfgMgr.btagIBLAnalysisAlg("MyTry", RootStreamName = streamName, RootDirName = "/Histograms", OutputLevel=INFO) #DEBUG
-algSeq += CfgMgr.btagIBLAnalysisAlg(OutputLevel=INFO) #DEBUG
+alg = CfgMgr.btagIBLAnalysisAlg(OutputLevel=INFO) #DEBUG
+alg.JetCleaningTool.CutLevel = "LooseBad" # options: "VeryLooseBad","LooseBad","MediumBad","TightBad"
+algSeq += alg
 # ====================================================================
 # Define an output root file for histograms
 # ====================================================================
