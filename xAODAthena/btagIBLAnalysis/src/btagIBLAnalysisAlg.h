@@ -19,8 +19,6 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   virtual StatusCode  execute();
   virtual StatusCode  finalize();
 
-  //JetCleaningTool *m_jetCleaning;
-
   TFile* output;
   TTree* tree;
 
@@ -105,6 +103,8 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_bH_phi;
   std::vector<float> *v_bH_Lxy;
   //std::vector<float> *v_jet_Lxy_denom;
+
+  void clearvectors();
 
  private: 
 

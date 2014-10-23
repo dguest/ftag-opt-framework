@@ -8,16 +8,13 @@
 #include "btagIBLAnalysisAlg.h"
 
 #include "xAODEventInfo/EventInfo.h"
-#include "xAODJet/JetContainer.h"
 #include "xAODTruth/TruthEventContainer.h"
+#include "xAODJet/JetContainer.h"
 
 #include "JetInterface/IJetSelector.h"
 
 
 btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthHistogramAlgorithm( name, pSvcLocator ),  m_jetCleaningTool("JetCleaningTool/JetCleaningTool",this) {
-
-  output = new TFile("flavntuple_110401_ttbar.root","recreate");
-  tree = new TTree("bTag","bTag");
 
   declareProperty( "JetCleaningTool", m_jetCleaningTool );
 
@@ -36,12 +33,13 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   //ATH_CHECK( book( TH1F("hist_jet_pt", "jetpT", 1000, 0.0, 1000.0) ) );
 
   // define output file for ntuple, tree and branches
-  //output = new TFile("flavntuple_110401_ttbar.root","recreate");
-  //tree = new TTree("bTag","bTag");
+  output = new TFile("flavntuple_110401_ttbar.root","recreate");
+  tree = new TTree("bTag","bTag");
 
   // Retrieve the jet cleaning tool
   CHECK( m_jetCleaningTool.retrieve() );
 
+  // setup branches
   tree->Branch("runnb",&runnumber);
   tree->Branch("eventnb",&eventnumber);
   tree->Branch("mcchan",&mcchannel);
@@ -111,67 +109,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("bH_Lxy",&v_bH_Lxy);
   //tree->Branch("jet_Lxy_denom",&v_jet_Lxy_denom);
 
-  v_jet_pt->clear();
-  v_jet_eta->clear();
-  v_jet_phi->clear();
-  v_jet_E->clear();
-  v_jet_m->clear();
-  v_jet_n->clear();
-  v_jet_truthflav->clear();
-
-  v_jet_ip2d_pb->clear();
-  v_jet_ip2d_pc->clear();
-  v_jet_ip2d_pu->clear();
-  v_jet_ip2d_llr->clear();
-
-  v_jet_ip3d_pb->clear();
-  v_jet_ip3d_pc->clear();
-  v_jet_ip3d_pu->clear();
-  v_jet_ip3d_llr->clear();
-
-  v_jet_sv0_sig3d->clear();
-  v_jet_sv0_ntrkv->clear();
-  v_jet_sv0_m->clear();
-  v_jet_sv0_efc->clear();
-  v_jet_sv0_n2t->clear();
-
-  v_jet_sv1_pb->clear();
-  v_jet_sv1_pc->clear();
-  v_jet_sv1_pu->clear();
-  v_jet_sv1_llr->clear();
-
-  v_jet_jf_pb->clear();
-  v_jet_jf_pc->clear();
-  v_jet_jf_pu->clear();
-  v_jet_jf_llr->clear();
-  v_jet_jf_m->clear();
-  v_jet_jf_efc->clear();
-  v_jet_jf_deta->clear();
-  v_jet_jf_dphi->clear();
-  v_jet_jf_ntrkAtVx->clear();
-  v_jet_jf_nvtx->clear();
-  v_jet_jf_sig3d->clear();
-  v_jet_jf_nvtx1t->clear();
-  v_jet_jf_n2t->clear();
-
-  v_jet_jfcombnn_pb->clear();
-  v_jet_jfcombnn_pc->clear();
-  v_jet_jfcombnn_pu->clear();
-  v_jet_jfcombnn_llr->clear();
-
-  v_jet_sv1ip3d->clear();
-  v_jet_mv1->clear();
-  v_jet_mv1c->clear();
-  v_jet_mv2c00->clear();
-  v_jet_mv2c10->clear();
-  v_jet_mv2c20->clear();
-  v_jet_mvb->clear();
-
-  v_bH_pt->clear();
-  v_bH_eta->clear();
-  v_bH_phi->clear();
-  v_bH_Lxy->clear();
-  //v_jet_Lxy_denom->clear();
+  clearvectors();
 
   return StatusCode::SUCCESS;
 }
@@ -192,6 +130,8 @@ StatusCode btagIBLAnalysisAlg::finalize() {
 
 StatusCode btagIBLAnalysisAlg::execute() {  
   ATH_MSG_DEBUG ("Executing " << name() << "...");
+
+  clearvectors();
 
   //---------------------------
   // Jet cleaning
@@ -273,7 +213,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_phi->push_back(jet->phi());
       v_jet_E->push_back(jet->e());
       v_jet_m->push_back(jet->m());
-      
+      //std::vector<float> testjvf = jet->auxdata<std::vector<float> >("JVF"); //todo: pick the right vertex
+
       // Get flavour truth label
       int thisJetTruthLabel;
       jet->getAttribute("TruthLabelID",thisJetTruthLabel);
@@ -456,5 +397,71 @@ bool btagIBLAnalysisAlg :: isBHadron(int pdgid){
   }
   //std::cout << "pdgid = " << pdgid << ", decision = " << isB << std::endl;
   return isB;
+}
+
+void btagIBLAnalysisAlg :: clearvectors(){
+
+ v_jet_pt->clear();
+  v_jet_eta->clear();
+  v_jet_phi->clear();
+  v_jet_E->clear();
+  v_jet_m->clear();
+  v_jet_n->clear();
+  v_jet_truthflav->clear();
+
+  v_jet_ip2d_pb->clear();
+  v_jet_ip2d_pc->clear();
+  v_jet_ip2d_pu->clear();
+  v_jet_ip2d_llr->clear();
+
+  v_jet_ip3d_pb->clear();
+  v_jet_ip3d_pc->clear();
+  v_jet_ip3d_pu->clear();
+  v_jet_ip3d_llr->clear();
+
+  v_jet_sv0_sig3d->clear();
+  v_jet_sv0_ntrkv->clear();
+  v_jet_sv0_m->clear();
+  v_jet_sv0_efc->clear();
+  v_jet_sv0_n2t->clear();
+
+  v_jet_sv1_pb->clear();
+  v_jet_sv1_pc->clear();
+  v_jet_sv1_pu->clear();
+  v_jet_sv1_llr->clear();
+
+  v_jet_jf_pb->clear();
+  v_jet_jf_pc->clear();
+  v_jet_jf_pu->clear();
+  v_jet_jf_llr->clear();
+  v_jet_jf_m->clear();
+  v_jet_jf_efc->clear();
+  v_jet_jf_deta->clear();
+  v_jet_jf_dphi->clear();
+  v_jet_jf_ntrkAtVx->clear();
+  v_jet_jf_nvtx->clear();
+  v_jet_jf_sig3d->clear();
+  v_jet_jf_nvtx1t->clear();
+  v_jet_jf_n2t->clear();
+
+  v_jet_jfcombnn_pb->clear();
+  v_jet_jfcombnn_pc->clear();
+  v_jet_jfcombnn_pu->clear();
+  v_jet_jfcombnn_llr->clear();
+
+  v_jet_sv1ip3d->clear();
+  v_jet_mv1->clear();
+  v_jet_mv1c->clear();
+  v_jet_mv2c00->clear();
+  v_jet_mv2c10->clear();
+  v_jet_mv2c20->clear();
+  v_jet_mvb->clear();
+
+  v_bH_pt->clear();
+  v_bH_eta->clear();
+  v_bH_phi->clear();
+  v_bH_Lxy->clear();
+  //v_jet_Lxy_denom->clear();
+
 }
 
