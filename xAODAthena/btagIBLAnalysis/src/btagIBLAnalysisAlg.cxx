@@ -64,7 +64,6 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_phi",&v_jet_phi);
   tree->Branch("jet_E",&v_jet_E);
   tree->Branch("jet_m",&v_jet_m);
-  tree->Branch("jet_n",&v_jet_n);
   tree->Branch("jet_truthflav"  ,&v_jet_truthflav);
   tree->Branch("jet_GhostL_q"   ,&v_jet_GhostL_q);
   tree->Branch("jet_GhostL_HadI",&v_jet_GhostL_HadI);
@@ -501,7 +500,6 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_phi->clear();
   v_jet_E->clear();
   v_jet_m->clear();
-  v_jet_n->clear();
   v_jet_truthflav->clear();
   v_jet_GhostL_q->clear();
   v_jet_GhostL_HadI->clear();

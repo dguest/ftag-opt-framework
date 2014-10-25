@@ -40,7 +40,6 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_jet_phi;
   std::vector<float> *v_jet_E;
   std::vector<float> *v_jet_m;
-  std::vector<int> *v_jet_n;   ///????
   std::vector<int> *v_jet_truthflav;
   std::vector<int> *v_jet_GhostL_q;
   std::vector<int> *v_jet_GhostL_HadI;
