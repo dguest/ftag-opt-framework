@@ -69,6 +69,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_GhostL_HadI",&v_jet_GhostL_HadI);
   tree->Branch("jet_GhostL_HadF",&v_jet_GhostL_HadF);
   tree->Branch("jet_truthMatch" ,&v_jet_truthMatch);
+  tree->Branch("jet_truthPt" ,&v_jet_truthPt);
   tree->Branch("jet_dRiso" ,&v_jet_dRiso);
 
   tree->Branch("jet_ip2d_pb",&v_jet_ip2d_pb);
@@ -263,17 +264,23 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_dRiso  ->push_back(dRiso);
 
     // matching reco jetc to truth jets
-    int matched=0;
+    int matchedPt=0;
+    float dRmatch=100;
     for ( const auto* tjet : *truthjets ) {
       float dr =deltaR(jet->eta(), tjet->eta(),
 		       jet->phi(), tjet->phi());
-      if (dr<0.4) {
-	matched=1;
-	break;
+      if (dr<dRmatch) {
+	dRmatch=dr;
+	matchedPt=tjet->pt();
       }
-    }      
-    v_jet_truthMatch  ->push_back(matched);
-    
+    }
+    if (dRmatch<0.3) {
+      v_jet_truthMatch->push_back(1);
+      v_jet_truthPt   ->push_back(matchedPt);
+    } else {
+      v_jet_truthMatch->push_back(0);
+      v_jet_truthPt   ->push_back(0);
+    }
 
     //std::vector<float> testjvf = jet->auxdata<std::vector<float> >("JVF"); //todo: pick the right vertex
     
@@ -508,8 +515,9 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_truthflav->clear();
   v_jet_GhostL_q->clear();
   v_jet_GhostL_HadI->clear();
-  v_jet_GhostL_HadF->clear();;
-  v_jet_truthMatch->clear();;
+  v_jet_GhostL_HadF->clear();
+  v_jet_truthMatch->clear();
+  v_jet_truthPt->clear();
   v_jet_dRiso->clear();;
 
   v_jet_ip2d_pb->clear();

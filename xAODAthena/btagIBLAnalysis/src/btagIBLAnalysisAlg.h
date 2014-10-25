@@ -45,6 +45,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<int> *v_jet_GhostL_HadI;
   std::vector<int> *v_jet_GhostL_HadF;
   std::vector<int> *v_jet_truthMatch;
+  std::vector<float> *v_jet_truthPt;
   std::vector<float> *v_jet_dRiso;
   // to add: jvf
 
