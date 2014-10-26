@@ -14,26 +14,33 @@ SetAtlasStyle()
 tmpVale=sys.argv
 def Helper():
     print " "
-    print " Usage: python PrintROC.py <outFolder>  <fileName> or <folderName>"
+    print " Usage: python PrintROC.py file1 file2 leg1 leg2 outfolder "
     print " "
     sys.exit(1)
-#if len(sys.argv) !=3: Helper()
+if len(sys.argv) !=6: Helper()
 
 #odir = sys.argv[1]
 #if ".root" in odir:
 #    print " ..... outputfolder is a file .... please correct"
 #    sys.exit(1)
 
-odir="outComp"
+odir= sys.argv[5]
 
 ########################################################################################
 #########################################################################################
 gSystem.Exec("mkdir -p "+odir)
 
 #infile1="14TeV/output.root"
-##infile2="8TeV/output.root"
-infile1="8TeV/output.root"
-infile2="test/output.root"
+##infile1="8TeV/output.root"
+#infile2="8TeVd3pd/output.root"
+#infile1="8TeV/output.root"
+#infile2="test/output.root"
+
+infile1=sys.argv[1]
+infile2=sys.argv[2]
+
+leg1=sys.argv[3]
+leg2=sys.argv[4]
 
 f1=TFile(infile1,"R")
 f2=TFile(infile2,"R")
@@ -70,9 +77,11 @@ myC.SetGridx()
 light.SetMinimum(1)
 light.SetMaximum(1e5)
 light.Draw()
-myLumi= "t#bar{t} simulation, 13 TeV"
-#myText(0.20,0.22,1,myLumi,0.05)
-legend4=TLegend(0.60,0.60,0.92,0.92)
+myLumi= "t#bar{t} simulation"
+myLumi2= "jet p_{T}>25 GeV, |#eta|<2.5"
+myText(0.20,0.24,1,myLumi,0.045)
+myText(0.20,0.19,1,myLumi2,0.045)
+legend4=TLegend(0.60,0.57,0.92,0.95)
 legend4.SetTextFont(42)
 legend4.SetTextSize(0.038)
 legend4.SetFillColor(0)
@@ -94,13 +103,36 @@ for tag in taggerList:
     curve2.SetLineWidth(3)
     curve.Draw("C")
     curve2.Draw("C")
-    legend4.AddEntry(curve ,tag.replace("_","+")+" rel19 13TeV","L")
-    legend4.AddEntry(curve2,tag.replace("_","+")+" rel17 8TeV","L")
+    legend4.AddEntry(curve ,tag.replace("_","+")+" "+leg1,"L")
+    legend4.AddEntry(curve2,tag.replace("_","+")+" "+leg2,"L")
+
+    myCx=TCanvas( "bVSl"+tag, "bVSl"+tag,900,900);
+    myCx.SetLogy()
+    myCx.SetGridy()
+    myCx.SetGridx()
+    light.Draw()
+    myText(0.20,0.24,1,myLumi,0.045)
+    myText(0.20,0.19,1,myLumi2,0.045)
+    curve.Draw("C")
+    curve2.Draw("C")
+    legend5=TLegend(0.60,0.80,0.92,0.90)
+    legend5.SetTextFont(42)
+    legend5.SetTextSize(0.038)
+    legend5.SetFillColor(0)
+    legend5.SetLineColor(0)
+    legend5.SetFillStyle(0)
+    legend5.SetBorderSize(0)
+    legend5.AddEntry(curve ,tag.replace("_","+")+" "+leg1,"L")
+    legend5.AddEntry(curve2,tag.replace("_","+")+" "+leg2,"L")
+    legend5.Draw("SAME")
+    myCx.Print(odir+"/bVSlight__"+tag+".eps")
     
 legend4.Draw()
 myC.Update()
-myC.Print(odir+"/bVSlight.eps")
+myC.Print(odir+"/bVSlightALL.eps")
 
+
+################################################################
 myC2=TCanvas( "cVSl", "cVSl",900,900);
 myC2.SetLogy()
 myC2.SetGridy()
@@ -108,6 +140,8 @@ myC2.SetGridx()
 cj.SetMinimum(1)
 cj.SetMaximum(1e3)
 cj.Draw()
+myText(0.20,0.24,1,myLumi,0.045)
+myText(0.20,0.19,1,myLumi2,0.045)
 count=1
 for tag in taggerList:
     f1.cd()
@@ -124,11 +158,31 @@ for tag in taggerList:
     curve2.SetLineWidth(3)
     curve.Draw("C")
     curve2.Draw("C")
- 
+    
+    myCx=TCanvas( "bVSc"+tag, "bVSc"+tag,900,900);
+    myCx.SetLogy()
+    myCx.SetGridy()
+    myCx.SetGridx()
+    cj.Draw()
+    myText(0.20,0.24,1,myLumi,0.045)
+    myText(0.20,0.19,1,myLumi2,0.045)
+    curve.Draw("C")
+    curve2.Draw("C")
+    legend5=TLegend(0.60,0.80,0.92,0.90)
+    legend5.SetTextFont(42)
+    legend5.SetTextSize(0.038)
+    legend5.SetFillColor(0)
+    legend5.SetLineColor(0)
+    legend5.SetFillStyle(0)
+    legend5.SetBorderSize(0)
+    legend5.AddEntry(curve ,tag.replace("_","+")+" "+leg1,"L")
+    legend5.AddEntry(curve2,tag.replace("_","+")+" "+leg2,"L")
+    legend5.Draw("SAME")
+    myCx.Print(odir+"/bVSc__"+tag+".eps")
 
 legend4.Draw()
 #myText(0.20,0.22,1,myLumi,0.05)
 myC2.Update()
-myC2.Print(odir+"/cVSlight.eps")
+myC2.Print(odir+"/bVScALL.eps")
 
 time.sleep(111111)
