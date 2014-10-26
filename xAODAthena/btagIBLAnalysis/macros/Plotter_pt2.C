@@ -69,6 +69,26 @@ string getCut(string tagger, bool a8TeV) {
   return "0";
 }
 
+string getVariable(string tagger, bool a8TeV) {
+  if (tagger=="MV1")    return "jet_mv1";
+  if (tagger=="MV1c")   return "jet_mv1c";
+  if (tagger=="MV2c00") return "jet_mv2c00";
+  if (tagger=="MV2c10") return "jet_mv2c10";
+  if (tagger=="MV2c20") return "jet_mv2c20";
+  if (tagger=="MVb")    return "jet_mvb";
+  if (tagger=="IP3D") {
+    if (isXAOD) return  "jet_ip3d_llr";
+    else       return  "jet_ip3d";
+  }
+  if (tagger=="IP3D+SV1") {
+    if (isXAOD) return  "jet_sv1ip3d";
+    else       return  "jet_ip3dsv1";
+  }
+  
+  cout << "NOT SUPPORTED!!! " << endl;
+  return "0";
+}
+
 
 
 TH1D* GetHisto(string varName, string cutBase, 
@@ -78,7 +98,7 @@ TH1D* GetHisto(string varName, string cutBase,
   
   /// this is over ultra stupid but I am in a rush and I don't manage to get it to work otherwise
   TString tmpName=varName+cutBase;
-  tmpName=tmpName.ReplaceAll(" ","").ReplaceAll("&","").ReplaceAll("(","").ReplaceAll(")","").ReplaceAll("=","").ReplaceAll(">","").ReplaceAll("<","").ReplaceAll("/1e3","").ReplaceAll(".","");
+  tmpName=tmpName.ReplaceAll(" ","").ReplaceAll("&","").ReplaceAll("(","").ReplaceAll(")","").ReplaceAll("=","").ReplaceAll(">","").ReplaceAll("<","").ReplaceAll("/1e3","").ReplaceAll(".","").ReplaceAll("+","");
   string theName=string(tmpName);
 
   TH1D* den  =new TH1D( theName.c_str(), theName.c_str(), nBin, Max, Min); den->Sumw2();
@@ -117,12 +137,13 @@ TH1D* GetHisto(string varName, string cutBase,
 TGraphAsymmErrors* GetEfficiency(string varName, 
 				 string cutBase, string effCut, 
 				 string varLabel,string yLabel, 
-				 int nBin, float Max, float Min) {
+				 int nBin, float Max, float Min, float &numC) {
   
   TH1D* num  =GetHisto(varName, cutBase+effCut, varLabel, "num", nBin, Max, Min);
   TH1D* den  =GetHisto(varName, cutBase, varLabel, "num", nBin, Max, Min);
   cout << " num: " << num->Integral() << " , den: " << den->Integral() << endl;
-  
+  numC=num->Integral();
+
   TGraphAsymmErrors* graphHisto= new TGraphAsymmErrors(num,den);
   graphHisto->SetLineWidth(3);
   graphHisto->SetLineColor(2);
@@ -139,6 +160,8 @@ void GetComparison(string file1, string cutBase, string effCut,
 		   string varName, string varLabel,string yLabel, 
 		   int nBin, float Max, float Min) {
   TCanvas* can=new TCanvas( (varLabel+"  "+yLabel).c_str(), (varLabel+"  "+yLabel).c_str(), 800, 600);
+  
+  float numC;
   
   string tmpVarName=varName;
   if (!isXAOD) {
@@ -159,7 +182,7 @@ void GetComparison(string file1, string cutBase, string effCut,
   TGraphAsymmErrors* gra1=GetEfficiency( varName, 
 					 (cutBase+Cut1+" ").c_str(),  effCut, 
 					 varLabel, yLabel,
-					 nBin, Max, Min);
+					 nBin, Max, Min, numC);
   gra1->SetLineColor(2);
   gra1->SetMarkerColor(2);
   gra1->Draw("P");
@@ -168,7 +191,7 @@ void GetComparison(string file1, string cutBase, string effCut,
   TGraphAsymmErrors* gra1b=GetEfficiency( varName, 
 					  (cutBase+Cut1+" && bH_Lxy>33").c_str(),  effCut, 
 					  varLabel, yLabel,
-					  nBin, Max, Min);
+					  nBin, Max, Min, numC);
   gra1b->SetLineColor(6);
   gra1b->SetMarkerColor(6);
   gra1b->Draw("P");
@@ -176,7 +199,7 @@ void GetComparison(string file1, string cutBase, string effCut,
   TGraphAsymmErrors* gra2=GetEfficiency( varName, 
 					 (cutBase+Cut2), effCut, 
 					 varLabel, yLabel,
-					 nBin, Max, Min);
+					 nBin, Max, Min, numC);
   gra2->SetLineColor(8);
   gra2->SetMarkerColor(8);
   gra2->Draw("P");
@@ -184,7 +207,7 @@ void GetComparison(string file1, string cutBase, string effCut,
   TGraphAsymmErrors* gra3=GetEfficiency( varName, 
 					 cutBase+Cut3, effCut, 
 					 varLabel, yLabel,
-					 nBin, Max, Min);
+					 nBin, Max, Min, numC);
   gra3->SetLineColor(4);
   gra3->SetMarkerColor(4);
   gra3->Draw("P");
@@ -229,28 +252,31 @@ void GetComparison(string file1, string cutBase, string effCut,
  
   varName=tmpVarName;
   TString varToPrint="Eff__"+varName+"__"+yLabel+".eps";
-  varToPrint=varToPrint.ReplaceAll("/1e3","").ReplaceAll("abs(","").ReplaceAll(")","").ReplaceAll("=","").ReplaceAll(">","_").ReplaceAll("eff.","").ReplaceAll("%","").ReplaceAll("@","_").ReplaceAll(" ","");
+  varToPrint=varToPrint.ReplaceAll("/1e3","").ReplaceAll("abs(","").ReplaceAll(")","").ReplaceAll("=","").ReplaceAll(">","_").ReplaceAll("eff.","").ReplaceAll("%","").ReplaceAll("@","_").ReplaceAll(" ","").ReplaceAll("+","");
   
   outF->cd();
   TString baseName="Base__"+varName;
-  baseName= baseName.ReplaceAll("/1e3","").ReplaceAll("abs(","").ReplaceAll(")","").ReplaceAll("=","").ReplaceAll(">","_").ReplaceAll("eff.","").ReplaceAll("%","").ReplaceAll("@","_").ReplaceAll(" ","");
+  baseName= baseName.ReplaceAll("/1e3","").ReplaceAll("abs(","").ReplaceAll(")","").ReplaceAll("=","").ReplaceAll(">","_").ReplaceAll("eff.","").ReplaceAll("%","").ReplaceAll("@","_").ReplaceAll(" ","").ReplaceAll("+","");
+  
   TString plotName= varToPrint.ReplaceAll(".eps","");
-  outF->WriteObject(mainH,baseName);
+  if (numC!=0) outF->WriteObject(mainH,baseName);
 
   TString bEff="Eff_b__"+plotName;
   TString cEff="Eff_c__"+plotName;
   TString lEff="Eff_l__"+plotName;
+  if (numC!=0) {
   gra1->SetName(bEff);
   gra1->Write();
   gra2->SetName(cEff);
   gra2->Write();
   gra3->SetName(lEff);
   gra3->Write();
+  }
   //outF->WriteObject(gra1,bEff);
   //outF->WriteObject(gra2,cEff);
   //outF->WriteObject(gra3,lEff);
   
-  varToPrint=outputFolde+"/"+varToPrint;
+  varToPrint=outputFolder+"/"+varToPrint+".eps";
   can->Print( varToPrint );
 }
 
@@ -330,22 +356,9 @@ void GetComparisonSimple(string file1, string cutBase,
   can->Print( varToPrint );
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Plotter_pt2(const char* infile,
-		 const char* outfolder) {
-  gStyle->SetOptStat(0);
-  SetAtlasStyle();
-  
-  outputFolder=outfolder;
-  if (outputFolder.find("8TeV")!=string::npos) is8TeV=true;
-  if (outputFolder.find("XAOD")!=string::npos) isXAOD=true;
-  
-  outF=new TFile( (outputFolder+"/effPlots.root").c_str(),"RECREATE");
-  cout << "Created file: " << outF->GetName() << endl;
-
-  string file1=infile;
-  gSystem->Exec( ("mkdir -p "+outputFolder).c_str());
+void PrintTagger(string tagger, string file1)  {
+  /// even more ugly
   
   string CutBase="";
   if (isXAOD) CutBase=" abs(jet_eta)<2.5 && jet_truthPt>25e3 && jet_truthMatch==1 ";
@@ -363,16 +376,54 @@ void Plotter_pt2(const char* infile,
     Cut2=" && jet_trueFlav==4 "; 
     Cut3=" && (jet_trueFlav!=4 && jet_trueFlav!=5 && jet_trueFlav!=15) "; 
   }
-  string yLabel="";
   
+  // MV1: quite detailed info
+  string yLabel=tagger+"@70% eff.";
+  string effCut=" && "+getVariable(tagger, is8TeV)+">"+getCut(tagger, is8TeV)+" ";
+  GetComparison(file1,CutBase, effCut,
+		Cut1, Cut2, Cut3,
+	        "bH_Lxy", "b-hadron transverse decay length (mm)", yLabel,  
+		20,  0, 100);
+  GetComparison(file1,CutBase, effCut,
+		Cut1, Cut2, Cut3,
+	        "jet_truthPt/1e3", "jet p_{T} (GeV)", yLabel,  
+		20,  25, 500);
+
+  GetComparison(file1,CutBase, effCut,
+		Cut1, Cut2, Cut3,
+	        "abs(jet_eta)", "jet #eta", yLabel,  
+		25, 0, 2.5);
+}
+  
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Plotter_pt2(const char* infile,
+		 const char* outfolder) {
+  gStyle->SetOptStat(0);
+  SetAtlasStyle();
+  
+  outputFolder=outfolder;
+  if (outputFolder.find("8TeV")!=string::npos) is8TeV=true;
+  if (outputFolder.find("XAOD")!=string::npos) isXAOD=true;
+  
+  outF=new TFile( (outputFolder+"/effPlots.root").c_str(),"RECREATE");
+  cout << "Created file: " << outF->GetName() << endl;
+
+  string file1=infile;
+  gSystem->Exec( ("mkdir -p "+outputFolder).c_str());
+
+  PrintTagger("MV1",file1);
+  PrintTagger("MV1c",file1);
+  PrintTagger("MV2c00",file1);
+  PrintTagger("MV2c10",file1);
+  PrintTagger("MV2c20",file1);
+  PrintTagger("MVb",file1);
+  PrintTagger("IP3D",file1);
+  PrintTagger("IP3D_SV1",file1);
+  
+
   /*
-  string yLabel="norm.";
-  GetComparisonSimple(file1,CutBase,
-		      Cut1, Cut2, Cut3,
-		      "jet_mv2c00"  , "MV2c00", yLabel,  
-		      40, -1.0, 1.0, true); 
-  */
-  
   //////////////////////////////////////////////////////////////////////////////////////
   // MV1: quite detailed info
   yLabel="MV1@70% eff.";
@@ -392,37 +443,7 @@ void Plotter_pt2(const char* infile,
 		25, 0, 2.5);
 
   //////////////////////////////////////////////////////////////////////////////////////
-  // IP3D: only pt and bH
-  yLabel="IP3D@70% eff.";
-  if (isXAOD) effCut=" && jet_ip3d_llr>"+getCut("IP3D", is8TeV)+" ";
-  else        effCut=" && jet_ip3d>"+getCut("IP3D", is8TeV)+" ";
-  GetComparison(file1,CutBase, effCut,
-		Cut1, Cut2, Cut3,
-	        "bH_Lxy", "b-hadron transverse decay length (mm)", yLabel,  
-		20,  0, 100);
-  
-  GetComparison(file1,CutBase, effCut,
-		Cut1, Cut2, Cut3,
-	        "jet_truthPt/1e3", "jet p_{T} (GeV)", yLabel,  
-		20,  25, 500);
- 
-  //////////////////////////////////////////////////////////////////////////////////////
-  // fill for others (watch out for name conventions)
-  
-  /*
-  effCut=" && jet_ip3d_llr>1.797 ";
-  yLabel="IP3D@70% eff.";
-  GetComparison(file1,CutBase, effCut,
-		Cut1, Cut2, Cut3,
-	        "bH_Lxy"  , "b-hadron transverse decay length (mm)", yLabel,  
-		20,  0, 100);
 
-  effCut=" && jet_mvb>-0.142575 ";
-  yLabel="MVb@70% eff.";
-  GetComparison(file1,CutBase, effCut,
-		Cut1, Cut2, Cut3,
-	        "bH_Lxy"  , "b-hadron transverse decay length (mm)", yLabel,  
-		20,  0, 100);
 
   */
   outF->Close();
