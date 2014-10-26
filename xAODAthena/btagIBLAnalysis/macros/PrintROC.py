@@ -216,8 +216,10 @@ myC2.SetGridx()
 cj.SetMinimum(1)
 cj.SetMaximum(1e3)
 cj.Draw()
+count=-1
 for curve in cCurve:
     curve.Draw("C")
+    count+=1
     ofile.WriteObject(curve,taggers[count][0].replace("+","_")+"---bc")
 legend4.Draw()
 myText(0.20,0.22,1,myLumi,0.05)
