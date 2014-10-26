@@ -2,12 +2,14 @@
 #include <iostream>
 #include <sstream>
 
+#include "TFile.h"
 #include "TChain.h"
 #include "TCanvas.h"
 #include "TLegend.h"
 #include "TApplication.h"
 #include "TH2D.h"
 #include "TProfile.h"
+#include "TSystem.h"
 
 #include "AtlasStyle.C"
 #include "AtlasUtils.C"
@@ -16,17 +18,77 @@ using namespace std;
 
 TChain* myT_1;
 
+bool is8TeV=false;
+bool isXAOD=false;
+string outputFolder;
+
+TFile* outF;
+
+/////////////////////////////////////////////////
+/// Plotting a lot of histograms from a given tree
+/////////////////////////////////////////////////
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+string getCut(string tagger, bool a8TeV) {
+  if (tagger=="MV1") {
+    if (a8TeV) return "0.793362375";
+    else      return  "0.945487725";
+  }
+  if (tagger=="MV1c") {
+    if (a8TeV) return "0.7068333333";
+    else      return  "0.779833333333";
+  }
+  if (tagger=="MV2c00") {
+    if (a8TeV) return "0.0561666666667";
+    else      return  "0.0308333333333";
+  }
+  if (tagger=="MV2c10") {
+    if (a8TeV) return  "0.0295";
+    else      return  "-0.00416666666667";
+  }
+  if (tagger=="MV2c20") {
+    if (a8TeV) return  "0.0105";
+    else      return  "-0.0215";
+  }
+  if (tagger=="IP3D") {
+    if (a8TeV) return  "1.475";
+    else      return  "2.007";
+  }
+  if (tagger=="IP3D+SV1") {
+    if (a8TeV) return  "2.4575";
+    else      return  "4.3625";
+  }
+  if (tagger=="MVb") {
+    if (a8TeV) return  "0.0874416666667";
+    else      return  "-0.120991666667";
+  }
+  
+  cout << "NOT SUPPORTED!!! " << endl;
+  return "0";
+}
+
+
 
 TH1D* GetHisto(string varName, string cutBase, 
 	       string varLabel,string yLabel, 
 	       int nBin, float Max, float Min,
 	       bool normalize=false) {
   
-  TH1D* den  =new TH1D( (varName+"_"+yLabel).c_str(), "2", nBin, Max, Min); den->Sumw2();
+  /// this is over ultra stupid but I am in a rush and I don't manage to get it to work otherwise
+  TString tmpName=varName+cutBase;
+  tmpName=tmpName.ReplaceAll(" ","").ReplaceAll("&","").ReplaceAll("(","").ReplaceAll(")","").ReplaceAll("=","").ReplaceAll(">","").ReplaceAll("<","").ReplaceAll("/1e3","").ReplaceAll(".","");
+  string theName=string(tmpName);
+
+  TH1D* den  =new TH1D( theName.c_str(), theName.c_str(), nBin, Max, Min); den->Sumw2();
   string fullVar=varName+">>"+den->GetName();
-  myT_1->Draw( fullVar.c_str(), cutBase.c_str(),"goff");
-  
+  //  cout << "fullVar: " << fullVar << endl;
+  //  cout << "cutBase: " << cutBase << endl;
+  myT_1->Draw( fullVar.c_str(), cutBase.c_str(),"goff",200000);
+  //  cout << nBin << " , " << Max << " , " << Min << endl;
+  //  cout << "Int: " << den->Integral() << endl; 
+
   den->SetBinContent(1, den->GetBinContent(0)+den->GetBinContent(1));
   den->SetBinError(1, sqrt(pow(den->GetBinError(0),2)+pow(den->GetBinError(1),2)));
   den->SetBinContent(0, 0.0);
@@ -78,13 +140,20 @@ void GetComparison(string file1, string cutBase, string effCut,
 		   int nBin, float Max, float Min) {
   TCanvas* can=new TCanvas( (varLabel+"  "+yLabel).c_str(), (varLabel+"  "+yLabel).c_str(), 800, 600);
   
+  string tmpVarName=varName;
+  if (!isXAOD) {
+    if (varName=="bH_Lxy")          varName="jet_bH_Lxy";
+    if (varName=="jet_truthPt/1e3") varName="jet_pt/1e3";
+  }
+
   TH1D* mainH=new TH1D("histo_den", "2", nBin, Max, Min);
   mainH->Reset();
   mainH->SetTitle( (";"+varLabel+";"+yLabel+";").c_str() );
   mainH->SetMaximum(1.05);
   mainH->SetMinimum(0.0);
   mainH->Draw("HIST");
-  
+  mainH->SetDirectory(0);
+
   myT_1=new TChain("bTag");
   myT_1->Add( file1.c_str() );
   TGraphAsymmErrors* gra1=GetEfficiency( varName, 
@@ -94,6 +163,8 @@ void GetComparison(string file1, string cutBase, string effCut,
   gra1->SetLineColor(2);
   gra1->SetMarkerColor(2);
   gra1->Draw("P");
+  //gra1->SetDirectory(0);
+  /*
   TGraphAsymmErrors* gra1b=GetEfficiency( varName, 
 					  (cutBase+Cut1+" && bH_Lxy>33").c_str(),  effCut, 
 					  varLabel, yLabel,
@@ -101,7 +172,7 @@ void GetComparison(string file1, string cutBase, string effCut,
   gra1b->SetLineColor(6);
   gra1b->SetMarkerColor(6);
   gra1b->Draw("P");
-  
+  */
   TGraphAsymmErrors* gra2=GetEfficiency( varName, 
 					 (cutBase+Cut2), effCut, 
 					 varLabel, yLabel,
@@ -151,12 +222,35 @@ void GetComparison(string file1, string cutBase, string effCut,
   legend4->SetFillStyle(0);
   legend4->SetBorderSize(0);
   legend4->AddEntry(gra1 ,"b-jets","l");
-  legend4->AddEntry(gra1b,"b-jets (after bL)","l");
+  //legend4->AddEntry(gra1b,"b-jets (after bL)","l");
   legend4->AddEntry(gra2 ,"c-jets"   ,"l");
   legend4->AddEntry(gra3 ,"light-jet","l");
   legend4->Draw("SAME");
-  TString varToPrint="Eff__"+varName+".eps";
-  varToPrint=varToPrint.ReplaceAll("/1e3","");
+ 
+  varName=tmpVarName;
+  TString varToPrint="Eff__"+varName+"__"+yLabel+".eps";
+  varToPrint=varToPrint.ReplaceAll("/1e3","").ReplaceAll("abs(","").ReplaceAll(")","").ReplaceAll("=","").ReplaceAll(">","_").ReplaceAll("eff.","").ReplaceAll("%","").ReplaceAll("@","_").ReplaceAll(" ","");
+  
+  outF->cd();
+  TString baseName="Base__"+varName;
+  baseName= baseName.ReplaceAll("/1e3","").ReplaceAll("abs(","").ReplaceAll(")","").ReplaceAll("=","").ReplaceAll(">","_").ReplaceAll("eff.","").ReplaceAll("%","").ReplaceAll("@","_").ReplaceAll(" ","");
+  TString plotName= varToPrint.ReplaceAll(".eps","");
+  outF->WriteObject(mainH,baseName);
+
+  TString bEff="Eff_b__"+plotName;
+  TString cEff="Eff_c__"+plotName;
+  TString lEff="Eff_l__"+plotName;
+  gra1->SetName(bEff);
+  gra1->Write();
+  gra2->SetName(cEff);
+  gra2->Write();
+  gra3->SetName(lEff);
+  gra3->Write();
+  //outF->WriteObject(gra1,bEff);
+  //outF->WriteObject(gra2,cEff);
+  //outF->WriteObject(gra3,lEff);
+  
+  varToPrint=outputFolde+"/"+varToPrint;
   can->Print( varToPrint );
 }
 
@@ -238,38 +332,84 @@ void GetComparisonSimple(string file1, string cutBase,
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Plotter_pt2() {
+void Plotter_pt2(const char* infile,
+		 const char* outfolder) {
   gStyle->SetOptStat(0);
   SetAtlasStyle();
   
-  string file1="flavntuple_110401_ttbar.root";
-
-  string CutBase="abs(jet_eta)<2.5 && jet_pt>25e3 ";
+  outputFolder=outfolder;
+  if (outputFolder.find("8TeV")!=string::npos) is8TeV=true;
+  if (outputFolder.find("XAOD")!=string::npos) isXAOD=true;
   
-  string Cut1=" && jet_truthflav==5 "; 
-  string Cut2=" && jet_truthflav==4 "; 
-  string Cut3=" && (jet_truthflav!=4 && jet_truthflav!=5 && jet_truthflav!=15) ";  
-  string yLabel="norm.";
+  outF=new TFile( (outputFolder+"/effPlots.root").c_str(),"RECREATE");
+  cout << "Created file: " << outF->GetName() << endl;
 
+  string file1=infile;
+  gSystem->Exec( ("mkdir -p "+outputFolder).c_str());
+  
+  string CutBase="";
+  if (isXAOD) CutBase=" abs(jet_eta)<2.5 && jet_truthPt>25e3 && jet_truthMatch==1 ";
+  else        CutBase=" abs(jet_eta)<2.5 && jet_pt>25e3 && jet_truthmatched==1 ";
+
+  string Cut1=" "; 
+  string Cut2=" "; 
+  string Cut3=" ";  
+  if (isXAOD) {
+    Cut1=" && jet_truthflav==5 "; 
+    Cut2=" && jet_truthflav==4 "; 
+    Cut3=" && (jet_truthflav!=4 && jet_truthflav!=5 && jet_truthflav!=15) "; 
+  } else {
+    Cut1=" && jet_trueFlav==5 "; 
+    Cut2=" && jet_trueFlav==4 "; 
+    Cut3=" && (jet_trueFlav!=4 && jet_trueFlav!=5 && jet_trueFlav!=15) "; 
+  }
+  string yLabel="";
+  
+  /*
+  string yLabel="norm.";
   GetComparisonSimple(file1,CutBase,
 		      Cut1, Cut2, Cut3,
 		      "jet_mv2c00"  , "MV2c00", yLabel,  
 		      40, -1.0, 1.0, true); 
-
+  */
   
+  //////////////////////////////////////////////////////////////////////////////////////
+  // MV1: quite detailed info
   yLabel="MV1@70% eff.";
-  string effCut=" && jet_mv1>0.9275950125 ";
+  string effCut=" && jet_mv1>"+getCut("MV1", is8TeV)+" ";
   GetComparison(file1,CutBase, effCut,
 		Cut1, Cut2, Cut3,
-	        "bH_Lxy"  , "b-hadron transverse decay length (mm)", yLabel,  
+	        "bH_Lxy", "b-hadron transverse decay length (mm)", yLabel,  
+		20,  0, 100);
+  GetComparison(file1,CutBase, effCut,
+		Cut1, Cut2, Cut3,
+	        "jet_truthPt/1e3", "jet p_{T} (GeV)", yLabel,  
+		20,  25, 500);
+
+  GetComparison(file1,CutBase, effCut,
+		Cut1, Cut2, Cut3,
+	        "abs(jet_eta)", "jet #eta", yLabel,  
+		25, 0, 2.5);
+
+  //////////////////////////////////////////////////////////////////////////////////////
+  // IP3D: only pt and bH
+  yLabel="IP3D@70% eff.";
+  if (isXAOD) effCut=" && jet_ip3d_llr>"+getCut("IP3D", is8TeV)+" ";
+  else        effCut=" && jet_ip3d>"+getCut("IP3D", is8TeV)+" ";
+  GetComparison(file1,CutBase, effCut,
+		Cut1, Cut2, Cut3,
+	        "bH_Lxy", "b-hadron transverse decay length (mm)", yLabel,  
 		20,  0, 100);
   
   GetComparison(file1,CutBase, effCut,
 		Cut1, Cut2, Cut3,
-	        "jet_pt", "jet p_{T} (GeV)", yLabel,  
-		20,  25e3, 500e3);
+	        "jet_truthPt/1e3", "jet p_{T} (GeV)", yLabel,  
+		20,  25, 500);
  
-
+  //////////////////////////////////////////////////////////////////////////////////////
+  // fill for others (watch out for name conventions)
+  
+  /*
   effCut=" && jet_ip3d_llr>1.797 ";
   yLabel="IP3D@70% eff.";
   GetComparison(file1,CutBase, effCut,
@@ -284,39 +424,7 @@ void Plotter_pt2() {
 	        "bH_Lxy"  , "b-hadron transverse decay length (mm)", yLabel,  
 		20,  0, 100);
 
-
-  /*
- 
-  /////////////////////////////////////////////////////////////////////////////////////////////////
-  newCut2=" && jet_sv1>2.655";   ///4.725";
-  yLabel="sv1@60% eff.";
-  GetComparison(file1,file2,file3,
-		Cut1, Cut2, Cut3,
-	        "jet_bH_Lxy"  , newCut2, 
-		"b-hadron transverse decay length (mm)", yLabel,  
-		50,  0, 100);
-  
-  /////////////////////////////////////////////////////////////////////////////////////////////////
-  newCut2=" && jet_combNN>0.673375";   ///4.725";
-  yLabel="JetFitterCombNN@60% eff.";
-  GetComparison(file1,file2,file3,
-		Cut1, Cut2, Cut3,
-	        "jet_bH_Lxy"  , newCut2, 
-		"b-hadron transverse decay length (mm)", yLabel,  
-		50,  0, 100);
   */
- 
-
-  yLabel="norm.";
+  outF->Close();
 }
 
-
-////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////
-int main(int argc, char* argv[]){  
-  SetAtlasStyle(); 
-  TApplication* myApp= new TApplication("test",0,0);
-  Plotter_pt2();
-  myApp->Run();
-}
