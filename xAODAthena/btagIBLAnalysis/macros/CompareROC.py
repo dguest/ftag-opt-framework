@@ -81,15 +81,16 @@ myLumi= "t#bar{t} simulation"
 myLumi2= "jet p_{T}>25 GeV, |#eta|<2.5"
 myText(0.20,0.24,1,myLumi,0.045)
 myText(0.20,0.19,1,myLumi2,0.045)
-legend4=TLegend(0.60,0.57,0.92,0.95)
+legend4=TLegend(0.58,0.53,0.92,0.95)
 legend4.SetTextFont(42)
-legend4.SetTextSize(0.038)
+legend4.SetTextSize(0.030)
 legend4.SetFillColor(0)
 legend4.SetLineColor(0)
 legend4.SetFillStyle(0)
 legend4.SetBorderSize(0)
 count=1
 for tag in taggerList:
+    myC.cd()
     f1.cd()
     curve=f1.Get(tag+"---bl")
     f2.cd()
@@ -126,9 +127,13 @@ for tag in taggerList:
     legend5.AddEntry(curve2,tag.replace("_","+")+" "+leg2,"L")
     legend5.Draw("SAME")
     myCx.Print(odir+"/bVSlight__"+tag+".eps")
-    
+
+myC.cd()
 legend4.Draw()
+myText(0.20,0.24,1,myLumi,0.045)
+myText(0.20,0.19,1,myLumi2,0.045)
 myC.Update()
+time.sleep(1)
 myC.Print(odir+"/bVSlightALL.eps")
 
 
@@ -144,6 +149,7 @@ myText(0.20,0.24,1,myLumi,0.045)
 myText(0.20,0.19,1,myLumi2,0.045)
 count=1
 for tag in taggerList:
+    myC2.cd()
     f1.cd()
     curve=f1.Get(tag+"---bc")
     f2.cd()
@@ -180,9 +186,13 @@ for tag in taggerList:
     legend5.Draw("SAME")
     myCx.Print(odir+"/bVSc__"+tag+".eps")
 
+myC2.cd()
 legend4.Draw()
-#myText(0.20,0.22,1,myLumi,0.05)
+myText(0.20,0.24,1,myLumi,0.045)
+myText(0.20,0.19,1,myLumi2,0.045)
 myC2.Update()
+time.sleep(1)
 myC2.Print(odir+"/bVScALL.eps")
 
-time.sleep(111111)
+
+###time.sleep(111111)
