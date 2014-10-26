@@ -71,25 +71,39 @@ gROOT.SetBatch(True)
 taggers=[]
 
 is8TeV=False
+isXAOD=False
 if "8TeV" in odir:
     is8TeV=True
+if "XAOD" in odir:
+    isXAOD=True
 
-if not is8TeV:
-    taggers=[ ["MV1"     , "mv1"     ,   0.0  ,  0.9945  , 20000, 1 ],   #20000
-              ["MV1c"    , "mv1c"    ,   0  ,  1  ,  2000, 3 ],
-              ["MV2c00"  , "mv2c00"  ,  -0.5,  0.5,  2000, 2 ],
-              ["MV2c10"  , "mv2c10"  ,  -0.5,  0.5,  2000, 4 ],
-              ["MV2c20"  , "mv2c20"  ,  -0.5,  0.5,  2000, 7 ],
-              ["IP3D"    , "ip3d_llr", -12. ,   30,  2000, 8 ],
-              ["SV1"     , "sv1_llr" , -4. ,   13,  2000, 6 ],
-              ["IP3D+SV1", "sv1ip3d" , -10. ,   35,  2000, 797 ],
-              ["MVb"   , "mvb"   ,  -1.05,  0.8,  2000, 920 ],
-              ]
+if is8TeV and isXAOD:
+    taggers=[
+        ["IP3D"    , "ip3d_llr", -12. ,   30,  3000,   8 ],
+        ["SV1"     , "sv1_llr" ,  -4. ,   13,  3000,   6 ],
+        ["IP3D+SV1", "sv1ip3d" , -10. ,   35,  3000, 797 ],
+        ]
+elif isXAOD:
+    taggers=[
+        ["MV1"     , "mv1"     ,   0.0 ,  0.9945 , 30000, 1 ],   #20000
+        ["MV1c"    , "mv1c"    ,   0   ,  1      ,  3000, 3 ],
+        ["MV2c00"  , "mv2c00"  ,  -0.5 ,  0.5    ,  3000, 2 ],
+        ["MV2c10"  , "mv2c10"  ,  -0.5 ,  0.5    ,  3000, 4 ],
+        ["MV2c20"  , "mv2c20"  ,  -0.5 ,  0.5    ,  3000, 7 ],
+        ["IP3D"    , "ip3d_llr", -12.  ,   30    ,  3000, 8 ],
+        ["SV1"     , "sv1_llr" ,  -4.  ,   13    ,  3000, 6 ],
+        ["IP3D+SV1", "sv1ip3d" , -10.  ,   35    ,  3000, 797 ],
+        ["MVb"     , "mvb"     ,  -1.05,  0.8    ,  3000, 920 ]
+        ]
 else:
-    taggers=[ ["MV1"     , "mv1"     ,   0.0  ,  0.9945  , 20000, 1 ],   #20000
-              ["IP3D"    , "ip3d"    , -12.   ,   30,  2000, 8 ],
-              ["SV1"     , "sv1"     ,  -4.   ,   13,  2000, 6 ],
-              ["MVb"   , "mvb"       ,  -1.05 ,  0.8,  2000, 920 ],
+    taggers=[ ["MV1"     , "mv1"     ,   0.0  ,  0.9945  , 30000, 1 ],   #20000
+              ["MV1c"    , "mv1c"    ,   0    ,  1       ,  3000, 3 ],
+              ["MV2c00"  , "mv2c00"  ,  -0.5  ,  0.5     ,  3000, 2 ],
+              ["MV2c10"  , "mv2c10"  ,  -0.5  ,  0.5,  3000, 4 ],
+              ["MV2c20"  , "mv2c20"  ,  -0.5  ,  0.5,  3000, 7 ],
+              ["IP3D"    , "ip3d"    , -12.   ,   30,  3000, 8 ],
+              ["SV1"     , "sv1"     ,  -4.   ,   13,  3000, 6 ],
+              ["MVb"     , "mvb"     ,  -1.05 ,  0.8,  3000, 920 ],
               ]
 effThreshold=0.7
 
@@ -99,9 +113,9 @@ def GetHisto(tag, intree, val):
     tmpH.Sumw2()
     var="jet_"+tag[1]+">>"+tmpH.GetName()
     cut=""
-    if not is8TeV: cut="jet_truthflav=="+str(val)+" && jet_pt>25e3"
-    else:          cut="jet_trueFlav=="+str(val)+" && jet_pt>25e3 && (abs(jet_jvf>0.5) || jet_pt>50e3) "
-    intree.Draw( var, cut,"goof",100000)
+    if isXAOD: cut="jet_truthflav=="+str(val)+" && jet_truthPt>25e3 &&  jet_truthMatch==1 "
+    else     : cut="jet_trueFlav=="+str(val)+"  && jet_pt>25e3 && (abs(jet_jvf>0.5) || jet_pt>50e3) "
+    intree.Draw( var, cut,"goof") #,100000)
     tmpH.SetBinContent(1,tmpH.GetBinContent(1)+tmpH.GetBinContent(0))
     tmpH.SetBinError(1,sqrt(pow(tmpH.GetBinError(1),2)+pow(tmpH.GetBinError(0),2)))
     tmpH.SetBinContent(0,0.0)
@@ -190,8 +204,13 @@ myC.SetGridx()
 light.SetMinimum(1)
 light.SetMaximum(1e5)
 light.Draw()
-myLumi= "t#bar{t} simulation, 13 TeV"
-myText(0.20,0.22,1,myLumi,0.05)
+myLumi= "t#bar{t} simulation,"
+if is8TeV and isXAOD: myLumi+=" 8TeV, rel19"
+elif isXAOD: myLumi+=" 13 TeV, rel19"
+else       : myLumi+=" 8TeV, rel17"
+myLumi2= "jet p_{T}>25 GeV, |#eta|<2.5"
+myText(0.20,0.24,1,myLumi,0.045)
+myText(0.20,0.19,1,myLumi2,0.045)
 legend4=TLegend(0.70,0.60,0.92,0.92)
 legend4.SetTextFont(42)
 legend4.SetTextSize(0.04)
@@ -204,7 +223,9 @@ for curve in lightCurve:
     curve.Draw("C")
     count+=1
     legend4.AddEntry(curve,taggers[count][0],"L")
-    ofile.WriteObject(curve,taggers[count][0].replace("+","_")+"---bl")
+    #ofile.WriteObject(curve,taggers[count][0].replace("+","_")+"---bl")
+    curve.SetName(taggers[count][0].replace("+","_")+"---bl")
+    curve.Write()
 legend4.Draw()
 myC.Update()
 myC.Print(odir+"/bVSlight.eps")
@@ -222,7 +243,8 @@ for curve in cCurve:
     count+=1
     ofile.WriteObject(curve,taggers[count][0].replace("+","_")+"---bc")
 legend4.Draw()
-myText(0.20,0.22,1,myLumi,0.05)
+myText(0.20,0.24,1,myLumi,0.045)
+myText(0.20,0.19,1,myLumi2,0.045)
 myC2.Update()
 myC2.Print(odir+"/cVSlight.eps")
 
