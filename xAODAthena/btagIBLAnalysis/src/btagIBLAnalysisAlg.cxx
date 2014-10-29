@@ -18,9 +18,10 @@ using xAOD::IParticle;
 
 
 ///////////////////////////////////////////////////////////////////////////////////
-btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthHistogramAlgorithm( name, pSvcLocator ),  m_jetCleaningTool("JetCleaningTool/JetCleaningTool",this) {
+btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthHistogramAlgorithm( name, pSvcLocator ) {
+  //,  m_jetCleaningTool("JetCleaningTool/JetCleaningTool",this) {
 
-  declareProperty( "JetCleaningTool", m_jetCleaningTool );
+  //declareProperty( "JetCleaningTool", m_jetCleaningTool );
 
 }
 
@@ -39,7 +40,74 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree = new TTree("bTag","bTag");
 
   // Retrieve the jet cleaning tool
-  CHECK( m_jetCleaningTool.retrieve() );
+  //CHECK( m_jetCleaningTool.retrieve() );
+
+  v_jet_pt =new std::vector<float>(); v_jet_pt->reserve(15);
+  v_jet_eta=new std::vector<float>(); v_jet_eta->reserve(15);
+  v_jet_phi=new std::vector<float>(); v_jet_phi->reserve(15);
+  v_jet_E  =new std::vector<float>(); v_jet_E->reserve(15);
+  v_jet_m  =new std::vector<float>(); v_jet_m->reserve(15);
+  v_jet_truthflav  =new std::vector<int>();
+  v_jet_GhostL_q   =new std::vector<int>();
+  v_jet_GhostL_HadI=new std::vector<int>();
+  v_jet_GhostL_HadF=new std::vector<int>();
+  v_jet_truthMatch =new std::vector<int>();
+  v_jet_truthPt =new std::vector<float>();
+  v_jet_dRiso   =new std::vector<float>();
+
+  v_jet_ip2d_pb   =new std::vector<float>();
+  v_jet_ip2d_pc   =new std::vector<float>();
+  v_jet_ip2d_pu   =new std::vector<float>();
+  v_jet_ip2d_llr  =new std::vector<float>();
+  v_jet_ip3d_pb   =new std::vector<float>();
+  v_jet_ip3d_pc   =new std::vector<float>();
+  v_jet_ip3d_pu   =new std::vector<float>();
+  v_jet_ip3d_llr  =new std::vector<float>();
+  v_jet_sv0_sig3d  =new std::vector<float>();
+  v_jet_sv0_ntrkv  =new std::vector<float>();
+  v_jet_sv0_m      =new std::vector<float>();
+  v_jet_sv0_efc    =new std::vector<float>();
+  v_jet_sv0_n2t    =new std::vector<float>();
+  v_jet_sv1_pb   =new std::vector<float>();
+  v_jet_sv1_pc   =new std::vector<float>();
+  v_jet_sv1_pu   =new std::vector<float>();
+  v_jet_sv1_llr  =new std::vector<float>();
+  
+  v_jet_jf_pb=new std::vector<float>();
+  v_jet_jf_pc=new std::vector<float>();
+  v_jet_jf_pu=new std::vector<float>();
+  v_jet_jf_llr=new std::vector<float>();
+  v_jet_jf_m=new std::vector<float>();
+  v_jet_jf_efc=new std::vector<float>();
+  v_jet_jf_deta=new std::vector<float>();
+  v_jet_jf_dphi=new std::vector<float>();
+  v_jet_jf_ntrkAtVx=new std::vector<float>();
+  v_jet_jf_nvtx=new std::vector<int>();
+  v_jet_jf_sig3d=new std::vector<int>();
+  v_jet_jf_nvtx1t=new std::vector<int>();
+  v_jet_jf_n2t=new std::vector<int>();
+  
+
+  v_jet_jfcombnn_pb=new std::vector<float>();
+  v_jet_jfcombnn_pc=new std::vector<float>();
+  v_jet_jfcombnn_pu=new std::vector<float>();
+  v_jet_jfcombnn_llr=new std::vector<float>();
+  
+  v_jet_sv1ip3d=new std::vector<double>();
+  v_jet_mv1=new std::vector<double>();
+  v_jet_mv1c=new std::vector<double>();
+  v_jet_mv2c00=new std::vector<double>();
+  v_jet_mv2c10=new std::vector<double>();
+  v_jet_mv2c20=new std::vector<double>();
+  v_jet_mvb=new std::vector<double>();
+
+  v_bH_pt=new std::vector<float>();
+  v_bH_eta=new std::vector<float>();
+  v_bH_phi=new std::vector<float>();
+  v_bH_Lxy=new std::vector<float>();
+  v_bH_dRjet=new std::vector<float>();
+
+
 
   // setup branches
   tree->Branch("runnb",&runnumber);
@@ -134,7 +202,7 @@ StatusCode btagIBLAnalysisAlg::finalize() {
   output->Close();
 
   // Clean up
-  CHECK( m_jetCleaningTool.release() );
+  ///CHECK( m_jetCleaningTool.release() );
 
   return StatusCode::SUCCESS;
 }
@@ -144,8 +212,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
   ATH_MSG_DEBUG ("Executing " << name() << "...");
 
   clearvectors();
-
-  //---------------------------
+  //-------------------------
   // Event information
   //--------------------------- 
 
@@ -176,10 +243,10 @@ StatusCode btagIBLAnalysisAlg::execute() {
   for ( const auto* truth : *xTruthEventContainer ) {
     for(unsigned int i = 0; i < truth->nTruthParticles(); i++){
       const xAOD::TruthParticle* particle = truth->truthParticle(i);
-      if (fabs(particle->pdgId()) != 11) continue;
       if (particle->pt() < 15e3) continue;
       if (particle->status() != 1) continue;
       if (particle->barcode() > 2e5) continue;
+      if (fabs(particle->pdgId()) != 11) continue;
       TLorentzVector telec;
       telec.SetPtEtaPhiM(particle->pt(), particle->eta(), particle->phi(), particle->m());
       truth_electrons.push_back(telec);
@@ -229,7 +296,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     const xAOD::Jet* jet=selJets.at(j);
 
     // jet cleaning - do this now after lepton overlap removal
-    if( (!m_jetCleaningTool->keep( *jet )) && (jet->pt() > 20e3) ) return StatusCode::SUCCESS;
+    ////////////////////if( (!m_jetCleaningTool->keep( *jet )) && (jet->pt() > 20e3) ) return StatusCode::SUCCESS;
 
     v_jet_pt ->push_back(jet->pt()  );
     v_jet_eta->push_back(jet->eta() );

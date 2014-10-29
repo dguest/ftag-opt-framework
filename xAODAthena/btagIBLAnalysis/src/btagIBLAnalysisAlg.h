@@ -117,7 +117,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
  private: 
 
   /// The tool handle to our jet cleaning tool
-  ToolHandle< IJetSelector > m_jetCleaningTool;
+  /////////////////////////ToolHandle< IJetSelector > m_jetCleaningTool;
 
   // determine whether particle is B hadron or not
   bool isBHadron(int pdgid);
