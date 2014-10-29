@@ -16,13 +16,6 @@
 
 using xAOD::IParticle;
 
-/////////////////////////////////////////////////////////////////////////////////////
-float deltaR(float eta1, float eta2, float phi1, float phi2) {
-  float DEta=fabs( eta1-eta2 );
-  float DPhi=acos(cos( fabs( phi1-phi2 ) ) );
-  return sqrt( pow(DEta,2)+pow(DPhi,2) );
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////////
 btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthHistogramAlgorithm( name, pSvcLocator ),  m_jetCleaningTool("JetCleaningTool/JetCleaningTool",this) {
@@ -34,7 +27,7 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pS
 
 btagIBLAnalysisAlg::~btagIBLAnalysisAlg() {}
 
-
+///////////////////////////////////////////////////////////////////////////////////
 StatusCode btagIBLAnalysisAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
 
@@ -153,22 +146,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
   clearvectors();
 
   //---------------------------
-  // Jet cleaning
-  //--------------------------- 
-  const xAOD::JetContainer* jets = 0;
-  CHECK( evtStore()->retrieve( jets, "AntiKt4LCTopoJets") ); // what about BTagging_AntiKt4Truth?
-
-  const xAOD::JetContainer* truthjets = 0;
-  CHECK( evtStore()->retrieve( truthjets, "AntiKt4TruthJets") );
-
-  for ( const auto* jet : *jets ) {
-    if( (!m_jetCleaningTool->keep( *jet )) && (jet->pt() > 20000) ) return StatusCode::SUCCESS;
-  }
-
-
-  //---------------------------
   // Event information
   //--------------------------- 
+
   const xAOD::EventInfo* eventInfo = 0;
   CHECK( evtStore()->retrieve(eventInfo, "EventInfo") );  // with key name
   
@@ -187,37 +167,10 @@ StatusCode btagIBLAnalysisAlg::execute() {
   //---------------------------
   // Truth stuff
   //--------------------------- 
-  // find truth B hadrons in this event, store their 4-vector and index
-  std::vector<std::pair<TLorentzVector, int> > truth_bhadrons;
+
   const xAOD::TruthEventContainer* xTruthEventContainer = NULL;
   CHECK( evtStore()->retrieve( xTruthEventContainer, "TruthEvent") );
-
-  /* // VD: trying to get the info directly from the jet using ghost-matched b-hadrons
-  for ( const auto* truth : *xTruthEventContainer ) {
-    // loop over all truth particles in event
-    for(unsigned int i = 0; i < truth->nTruthParticles(); i++){
-      const xAOD::TruthParticle* particle = truth->truthParticle(i);
-      // VD: trying to speed it up:
-      if (particle->barcode()>2e5) break;
-      if (particle->status()!=2) continue;
-
-      // see if it is a B hadron
-      if( isBHadron(particle->pdgId()) ) {
-	// then see if it has any decay products that are also B hadrons, if not keep it
-	const xAOD::TruthVertex* decayvtx = particle->decayVtx();
-	for(unsigned int j = 0; j < decayvtx->nOutgoingParticles(); j++){
-	  const xAOD::TruthParticle* child = decayvtx->outgoingParticle(j);
-	  if( !isBHadron(child->pdgId()) )  {
-	    TLorentzVector truth_bhadron;
-	    truth_bhadron.SetPtEtaPhiM( particle->pt(), particle->eta(), particle->phi(), particle->m());
-	    truth_bhadrons.push_back( std::make_pair(truth_bhadron,i) );
-	  }
-	}	
-      }
-    }
-  }
-  */
-
+  
   // select truth electrons for electron-jet overlap removal
   std::vector<TLorentzVector> truth_electrons;
   for ( const auto* truth : *xTruthEventContainer ) {
@@ -231,15 +184,17 @@ StatusCode btagIBLAnalysisAlg::execute() {
       telec.SetPtEtaPhiM(particle->pt(), particle->eta(), particle->phi(), particle->m());
       truth_electrons.push_back(telec);
     }
- }
+  }
 
   //---------------------------
   // Jets
   //--------------------------- 
-  // find reconstructed b jets and see if there is a delta R match with a truth B hadron
-  std::vector<TLorentzVector> bjets;
-  std::vector<TLorentzVector> bjets_matched;
-  std::vector<int> matched_index;
+ 
+  const xAOD::JetContainer* jets = 0;
+  CHECK( evtStore()->retrieve( jets, "AntiKt4LCTopoJets") ); // what about BTagging_AntiKt4Truth?
+
+  const xAOD::JetContainer* truthjets = 0;
+  CHECK( evtStore()->retrieve( truthjets, "AntiKt4TruthJets") );
 
   njets=0;
   nbjets=0;
@@ -247,15 +202,14 @@ StatusCode btagIBLAnalysisAlg::execute() {
   nbjets_HadI=0;
   nbjets_HadF=0;
 
-  /// VD: first loop over the jets to find the selected one (so that I can do dR)
+  // loop over the jets to find the selected ones (so that I can do dR)
+  // only keep the ones with pT > 20GeV, eta < 2.5 and not overlapping with truth electron
   std::vector<const xAOD::Jet*> selJets; selJets.reserve(10);
   for ( const auto* jet : *jets ) {
 
-    // only keep jets with pT > 20 GeV and eta < 2.5
     if ( jet->pt() < 20e3 )         continue;
     if ( fabs( jet->eta() ) > 2.5)  continue;
-
-    // perform electron-jet overlap removal, only keep jets that are not within dR = 0.3 of selected truth electron
+    
     bool iseljetoverlap = false;
     for(unsigned int i= 0; i < truth_electrons.size(); i++){
       float dr =deltaR(jet->eta(), truth_electrons.at(i).Eta(),jet->phi(), truth_electrons.at(i).Phi());
@@ -263,7 +217,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	iseljetoverlap = true;
       }
     }
-    if(iseljetoverlap) continue;
+    if ( iseljetoverlap ) continue;
 
     selJets.push_back(jet);
   }
@@ -273,6 +227,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
   for (unsigned int j=0; j<selJets.size(); j++) {
     const xAOD::Jet* jet=selJets.at(j);
+
+    // jet cleaning - do this now after lepton overlap removal
+    if( (!m_jetCleaningTool->keep( *jet )) && (jet->pt() > 20e3) ) return StatusCode::SUCCESS;
 
     v_jet_pt ->push_back(jet->pt()  );
     v_jet_eta->push_back(jet->eta() );
@@ -290,7 +247,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     }
     v_jet_dRiso  ->push_back(dRiso);
 
-    // matching reco jetc to truth jets
+    // matching reco jets to truth jets
     // picking the highest pT truth jet (with pT > 7GeV) that satisfies dR < 0.3
     // N.B. this assumes that truth jets are pT ordered
     int matchedPt=0;
@@ -340,7 +297,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_GhostL_HadF->push_back(tmpLabel);
     if(tmpLabel == 5)  nbjets_HadF++;
     
-    // b-tagging
+    // get B hadron quantities
     const xAOD::TruthParticle* matchedBH=NULL;
     const std::string labelB = "GhostBHadronsFinal";
     std::vector<const IParticle*> ghostB; ghostB.reserve(2);
@@ -367,7 +324,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_bH_dRjet->push_back(-999);
     }
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Get b-tag object
     const xAOD::BTagging* bjet = jet->btagging();
     
@@ -457,72 +413,19 @@ StatusCode btagIBLAnalysisAlg::execute() {
       //todo: write out some warning here but don't want to clog logfiles for now
     }
     
-    // matching      
-    TLorentzVector reco_bjet;
-    reco_bjet.SetPtEtaPhiM(jet->pt(), jet->eta(), jet->phi(), jet->m());
-    bjets.push_back( reco_bjet );
-    
-      /*
-      float dR = 100000;
-      int k = 0;
-      for (unsigned int j = 0; j < truth_bhadrons.size(); j++){
-	float dR_tmp = reco_bjet.DeltaR(truth_bhadrons.at(j).first);
-	if(dR_tmp < 0.3){
-	  if(dR > dR_tmp){
-	    dR = dR_tmp;
-	    k = truth_bhadrons.at(j).second;
-	  }
-	}
-      }
-      
-      if(dR < 0.3 && thisJetTruthLabel == 5){
-	//std::cout << "bjet matched to a B hadron with delta R = " << dR << std::endl;
-	bjets_matched.push_back( reco_bjet );
-	matched_index.push_back(k);
-	//h_bjet_pt->Fill(reco_bjet.Pt()/1000);
-	
-	// now figure out transverse decay length (N.B. make some plots here for all bjets and only those truth matched)
-	for ( const auto* truth : *xTruthEventContainer ) {
-	  const xAOD::TruthVertex* thisvtx = (truth->truthParticle(k))->decayVtx();
-	  float myLxy = sqrt( pow(thisvtx->x(),2)+ pow(thisvtx->y(),2) );
-	  //std::cout << " myLxy = " << myLxy << std::endl;
-	  //hist("hist_Lxy_denom")->Fill(myLxy, 1.0);
-	  //hist("hist_jet_pt_denom")->Fill(jet->pt()/1000., 1.0);
-	  //v_jet_Lxy_denom->push_back(myLxy);
-	  //if(bjet->MV1_discriminant() > 0.983){
-	  v_bH_pt->push_back(truth->truthParticle(k)->pt());
-	  v_bH_eta->push_back(truth->truthParticle(k)->eta());
-	  v_bH_phi->push_back(truth->truthParticle(k)->phi());
-	  v_bH_Lxy->push_back(myLxy);
-	    //hist("hist_Lxy")->Fill(myLxy, 1.0);
-	    //hist("hist_jet_pt")->Fill(jet->pt()/1000., 1.0);
-	  //}
-	}
-      }
-      else{
-	v_bH_pt->push_back(-999);
-	v_bH_eta->push_back(-999);
-	v_bH_phi->push_back(-999);
-	v_bH_Lxy->push_back(-999);
-	//std::cout << "this happened" << std::endl;
-      }
-      */
   } // jet loop
  
   tree->Fill();
 
   // clear all the things that need clearing
-  truth_bhadrons.clear();
-  bjets.clear();
-  bjets_matched.clear();
-  matched_index.clear();
-  selJets.clear();
   truth_electrons.clear();
+  selJets.clear();
   
   return StatusCode::SUCCESS;
 }
 
-///////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // User defined functions
 ///////////////////////////////////////
 const int allBHadrons[75]={511,513,515,521,523,525,531,533,535,541,543,545,551,553,555,
@@ -542,6 +445,11 @@ bool btagIBLAnalysisAlg :: isBHadron(int pdgid){
   return isB;
 }
 
+float btagIBLAnalysisAlg :: deltaR(float eta1, float eta2, float phi1, float phi2) {
+  float DEta=fabs( eta1-eta2 );
+  float DPhi=acos(cos( fabs( phi1-phi2 ) ) );
+  return sqrt( pow(DEta,2)+pow(DPhi,2) );
+}
 
 void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_pt->clear();
@@ -610,6 +518,6 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_bH_phi->clear();
   v_bH_Lxy->clear();
   v_bH_dRjet->clear();
-  //v_jet_Lxy_denom->clear();
+
 }
 

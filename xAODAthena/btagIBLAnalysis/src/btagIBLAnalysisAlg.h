@@ -111,7 +111,6 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_bH_phi;
   std::vector<float> *v_bH_Lxy;
   std::vector<float> *v_bH_dRjet;
-  //std::vector<float> *v_jet_Lxy_denom;
 
   void clearvectors();
 
@@ -122,6 +121,9 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 
   // determine whether particle is B hadron or not
   bool isBHadron(int pdgid);
+
+  // compute dR between two objects
+  float deltaR(float eta1, float eta2, float phi1, float phi2);
 
 }; 
 
