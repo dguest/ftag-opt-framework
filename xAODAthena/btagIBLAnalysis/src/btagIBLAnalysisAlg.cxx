@@ -240,7 +240,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
   
   // select truth electrons for electron-jet overlap removal
   std::vector<TLorentzVector> truth_electrons;
-  for ( const auto* truth : *xTruthEventContainer ) {
+  /*for ( const auto* truth : *xTruthEventContainer ) {
     for(unsigned int i = 0; i < truth->nTruthParticles(); i++){
       const xAOD::TruthParticle* particle = truth->truthParticle(i);
       if (particle->pt() < 15e3) continue;
@@ -251,7 +251,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       telec.SetPtEtaPhiM(particle->pt(), particle->eta(), particle->phi(), particle->m());
       truth_electrons.push_back(telec);
     }
-  }
+    }*/
 
   //---------------------------
   // Jets

@@ -138,7 +138,7 @@ algSeq = CfgMgr.AthSequencer("AthAlgSeq")
 # ====================================================================
 #algSeq += CfgMgr.btagIBLAnalysisAlg("MyTry", RootStreamName = streamName, RootDirName = "/Histograms", OutputLevel=INFO) #DEBUG
 alg = CfgMgr.btagIBLAnalysisAlg(OutputLevel=INFO) #DEBUG
-alg.JetCleaningTool.CutLevel = "LooseBad" # options: "VeryLooseBad","LooseBad","MediumBad","TightBad"
+#alg.JetCleaningTool.CutLevel = "LooseBad" # options: "VeryLooseBad","LooseBad","MediumBad","TightBad"
 algSeq += alg
 # ====================================================================
 # Define an output root file for histograms
