@@ -218,6 +218,20 @@ StatusCode btagIBLAnalysisAlg::execute() {
   }
   */
 
+  // select truth electrons for electron-jet overlap removal
+  std::vector<TLorentzVector> truth_electrons;
+  for ( const auto* truth : *xTruthEventContainer ) {
+    for(unsigned int i = 0; i < truth->nTruthParticles(); i++){
+      const xAOD::TruthParticle* particle = truth->truthParticle(i);
+      if (fabs(particle->pdgId()) != 11) continue;
+      if (particle->pt() < 15e3) continue;
+      if (particle->status() != 1) continue;
+      if (particle->barcode() > 2e5) continue;
+      TLorentzVector telec;
+      telec.SetPtEtaPhiM(particle->pt(), particle->eta(), particle->phi(), particle->m());
+      truth_electrons.push_back(telec);
+    }
+ }
 
   //---------------------------
   // Jets
@@ -227,8 +241,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
   std::vector<TLorentzVector> bjets_matched;
   std::vector<int> matched_index;
 
-  int numj = 0;
-  int numbj= 0;
+  njets=0;
+  nbjets=0;
   nbjets_q=0;
   nbjets_HadI=0;
   nbjets_HadF=0;
@@ -236,17 +250,30 @@ StatusCode btagIBLAnalysisAlg::execute() {
   /// VD: first loop over the jets to find the selected one (so that I can do dR)
   std::vector<const xAOD::Jet*> selJets; selJets.reserve(10);
   for ( const auto* jet : *jets ) {
+
+    // only keep jets with pT > 20 GeV and eta < 2.5
     if ( jet->pt() < 20e3 )         continue;
     if ( fabs( jet->eta() ) > 2.5)  continue;
+
+    // perform electron-jet overlap removal, only keep jets that are not within dR = 0.3 of selected truth electron
+    bool iseljetoverlap = false;
+    for(unsigned int i= 0; i < truth_electrons.size(); i++){
+      float dr =deltaR(jet->eta(), truth_electrons.at(i).Eta(),jet->phi(), truth_electrons.at(i).Phi());
+      if(dr < 0.3){
+	iseljetoverlap = true;
+      }
+    }
+    if(iseljetoverlap) continue;
+
     selJets.push_back(jet);
   }
-  
-  ATH_MSG_DEBUG( "Total number of jets is: "<< selJets.size() );
+
+  njets = selJets.size();
+  ATH_MSG_DEBUG( "Total number of jets is: "<< njets );
 
   for (unsigned int j=0; j<selJets.size(); j++) {
     const xAOD::Jet* jet=selJets.at(j);
 
-    numj++;     
     v_jet_pt ->push_back(jet->pt()  );
     v_jet_eta->push_back(jet->eta() );
     v_jet_phi->push_back(jet->phi() );
@@ -299,7 +326,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     int thisJetTruthLabel;
     jet->getAttribute("TruthLabelID",thisJetTruthLabel);
     v_jet_truthflav->push_back(thisJetTruthLabel);
-    if(thisJetTruthLabel == 5) numbj++;
+    if(thisJetTruthLabel == 5) nbjets++;
     
     int tmpLabel=  GAFinalPartonFlavourLabel(jet);
     v_jet_GhostL_q->push_back(tmpLabel);
@@ -481,9 +508,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
       }
       */
   } // jet loop
-
-  njets = numj;
-  nbjets = numbj;
  
   tree->Fill();
 
@@ -492,6 +516,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
   bjets.clear();
   bjets_matched.clear();
   matched_index.clear();
+  selJets.clear();
+  truth_electrons.clear();
   
   return StatusCode::SUCCESS;
 }
