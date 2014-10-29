@@ -241,7 +241,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     selJets.push_back(jet);
   }
   
-  ATH_MSG_DEBUG( "Total numer of jets is: "<< selJets.size() );
+  ATH_MSG_DEBUG( "Total number of jets is: "<< selJets.size() );
 
   for (unsigned int j=0; j<selJets.size(); j++) {
     const xAOD::Jet* jet=selJets.at(j);
@@ -264,15 +264,26 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_dRiso  ->push_back(dRiso);
 
     // matching reco jetc to truth jets
+    // picking the highest pT truth jet (with pT > 7GeV) that satisfies dR < 0.3
+    // N.B. this assumes that truth jets are pT ordered
     int matchedPt=0;
     float dRmatch=100;
     for ( const auto* tjet : *truthjets ) {
+      if(tjet->pt() < 7e3) continue;
       float dr =deltaR(jet->eta(), tjet->eta(),
 		       jet->phi(), tjet->phi());
-      if (dr<dRmatch) {
+
+      if(dr < 0.3){
 	dRmatch=dr;
 	matchedPt=tjet->pt();
+	break;
       }
+
+      // LM: commenting out the old way which used closest dR
+      /*if (dr<dRmatch) {
+	dRmatch=dr;
+	matchedPt=tjet->pt();
+	}*/
     }
     if (dRmatch<0.3) {
       v_jet_truthMatch->push_back(1);
