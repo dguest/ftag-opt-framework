@@ -23,6 +23,7 @@ use  xAODJet		xAODJet-*		Event/xAOD
 use  xAODTruth		xAODTruth-*		Event/xAOD
 use  AtlasROOT 		AtlasROOT-* 		External
 use  JetInterface       JetInterface-*		Reconstruction/Jet
+use  JetCalibTools      JetCalibTools-*		Reconstruction/Jet
 
 ## default is to make component library
 library btagIBLAnalysis *.cxx components/*.cxx

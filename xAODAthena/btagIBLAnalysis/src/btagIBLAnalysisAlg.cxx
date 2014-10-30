@@ -13,15 +13,17 @@
 #include "xAODJet/JetContainer.h"
 
 #include "JetInterface/IJetSelector.h"
+#include "JetCalibTools/IJetCalibrationTool.h"
 
 using xAOD::IParticle;
 
 
 ///////////////////////////////////////////////////////////////////////////////////
-btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthHistogramAlgorithm( name, pSvcLocator ) {
-  //,  m_jetCleaningTool("JetCleaningTool/JetCleaningTool",this) {
+btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthHistogramAlgorithm( name, pSvcLocator )
+  ,  m_jetCalibrationTool("JetCalibrationTool/JetCalibrationTool",this) ,  m_jetCleaningTool("JetCleaningTool/JetCleaningTool",this) {
 
-  //declareProperty( "JetCleaningTool", m_jetCleaningTool );
+  declareProperty( "JetCleaningTool", m_jetCleaningTool );
+  declareProperty( "JetCalibrationTool", m_jetCalibrationTool );
 
 }
 
@@ -40,7 +42,11 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree = new TTree("bTag","bTag");
 
   // Retrieve the jet cleaning tool
-  //CHECK( m_jetCleaningTool.retrieve() );
+  CHECK( m_jetCleaningTool.retrieve() );
+
+  // Retrieve the jet calibration tool
+  CHECK( m_jetCalibrationTool.retrieve() );
+  //m_jetCalibrationTool.setTypeAndName("JetCalibrationTool/JetCalibrationTool");
 
   v_jet_pt =new std::vector<float>(); v_jet_pt->reserve(15);
   v_jet_eta=new std::vector<float>(); v_jet_eta->reserve(15);
@@ -204,7 +210,8 @@ StatusCode btagIBLAnalysisAlg::finalize() {
   output->Close();
 
   // Clean up
-  ///CHECK( m_jetCleaningTool.release() );
+  CHECK( m_jetCleaningTool.release() );
+  CHECK( m_jetCalibrationTool.release() );
 
   return StatusCode::SUCCESS;
 }
@@ -241,7 +248,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
   CHECK( evtStore()->retrieve( xTruthEventContainer, "TruthEvent") );
   
   // select truth electrons for electron-jet overlap removal
-  /*std::vector<TLorentzVector> truth_electrons;
+  std::vector<TLorentzVector> truth_electrons;
   for ( const auto* truth : *xTruthEventContainer ) {
     for(unsigned int i = 0; i < truth->nTruthParticles(); i++){
       const xAOD::TruthParticle* particle = truth->truthParticle(i);
@@ -260,7 +267,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       telec.SetPtEtaPhiM(particle->pt(), particle->eta(), particle->phi(), particle->m());
       truth_electrons.push_back(telec);
     }
-    }*/
+  }
 
   //---------------------------
   // Jets
@@ -278,32 +285,40 @@ StatusCode btagIBLAnalysisAlg::execute() {
   nbjets_HadI=0;
   nbjets_HadF=0;
 
-  // loop over the jets to find the selected ones (so that I can do dR)
-  // only keep the ones with pT > 20GeV, eta < 2.5
+  // Loop over jets, apply calibration and only keep the ones with pT > 20GeV, eta < 2.5
   std::vector<const xAOD::Jet*> selJets; selJets.reserve(10);
+
   for ( const auto* jet : *jets ) {
-    if ( jet->pt() < 20e3 )         continue;
-    if ( fabs( jet->eta() ) > 2.5)  continue;
-    selJets.push_back(jet);
+    xAOD::Jet * newjet = 0;
+
+    m_jetCalibrationTool->calibratedCopy(*jet, newjet);
+
+    if ( newjet->pt() < 20e3 )         continue;
+    if ( fabs( newjet->eta() ) > 2.5)  continue;
+
+    selJets.push_back(newjet);
   }
 
   njets = selJets.size();
   ATH_MSG_DEBUG( "Total number of jets is: "<< njets );
 
+  // Now run over the selected jets and do whatever else needs doing
   for (unsigned int j=0; j<selJets.size(); j++) {
     const xAOD::Jet* jet=selJets.at(j);
 
-    // for now only flagging jets that overlap with electron, eventually these should just be removed
+    // flagging jets that overlap with electron, eventually these should just be removed
     bool iseljetoverlap = false;
+
     for(unsigned int i= 0; i < truth_electrons.size(); i++){
       float dr =deltaR(jet->eta(), truth_electrons.at(i).Eta(),jet->phi(), truth_electrons.at(i).Phi());
       if(dr < 0.3) iseljetoverlap = true;
     }
+
     if ( iseljetoverlap ) v_jet_aliveAfterOR->push_back(0);
     else v_jet_aliveAfterOR->push_back(1);
 
     // jet cleaning - should be done after lepton overlap removal
-    ////////////////////if( (!m_jetCleaningTool->keep( *jet )) && (jet->pt() > 20e3) ) return StatusCode::SUCCESS;
+    if( (!m_jetCleaningTool->keep( *jet )) && (jet->pt() > 20e3) ) return StatusCode::SUCCESS;
 
     v_jet_pt ->push_back(jet->pt()  );
     v_jet_eta->push_back(jet->eta() );

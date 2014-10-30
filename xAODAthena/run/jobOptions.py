@@ -138,8 +138,9 @@ algSeq = CfgMgr.AthSequencer("AthAlgSeq")
 # ====================================================================
 #algSeq += CfgMgr.btagIBLAnalysisAlg("MyTry", RootStreamName = streamName, RootDirName = "/Histograms", OutputLevel=INFO) #DEBUG
 alg = CfgMgr.btagIBLAnalysisAlg(OutputLevel=INFO) #DEBUG
-#alg.JetCleaningTool.CutLevel = "LooseBad" # options: "VeryLooseBad","LooseBad","MediumBad","TightBad"
+alg.JetCleaningTool.CutLevel = "LooseBad" # options: "VeryLooseBad","LooseBad","MediumBad","TightBad"
 algSeq += alg
+ToolSvc += CfgMgr.JetCalibrationTool("JetCalibrationTool", IsData=False,ConfigFile="JetCalibTools/data/CalibrationConfigs/JES_Full2012dataset_Preliminary_MC14.config", CalibSequence="EtaJES", JetCollection="AntiKt4LCTopo")
 # ====================================================================
 # Define an output root file for histograms
 # ====================================================================

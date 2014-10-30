@@ -9,6 +9,7 @@
 
 // forward declarations
 class IJetSelector;
+class IJetCalibrationTool;
 
 class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm { 
  public: 
@@ -117,8 +118,11 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 
  private: 
 
-  /// The tool handle to our jet cleaning tool
-  /////////////////////////ToolHandle< IJetSelector > m_jetCleaningTool;
+  /// tool handle for jet cleaning tool
+  ToolHandle< IJetSelector > m_jetCleaningTool;
+
+  /// tool handle for jet calibration tool
+  ToolHandle< IJetCalibrationTool > m_jetCalibrationTool;
 
   // determine whether particle is B hadron or not
   bool isBHadron(int pdgid);
