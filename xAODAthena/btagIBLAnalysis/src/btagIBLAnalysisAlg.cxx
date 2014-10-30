@@ -51,6 +51,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_GhostL_q   =new std::vector<int>();
   v_jet_GhostL_HadI=new std::vector<int>();
   v_jet_GhostL_HadF=new std::vector<int>();
+  v_jet_aliveAfterOR =new std::vector<int>();
   v_jet_truthMatch =new std::vector<int>();
   v_jet_truthPt =new std::vector<float>();
   v_jet_dRiso   =new std::vector<float>();
@@ -129,6 +130,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_GhostL_q"   ,&v_jet_GhostL_q);
   tree->Branch("jet_GhostL_HadI",&v_jet_GhostL_HadI);
   tree->Branch("jet_GhostL_HadF",&v_jet_GhostL_HadF);
+  tree->Branch("jet_aliveAfterOR" ,&v_jet_aliveAfterOR);
   tree->Branch("jet_truthMatch" ,&v_jet_truthMatch);
   tree->Branch("jet_truthPt" ,&v_jet_truthPt);
   tree->Branch("jet_dRiso" ,&v_jet_dRiso);
@@ -239,14 +241,21 @@ StatusCode btagIBLAnalysisAlg::execute() {
   CHECK( evtStore()->retrieve( xTruthEventContainer, "TruthEvent") );
   
   // select truth electrons for electron-jet overlap removal
-  std::vector<TLorentzVector> truth_electrons;
-  /*for ( const auto* truth : *xTruthEventContainer ) {
+  /*std::vector<TLorentzVector> truth_electrons;
+  for ( const auto* truth : *xTruthEventContainer ) {
     for(unsigned int i = 0; i < truth->nTruthParticles(); i++){
       const xAOD::TruthParticle* particle = truth->truthParticle(i);
       if (particle->pt() < 15e3) continue;
       if (particle->status() != 1) continue;
       if (particle->barcode() > 2e5) continue;
       if (fabs(particle->pdgId()) != 11) continue;
+      // see if this electron is coming from a W boson decay
+      bool isfromW = false;
+      const xAOD::TruthVertex* prodvtx = particle->prodVtx();
+      for(unsigned j = 0; j < prodvtx->nIncomingParticles(); j++){
+	if( fabs( (prodvtx->incomingParticle(j))->pdgId() ) == 24 ) isfromW = true;
+      }
+      if(!isfromW) continue;
       TLorentzVector telec;
       telec.SetPtEtaPhiM(particle->pt(), particle->eta(), particle->phi(), particle->m());
       truth_electrons.push_back(telec);
@@ -270,22 +279,11 @@ StatusCode btagIBLAnalysisAlg::execute() {
   nbjets_HadF=0;
 
   // loop over the jets to find the selected ones (so that I can do dR)
-  // only keep the ones with pT > 20GeV, eta < 2.5 and not overlapping with truth electron
+  // only keep the ones with pT > 20GeV, eta < 2.5
   std::vector<const xAOD::Jet*> selJets; selJets.reserve(10);
   for ( const auto* jet : *jets ) {
-
     if ( jet->pt() < 20e3 )         continue;
     if ( fabs( jet->eta() ) > 2.5)  continue;
-    
-    bool iseljetoverlap = false;
-    for(unsigned int i= 0; i < truth_electrons.size(); i++){
-      float dr =deltaR(jet->eta(), truth_electrons.at(i).Eta(),jet->phi(), truth_electrons.at(i).Phi());
-      if(dr < 0.3){
-	iseljetoverlap = true;
-      }
-    }
-    if ( iseljetoverlap ) continue;
-
     selJets.push_back(jet);
   }
 
@@ -295,7 +293,16 @@ StatusCode btagIBLAnalysisAlg::execute() {
   for (unsigned int j=0; j<selJets.size(); j++) {
     const xAOD::Jet* jet=selJets.at(j);
 
-    // jet cleaning - do this now after lepton overlap removal
+    // for now only flagging jets that overlap with electron, eventually these should just be removed
+    bool iseljetoverlap = false;
+    for(unsigned int i= 0; i < truth_electrons.size(); i++){
+      float dr =deltaR(jet->eta(), truth_electrons.at(i).Eta(),jet->phi(), truth_electrons.at(i).Phi());
+      if(dr < 0.3) iseljetoverlap = true;
+    }
+    if ( iseljetoverlap ) v_jet_aliveAfterOR->push_back(0);
+    else v_jet_aliveAfterOR->push_back(1);
+
+    // jet cleaning - should be done after lepton overlap removal
     ////////////////////if( (!m_jetCleaningTool->keep( *jet )) && (jet->pt() > 20e3) ) return StatusCode::SUCCESS;
 
     v_jet_pt ->push_back(jet->pt()  );
