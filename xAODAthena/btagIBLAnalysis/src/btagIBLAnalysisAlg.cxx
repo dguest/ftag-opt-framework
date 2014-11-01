@@ -4,6 +4,8 @@
 // Author(s): marx@cern.ch
 // Description: athena-based code to process xAODs 
 ///////////////////////////////////////
+#include "GaudiKernel/ITHistSvc.h"
+#include "GaudiKernel/ServiceHandle.h"
 
 #include "btagIBLAnalysisAlg.h"
 #include "GAFlavourLabel.h"
@@ -34,20 +36,23 @@ btagIBLAnalysisAlg::~btagIBLAnalysisAlg() {}
 StatusCode btagIBLAnalysisAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
 
+  // Register histograms
   //ATH_CHECK( book( TH1F("hist_Lxy_denom", "Lxy", 200, 0.0, 100.0) ) );
   //ATH_CHECK( book( TH1F("hist_Lxy", "Lxy", 200, 0.0, 100.0) ) );
  
-  // define output file for ntuple, tree and branches
-  output = new TFile("flavntuple_110401_ttbar.root","recreate");
+  // Register output tree
+  ServiceHandle<ITHistSvc> histSvc("THistSvc",name());
+  CHECK( histSvc.retrieve() );
   tree = new TTree("bTag","bTag");
+  CHECK( histSvc->regTree("/BTAGSTREAM/tree",tree) );
 
   // Retrieve the jet cleaning tool
   CHECK( m_jetCleaningTool.retrieve() );
 
   // Retrieve the jet calibration tool
   CHECK( m_jetCalibrationTool.retrieve() );
-  //m_jetCalibrationTool.setTypeAndName("JetCalibrationTool/JetCalibrationTool");
 
+  // Setup branches
   v_jet_pt =new std::vector<float>(); v_jet_pt->reserve(15);
   v_jet_eta=new std::vector<float>(); v_jet_eta->reserve(15);
   v_jet_phi=new std::vector<float>(); v_jet_phi->reserve(15);
@@ -93,7 +98,6 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_jf_sig3d=new std::vector<int>();
   v_jet_jf_nvtx1t=new std::vector<int>();
   v_jet_jf_n2t=new std::vector<int>();
-  
 
   v_jet_jfcombnn_pb=new std::vector<float>();
   v_jet_jfcombnn_pc=new std::vector<float>();
@@ -115,8 +119,6 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_bH_dRjet=new std::vector<float>();
 
 
-
-  // setup branches
   tree->Branch("runnb",&runnumber);
   tree->Branch("eventnb",&eventnumber);
   tree->Branch("mcchan",&mcchannel);
@@ -204,10 +206,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
 StatusCode btagIBLAnalysisAlg::finalize() {
   ATH_MSG_INFO ("Finalizing " << name() << "...");
 
-  // Write tree into ntuple and close file
-  output->cd();
+  // Write tree into file
   tree->Write();
-  output->Close();
 
   // Clean up
   CHECK( m_jetCleaningTool.release() );
@@ -550,6 +550,7 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_GhostL_q->clear();
   v_jet_GhostL_HadI->clear();
   v_jet_GhostL_HadF->clear();
+  v_jet_aliveAfterOR->clear();
   v_jet_truthMatch->clear();
   v_jet_truthPt->clear();
   v_jet_dRiso->clear();;
