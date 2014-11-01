@@ -15,6 +15,8 @@ svcMgr.EventSelector.InputCollections = [
     # ttbar 8TeV
     #ttbar8folder + "AOD.01571944._010058.pool.root.1",
     # ttbar 13TeV 5787
+    #mainfolder + "ttbar/13TeV/AOD.01597980._000008.pool.root.1",
+    #mainfolder + "ttbar/13TeV/AOD.01597980._000019.pool.root.1"
     ttbar13folder1 + "AOD.01587947._000270.pool.root.1",
     ## ttbar13folder1 + "AOD.01587947._000291.pool.root.1",
     ## ttbar13folder1 + "AOD.01587947._000420.pool.root.2",
@@ -125,16 +127,16 @@ svcMgr.EventSelector.InputCollections = [
     ## Zprime13folder + "AOD.01598032._000197.pool.root.1",
      ]
 # ====================================================================
-# Define output file name and stream name
+# Define output ntuple file name
 # ====================================================================
-streamName = "HistoStream"
-fileName = "histos.root"
+svcMgr += CfgMgr.THistSvc()
+svcMgr.THistSvc.Output += ["BTAGSTREAM DATAFILE='flavntuple_110401_ttbar_13TeV_r5787.root' OPT='RECREATE'"]
 # ====================================================================
 # Fetch the AthAlgSeq, i.e., one of the existing master sequences where one should attach all algorithms
 # ====================================================================
 algSeq = CfgMgr.AthSequencer("AthAlgSeq")
 # ====================================================================
-# Add own algorithm
+# Add own algorithm and tools
 # ====================================================================
 #algSeq += CfgMgr.btagIBLAnalysisAlg("MyTry", RootStreamName = streamName, RootDirName = "/Histograms", OutputLevel=INFO) #DEBUG
 alg = CfgMgr.btagIBLAnalysisAlg(OutputLevel=INFO) #DEBUG
@@ -144,6 +146,8 @@ ToolSvc += CfgMgr.JetCalibrationTool("JetCalibrationTool", IsData=False,ConfigFi
 # ====================================================================
 # Define an output root file for histograms
 # ====================================================================
+#streamName = "HistoStream"
+#fileName = "histos.root"
 #from OutputStreamAthenaPool.MultipleStreamManager import MSMgr
 #HistoXAODStream = MSMgr.NewRootStream( streamName, fileName )
 # ====================================================================
