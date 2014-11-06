@@ -3,13 +3,29 @@
 
 #include "AthenaBaseComps/AthHistogramAlgorithm.h"
 #include "GaudiKernel/ToolHandle.h" 
+//#include "TrkExInterfaces/IExtrapolator.h"
 
 #include "TFile.h"
 #include "TTree.h"
 
+#ifndef __MAKECINT__
+#include "xAODTracking/TrackParticle.h"
+#include "xAODTruth/TruthParticle.h"
+#endif // not __MAKECINT__
+
 // forward declarations
 class IJetSelector;
 class IJetCalibrationTool;
+
+enum TAGGERALGO{ IP3D=0,
+		 SV1,
+		 JF }; 
+
+enum TRKORIGIN{ PUFAKE=-1,
+		FROMB,
+		FROMC,
+		FRAG,
+		GEANT }; 
 
 class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm { 
  public: 
@@ -114,7 +130,49 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_bH_Lxy;
   std::vector<float> *v_bH_dRjet;
 
+  // track info
+  std::vector<int>   *v_jet_btag_ntrk;
+  
+  std::vector<std::vector<float> > *v_jet_trk_pt;
+  std::vector<std::vector<float> > *v_jet_trk_eta;
+  std::vector<std::vector<float> > *v_jet_trk_phi;
+  std::vector<std::vector<float> > *v_jet_trk_chi2;
+  std::vector<std::vector<float> > *v_jet_trk_ndf;
+
+  std::vector<std::vector<int> > *v_jet_trk_algo;
+  std::vector<std::vector<int> > *v_jet_trk_orig;
+
+  std::vector<std::vector<int> > *v_jet_trk_nBLHits;
+  std::vector<std::vector<int> > *v_jet_trk_nPixHits;
+  std::vector<std::vector<int> > *v_jet_trk_nSCTHits;
+  std::vector<std::vector<int> > *v_jet_trk_expectBLayerHit;
+  std::vector<std::vector<float> > *v_jet_trk_d0;
+  std::vector<std::vector<float> > *v_jet_trk_z0;
+  std::vector<std::vector<float> > *v_jet_trk_d0_truth;
+  std::vector<std::vector<float> > *v_jet_trk_z0_truth;
+ 
+  std::vector<std::vector<int> >   *v_jet_trk_IP3D_grade;
+  std::vector<std::vector<float> > *v_jet_trk_IP3D_d0;
+  std::vector<std::vector<float> > *v_jet_trk_IP3D_z0;
+  std::vector<std::vector<float> > *v_jet_trk_IP3D_d0sig;
+  std::vector<std::vector<float> > *v_jet_trk_IP3D_z0sig;
+  
+  // those are just quick accessors
+  std::vector<int>   *v_jet_sv1_ntrk;
+  std::vector<int>   *v_jet_ip3d_ntrk;
+  std::vector<int>   *v_jet_jf_ntrk;
+
   void clearvectors();
+
+#ifndef __MAKECINT__
+  const xAOD::TruthParticle*  truthParticle(const xAOD::TrackParticle *trkPart) const;
+  void GetParentTracks(const xAOD::TruthParticle* part, 
+		       std::vector<const xAOD::TruthParticle*> &tracksFromB, 
+		       std::vector<const xAOD::TruthParticle*> &tracksFromC, 
+		       bool isfromC, std::string indent);
+  bool decorateTruth(const xAOD::TruthParticle & particle);
+#endif // not __MAKECINT__  
+
 
  private: 
 
@@ -130,6 +188,8 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   // compute dR between two objects
   float deltaR(float eta1, float eta2, float phi1, float phi2);
 
+  //ToolHandle<IExtrapolator> m_extrapolator; //Trk::
+  
 }; 
 
 #endif //> !BTAGIBLANALYSIS_BTAGIBLANALYSISALG_H
