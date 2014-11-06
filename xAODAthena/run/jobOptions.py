@@ -20,7 +20,8 @@ import glob
 svcMgr.EventSelector.InputCollections = glob.glob(foldername+"*.root*")
 
 svcMgr.EventSelector.InputCollections = [
-     "/afs/cern.ch/work/v/vdao//xAODs/mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e2928_s1982_s2008_r5787_tid01587947_00/AOD.01587947._004222.pool.root.1",
+    #"/afs/cern.ch/work/f/filthaut/public/AOD.ath192xval_01606245._000001.pool.root.1"
+    "/afs/cern.ch/work/v/vdao//xAODs/mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e2928_s1982_s2008_r5787_tid01587947_00/AOD.01587947._004222.pool.root.1",
      ]
 # ====================================================================
 # Define output ntuple file name

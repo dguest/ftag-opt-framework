@@ -4,7 +4,7 @@ import sys
 dsList=open("mc_samples.txt",'r')
 lines=dsList.readlines()
 
-suffix=".BTAGNTUP_V0"
+suffix=".BTAGNTUP_V1"
 
 def submitJob(ds) :
     com = "pathena  jobOptions.py "
