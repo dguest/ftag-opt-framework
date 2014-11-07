@@ -64,6 +64,11 @@ string getCut(string tagger, bool a8TeV) {
     if (a8TeV) return  "0.0874416666667";
     else      return  "-0.120991666667";
   }
+
+  if (tagger=="SV1") {
+    if (a8TeV) return  "0.0874416666667";
+    else      return  "0.354833333333";
+  }
   
   cout << "NOT SUPPORTED!!! " << endl;
   return "0";
@@ -85,6 +90,11 @@ string getVariable(string tagger, bool a8TeV) {
     else       return  "jet_ip3dsv1";
   }
   
+  if (tagger=="SV1") {
+    if (isXAOD) return  "jet_sv1_llr";
+    else       return  "jet_sv1";
+  }
+
   cout << "NOT SUPPORTED!!! " << endl;
   return "0";
 }
@@ -380,19 +390,22 @@ void PrintTagger(string tagger, string file1)  {
   // MV1: quite detailed info
   string yLabel=tagger+"@70% eff.";
   string effCut=" && "+getVariable(tagger, is8TeV)+">"+getCut(tagger, is8TeV)+" ";
+ 
   GetComparison(file1,CutBase, effCut,
 		Cut1, Cut2, Cut3,
 	        "bH_Lxy", "b-hadron transverse decay length (mm)", yLabel,  
-		20,  0, 100);
+		40,  0, 100);
+  /*
   GetComparison(file1,CutBase, effCut,
 		Cut1, Cut2, Cut3,
 	        "jet_truthPt/1e3", "jet p_{T} (GeV)", yLabel,  
 		20,  25, 500);
-
+  
   GetComparison(file1,CutBase, effCut,
 		Cut1, Cut2, Cut3,
 	        "abs(jet_eta)", "jet #eta", yLabel,  
 		25, 0, 2.5);
+  */
 }
   
 
@@ -413,15 +426,15 @@ void Plotter_pt2(const char* infile,
   string file1=infile;
   gSystem->Exec( ("mkdir -p "+outputFolder).c_str());
 
-  PrintTagger("MV1",file1);
-  PrintTagger("MV1c",file1);
-  PrintTagger("MV2c00",file1);
-  PrintTagger("MV2c10",file1);
-  PrintTagger("MV2c20",file1);
-  PrintTagger("MVb",file1);
+  //PrintTagger("MV1",file1);
+  //PrintTagger("MV1c",file1);
+  //PrintTagger("MV2c00",file1);
+  //PrintTagger("MV2c10",file1);
+  //PrintTagger("MV2c20",file1);
+  //PrintTagger("MVb",file1);
   PrintTagger("IP3D",file1);
-  PrintTagger("IP3D_SV1",file1);
-  
+  //PrintTagger("IP3D+SV1",file1);
+  PrintTagger("SV1",file1);
 
   /*
   //////////////////////////////////////////////////////////////////////////////////////
