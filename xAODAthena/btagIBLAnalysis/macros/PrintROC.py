@@ -93,14 +93,15 @@ elif isXAOD:
         ["IP3D"    , "ip3d_llr", -12.  ,   30    ,  3000, 8 ],
         ["SV1"     , "sv1_llr" ,  -4.  ,   13    ,  3000, 6 ],
         ["IP3D+SV1", "sv1ip3d" , -10.  ,   35    ,  3000, 797 ],
-        ["MVb"     , "mvb"     ,  -1.05,  0.8    ,  3000, 920 ]
+        ["MVb"     , "mvb"     ,  -1.05,  0.8    ,  3000, 920 ],
+        ["JetFitter"     , "jf_llr"     ,  -15,  10    ,  3000, 40 ]
         ]
 else:
-    taggers=[ ["MV1"     , "mv1"     ,   0.0  ,  0.9945  , 30000, 1 ],   #20000
-              ["MV1c"    , "mv1c"    ,   0    ,  1       ,  3000, 3 ],
-              ["MV2c00"  , "mv2c00"  ,  -0.5  ,  0.5     ,  3000, 2 ],
-              ["MV2c10"  , "mv2c10"  ,  -0.5  ,  0.5,  3000, 4 ],
-              ["MV2c20"  , "mv2c20"  ,  -0.5  ,  0.5,  3000, 7 ],
+    taggers=[ #["MV1"     , "mv1"     ,   0.0  ,  0.9945  , 30000, 1 ],   #20000
+    # ["MV1c"    , "mv1c"    ,   0    ,  1       ,  3000, 3 ],
+    #          ["MV2c00"  , "mv2c00"  ,  -0.5  ,  0.5     ,  3000, 2 ],
+    #          ["MV2c10"  , "mv2c10"  ,  -0.5  ,  0.5,  3000, 4 ],
+    #          ["MV2c20"  , "mv2c20"  ,  -0.5  ,  0.5,  3000, 7 ],
               ["IP3D"    , "ip3d"    , -12.   ,   30,  3000, 8 ],
               ["SV1"     , "sv1"     ,  -4.   ,   13,  3000, 6 ],
               ["MVb"     , "mvb"     ,  -1.05 ,  0.8,  3000, 920 ],
@@ -113,8 +114,10 @@ def GetHisto(tag, intree, val):
     tmpH.Sumw2()
     var="jet_"+tag[1]+">>"+tmpH.GetName()
     cut=""
-    if isXAOD: cut="jet_truthflav=="+str(val)+" && jet_truthPt>25e3 &&  jet_truthMatch==1 "
-    else     : cut="jet_trueFlav=="+str(val)+"  && jet_pt>25e3 && (abs(jet_jvf>0.5) || jet_pt>50e3) "
+    if isXAOD: cut="jet_truthflav=="+str(val)+" && jet_truthPt>25e3 &&  jet_truthMatch==1 && jet_aliveAfterOR == 1"
+    else     :
+        cut="jet_trueFlav=="+str(val)+"  && jet_pt>25e3 && jet_truthmatched==1"
+        #else     : cut="jet_trueFlav=="+str(val)+"  && jet_pt>25e3 && (abs(jet_jvf>0.5) || jet_pt>50e3) "
     intree.Draw( var, cut,"goof") #,100000)
     tmpH.SetBinContent(1,tmpH.GetBinContent(1)+tmpH.GetBinContent(0))
     tmpH.SetBinError(1,sqrt(pow(tmpH.GetBinError(1),2)+pow(tmpH.GetBinError(0),2)))
@@ -131,7 +134,9 @@ def GetHisto(tag, intree, val):
         c.Update()
         c.Print(odir+"/test.eps")
         time.sleep(0.5)
-    tmpH.Scale(1./tmpH.Integral())
+    if tmpH.Integral():
+        tmpH.Scale(1./tmpH.Integral())
+    else: print tmpH.Integral()
     return tmpH
 
     
