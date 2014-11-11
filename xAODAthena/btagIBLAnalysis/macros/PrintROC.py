@@ -97,14 +97,14 @@ elif isXAOD:
         ["JetFitter"     , "jf_llr"     ,  -15,  10    ,  3000, 40 ]
         ]
 else:
-    taggers=[ #["MV1"     , "mv1"     ,   0.0  ,  0.9945  , 30000, 1 ],   #20000
-    # ["MV1c"    , "mv1c"    ,   0    ,  1       ,  3000, 3 ],
-    #          ["MV2c00"  , "mv2c00"  ,  -0.5  ,  0.5     ,  3000, 2 ],
-    #          ["MV2c10"  , "mv2c10"  ,  -0.5  ,  0.5,  3000, 4 ],
-    #          ["MV2c20"  , "mv2c20"  ,  -0.5  ,  0.5,  3000, 7 ],
-              ["IP3D"    , "ip3d"    , -12.   ,   30,  3000, 8 ],
-              ["SV1"     , "sv1"     ,  -4.   ,   13,  3000, 6 ],
-    #["MVb"     , "mvb"     ,  -1.05 ,  0.8,  3000, 920 ],
+    taggers=[ ["MV1"     , "mv1"     ,   0.0  ,  0.9945  , 20000, 1 ],   #20000
+              ["MV1c"    , "mv1c"    ,   0  ,  1  ,  2000, 3 ],
+              ["MV2c00"  , "mv2c00"  ,  -0.5,  0.5,  2000, 2 ],
+              ["MV2c10"  , "mv2c10"  ,  -0.5,  0.5,  2000, 4 ],
+              ["MV2c20"  , "mv2c20"  ,  -0.5,  0.5,  2000, 7 ],
+              ["IP3D"    , "ip3d"    , -12.   ,   30,  2000, 8 ],
+              ["SV1"     , "sv1"     ,  -4.   ,   13,  2000, 6 ],
+              ["MVb"   , "mvb"       ,  -1.05 ,  0.8,  2000, 920 ],
               ]
 effThreshold=0.7
 
@@ -114,10 +114,8 @@ def GetHisto(tag, intree, val):
     tmpH.Sumw2()
     var="jet_"+tag[1]+">>"+tmpH.GetName()
     cut=""
-    if isXAOD: cut="jet_truthflav=="+str(val)+" && jet_pt>25e3 &&  jet_truthMatch==1"
-    else     :
-        cut="jet_trueFlav=="+str(val)+"  && jet_pt>25e3 && jet_truthmatched==1"
-        #else     : cut="jet_trueFlav=="+str(val)+"  && jet_pt>25e3 && (abs(jet_jvf>0.5) || jet_pt>50e3) "
+    if not is8TeV: cut="jet_truthflav=="+str(val)+" && jet_pt>25e3"
+    else:          cut="jet_trueFlav=="+str(val)+" && jet_pt>25e3 && jet_truthmatched==1 "
     intree.Draw( var, cut,"goof") #,100000)
     tmpH.SetBinContent(1,tmpH.GetBinContent(1)+tmpH.GetBinContent(0))
     tmpH.SetBinError(1,sqrt(pow(tmpH.GetBinError(1),2)+pow(tmpH.GetBinError(0),2)))
@@ -135,8 +133,8 @@ def GetHisto(tag, intree, val):
         c.Print(odir+"/test.eps")
         time.sleep(0.5)
     if tmpH.Integral():
-        tmpH.Scale(1./tmpH.Integral())
-    else: print tmpH.Integral()
+        tmpH.Scale(1./tmpH.Integral(-10,tmpH.GetNbinsX()+10))
+    else: print tmpH.Integral(-10,tmpH.GetNbinsX()+10)
     return tmpH
 
     
@@ -149,7 +147,7 @@ def GetROC(tag,intree, bVSlight):
     if bVSlight:
         found=False
         for bin in xrange(1,hsig.GetNbinsX()+1):
-            partInt=hsig.Integral(bin,hsig.GetNbinsX()+1)
+            partInt=hsig.Integral(bin,hsig.GetNbinsX()+10)
             #print str(bin)+"    "+str(partInt)
             if partInt<effThreshold and not found:
                 print " CUT= "+str(hsig.GetBinCenter(bin))+" has eff: "+str(partInt)
@@ -159,8 +157,8 @@ def GetROC(tag,intree, bVSlight):
     maxRej=1
     count=-1
     for bin in xrange(2,hsig.GetNbinsX()):
-        sigEff =hsig.Integral(bin,hsig.GetNbinsX()+1)
-        bkgdEff=hbkgd.Integral(bin,hsig.GetNbinsX()+1)
+        sigEff =hsig.Integral(bin,hsig.GetNbinsX()+10)
+        bkgdEff=hbkgd.Integral(bin,hsig.GetNbinsX()+10)
         ##if bVSlight: print str(bkgdEff)+"   "+str(sigEff)+" CUT: "+str(hsig.GetBinCenter(bin))
         if bkgdEff!=0 and sigEff!=0 and sigEff<0.99:
             ##if bVSlight: print str(bkgdEff)+"   "+str(sigEff)
