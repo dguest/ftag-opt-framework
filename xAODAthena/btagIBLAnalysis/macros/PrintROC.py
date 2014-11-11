@@ -104,7 +104,7 @@ else:
     #          ["MV2c20"  , "mv2c20"  ,  -0.5  ,  0.5,  3000, 7 ],
               ["IP3D"    , "ip3d"    , -12.   ,   30,  3000, 8 ],
               ["SV1"     , "sv1"     ,  -4.   ,   13,  3000, 6 ],
-              ["MVb"     , "mvb"     ,  -1.05 ,  0.8,  3000, 920 ],
+    #["MVb"     , "mvb"     ,  -1.05 ,  0.8,  3000, 920 ],
               ]
 effThreshold=0.7
 
@@ -114,7 +114,7 @@ def GetHisto(tag, intree, val):
     tmpH.Sumw2()
     var="jet_"+tag[1]+">>"+tmpH.GetName()
     cut=""
-    if isXAOD: cut="jet_truthflav=="+str(val)+" && jet_truthPt>25e3 &&  jet_truthMatch==1 && jet_aliveAfterOR == 1"
+    if isXAOD: cut="jet_truthflav=="+str(val)+" && jet_pt>25e3 &&  jet_truthMatch==1"
     else     :
         cut="jet_trueFlav=="+str(val)+"  && jet_pt>25e3 && jet_truthmatched==1"
         #else     : cut="jet_trueFlav=="+str(val)+"  && jet_pt>25e3 && (abs(jet_jvf>0.5) || jet_pt>50e3) "
