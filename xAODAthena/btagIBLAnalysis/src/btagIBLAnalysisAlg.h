@@ -44,7 +44,8 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   int eventnumber;
   int mcchannel;
   double mcweight;
-  // to add: npv, mu
+  int npv;
+  double mu;
 
   // jet info
   int njets;

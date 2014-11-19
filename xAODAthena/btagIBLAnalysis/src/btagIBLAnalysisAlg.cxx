@@ -179,6 +179,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("eventnb",&eventnumber);
   tree->Branch("mcchan",&mcchannel);
   tree->Branch("mcwg",&mcweight);
+  tree->Branch("nPV",&npv);
+  tree->Branch("avgmu",&mu);
 
   tree->Branch("njets",&njets);
   tree->Branch("nbjets"     ,&nbjets);
@@ -322,6 +324,18 @@ StatusCode btagIBLAnalysisAlg::execute() {
   eventnumber = eventInfo->eventNumber();
   mcchannel   = eventInfo->mcChannelNumber();
   mcweight    = eventInfo->mcEventWeight();
+  mu          = eventInfo->averageInteractionsPerCrossing();
+
+  const xAOD::VertexContainer* vertices = 0;
+  CHECK( evtStore()->retrieve(vertices,"PrimaryVertices") );
+
+  int eventNPV = 0;
+  xAOD::VertexContainer::const_iterator vtx_itr = vertices->begin();
+  xAOD::VertexContainer::const_iterator vtx_end = vertices->end(); 
+  for ( ; vtx_itr != vtx_end; ++vtx_itr ){
+    if ( (*vtx_itr)->nTrackParticles() >= 2 ) ++eventNPV;
+  }
+  npv = eventNPV;
 
 
   //---------------------------
@@ -651,7 +665,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       //const xAOD::Vertex*  tmpVertex=*(SV1vertices.at(sv1V));
     //}
 
-    for (int jfv=0; jfv< jfVertices.size(); jfv++) {
+    for (unsigned int jfv=0; jfv< jfVertices.size(); jfv++) {
       //const xAOD::BTagVertex*  tmpVertex=*(jfVertices.at(jfv)); 
       //std::cout << " tmpVertex: " << tmpVertex->chi2() << std::endl;
     }
@@ -695,7 +709,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	unsigned int trackAlgo=0;
 	int index=-1;
 	
-	for (int iT=0; iT<IP3DTracks.size(); iT++) {
+	for (unsigned int iT=0; iT<IP3DTracks.size(); iT++) {
 	  if ( tmpTrk==*(IP3DTracks.at(iT)) ) {
 	    trackAlgo+=1<<IP3D;
 	    index=iT;
@@ -717,13 +731,13 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	  j_trk_ip3d_z0sig.push_back(-999);
 	}
 	
-	for (int iT=0; iT<SV1Tracks.size(); iT++) {
+	for (unsigned int iT=0; iT<SV1Tracks.size(); iT++) {
 	  if ( tmpTrk==*(SV1Tracks.at(iT)) ) {
 	    trackAlgo+=1<<SV1;
 	    break;
 	  }
 	}
-        for (int iT=0; iT<JFTracks.size(); iT++) {
+        for (unsigned int iT=0; iT<JFTracks.size(); iT++) {
 	  if ( tmpTrk==*(JFTracks.at(iT)) ) {
 	    trackAlgo+=1<<JF;
 	    break;
@@ -741,13 +755,13 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	  if (truthBarcode>2e5) origin=GEANT;
 	  else {
 	    origin=FRAG;
-	    for (int iT=0; iT<tracksFromB.size(); iT++) {
+	    for (unsigned int iT=0; iT<tracksFromB.size(); iT++) {
 	      if (truth==tracksFromB.at(iT)) {
 		origin=FROMB;
 		break;
 	      }
 	    }
-	    for (int iT=0; iT<tracksFromC.size(); iT++) {
+	    for (unsigned int iT=0; iT<tracksFromC.size(); iT++) {
 	      if (truth==tracksFromC.at(iT)) {
 		origin=FROMC;
 		break;
@@ -878,7 +892,7 @@ bool GoesIntoC(const xAOD::TruthParticle* part) {
   if ( !part ) return false;
   if ( !part->hasDecayVtx() ) return false;
   const xAOD::TruthVertex* decayVtx=part->decayVtx();
-  for (int ch=0; ch<decayVtx->nOutgoingParticles(); ch++) {
+  for (unsigned int ch=0; ch<decayVtx->nOutgoingParticles(); ch++) {
     const xAOD::TruthParticle* tmpPart= decayVtx->outgoingParticle(ch);
     if ( tmpPart->isCharmHadron() ) return true;
   }
@@ -895,7 +909,7 @@ void btagIBLAnalysisAlg :: GetParentTracks(const xAOD::TruthParticle* part,
   if ( !part->hasDecayVtx() ) return;
   const xAOD::TruthVertex* decayVtx=part->decayVtx();
   indent+="  ";
-  for (int ch=0; ch<decayVtx->nOutgoingParticles(); ch++) {
+  for (unsigned int ch=0; ch<decayVtx->nOutgoingParticles(); ch++) {
     const xAOD::TruthParticle* tmpPart= decayVtx->outgoingParticle(ch);
     if ( tmpPart->barcode()>200e3 ) continue;
     
