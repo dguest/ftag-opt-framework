@@ -4,13 +4,21 @@ import sys
 dsList=open("mc_samples.txt",'r')
 lines=dsList.readlines()
 
-suffix=".BTAGNTUP_V1"
+suffix=".BTAGNTUP_V3"
+
+##suffix=".BTAGNTUP_V2" ### aborted due to huge mem leaks
 
 def submitJob(ds) :
-    com = "pathena  jobOptions.py "
+    #com = "pathena  jobOptions.py "
+    com = "pathena  jobOptions_Test.py "
+
+    com += " --official --voms atlas:/atlas/perf-flavtag/Role=production "
+
     com += "--inDS " + ds + " "
 
-    oDS = "user.vdao."+ds.replace("/","")+suffix
+    ##oDS = "user.vdao."+ds.replace("/","")+suffix
+    oDS="group.perf-flavtag."+ds.replace("/","")+suffix
+
     print oDS+"  has length: "+str(len(oDS))
     while len(oDS) > 115 :
         print len(oDS)," too long!!!"
@@ -24,8 +32,8 @@ def submitJob(ds) :
     print "final: "+oDS+"  has length: "+str(len(oDS))
     com += "--outDS "+ oDS + " "
   
-    com += "--nFilesPerJob 3 "
-    com += "--destSE UNI-FREIBURG_SCRATCHDISK "
+    com += "--nFilesPerJob 1 "
+    #com += "--destSE UNI-FREIBURG_SCRATCHDISK "
     return com
 
 for ds in lines :
