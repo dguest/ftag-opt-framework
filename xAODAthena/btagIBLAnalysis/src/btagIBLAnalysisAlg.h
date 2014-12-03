@@ -83,16 +83,27 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 
   // SV0
   std::vector<float> *v_jet_sv0_sig3d;
-  std::vector<float> *v_jet_sv0_ntrkv;
+  std::vector<int> *v_jet_sv0_ntrkj;
+  std::vector<int> *v_jet_sv0_ntrkv;
+  std::vector<int> *v_jet_sv0_n2t;
   std::vector<float> *v_jet_sv0_m;
   std::vector<float> *v_jet_sv0_efc;
-  std::vector<float> *v_jet_sv0_n2t;
+  std::vector<float> *v_jet_sv0_normdist;
 
   // SV1
+  std::vector<int> *v_jet_sv1_ntrkj;
+  std::vector<int> *v_jet_sv1_ntrkv;
+  std::vector<int> *v_jet_sv1_n2t;
+  std::vector<float> *v_jet_sv1_m;
+  std::vector<float> *v_jet_sv1_efc;
+  std::vector<float> *v_jet_sv1_normdist;
   std::vector<float> *v_jet_sv1_pb;
   std::vector<float> *v_jet_sv1_pc;
   std::vector<float> *v_jet_sv1_pu;
   std::vector<float> *v_jet_sv1_llr;
+  std::vector<std::vector<float> > *v_jet_sv1_vtxx;
+  std::vector<std::vector<float> > *v_jet_sv1_vtxy;
+  std::vector<std::vector<float> > *v_jet_sv1_vtxz;
 
   // JetFitter
   std::vector<float> *v_jet_jf_pb;
@@ -108,6 +119,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<int> *v_jet_jf_sig3d;
   std::vector<int> *v_jet_jf_nvtx1t;
   std::vector<int> *v_jet_jf_n2t;
+  std::vector<std::vector<float> > *v_jet_jf_chi2;
 
   // JetFitterCombNN
   std::vector<float> *v_jet_jfcombnn_pb;
@@ -136,6 +148,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   
   std::vector<std::vector<float> > *v_jet_trk_pt;
   std::vector<std::vector<float> > *v_jet_trk_eta;
+  std::vector<std::vector<float> > *v_jet_trk_theta;
   std::vector<std::vector<float> > *v_jet_trk_phi;
   std::vector<std::vector<float> > *v_jet_trk_chi2;
   std::vector<std::vector<float> > *v_jet_trk_ndf;
@@ -144,7 +157,11 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<std::vector<int> > *v_jet_trk_orig;
 
   std::vector<std::vector<int> > *v_jet_trk_nBLHits;
+  std::vector<std::vector<int> > *v_jet_trk_nsharedBLHits;
+  std::vector<std::vector<int> > *v_jet_trk_nsplitBLHits;
   std::vector<std::vector<int> > *v_jet_trk_nPixHits;
+  std::vector<std::vector<int> > *v_jet_trk_nsharedPixHits;
+  std::vector<std::vector<int> > *v_jet_trk_nsplitPixHits;
   std::vector<std::vector<int> > *v_jet_trk_nSCTHits;
   std::vector<std::vector<int> > *v_jet_trk_expectBLayerHit;
   std::vector<std::vector<float> > *v_jet_trk_d0;
