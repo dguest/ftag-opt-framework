@@ -135,6 +135,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_jf_nvtx1t=new std::vector<int>();
   v_jet_jf_n2t=new std::vector<int>();
   v_jet_jf_chi2=new std::vector<std::vector<float> >();
+  v_jet_jf_ndf=new std::vector<std::vector<float> >();
 
   v_jet_jfcombnn_pb=new std::vector<float>();
   v_jet_jfcombnn_pc=new std::vector<float>();
@@ -264,6 +265,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_jf_nvtx1t",&v_jet_jf_nvtx1t);
   tree->Branch("jet_jf_n2t",&v_jet_jf_n2t);
   tree->Branch("jet_jf_chi2",&v_jet_jf_chi2);
+  tree->Branch("jet_jf_ndf",&v_jet_jf_ndf);
 
   tree->Branch("jet_jfcombnn_pb",&v_jet_jfcombnn_pb);
   tree->Branch("jet_jfcombnn_pc",&v_jet_jfcombnn_pc);
@@ -651,7 +653,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
     int jfn2t;
     bjet->taggerInfo(jfn2t, xAOD::JetFitter_N2Tpair);
     v_jet_jf_n2t->push_back(jfn2t);
-    //todo: add xAOD::JetFitter_tracksAtPVchi2 and xAOD::JetFitter_tracksAtPVndf
     
     // JetFitterCombNN
     v_jet_jfcombnn_pb->push_back(bjet->JetFitterCombNN_pb());
@@ -706,6 +707,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> j_sv1_vtxx;
     std::vector<float> j_sv1_vtxy;
     std::vector<float> j_sv1_vtxz;
+    std::vector<float> j_jf_chi2;
+    std::vector<float> j_jf_ndf;
 
     bool is8TeV= true;
     if ( bjet->isAvailable<std::vector<ElementLink<xAOD::BTagVertexContainer> > >("JetFitter_JFvertices") ) is8TeV=false;
@@ -715,7 +718,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector< ElementLink< xAOD::TrackParticleContainer > > SV1Tracks ;
     std::vector< ElementLink< xAOD::TrackParticleContainer > > IP3DTracks;
     std::vector< ElementLink< xAOD::TrackParticleContainer > > JFTracks;
-    std::vector<ElementLink<xAOD::BTagVertexContainer> > jfVertices;
     
     if (!is8TeV) {
       IP3DTracks= bjet->auxdata<std::vector<ElementLink< xAOD::TrackParticleContainer> > >("IP3D_TrackParticleLinks");
@@ -723,11 +725,11 @@ StatusCode btagIBLAnalysisAlg::execute() {
     }  //bjet->IP3D_TrackParticleLinks();
    
     // VD: those are all tests that don't seem to work on DC14 xAOD
-    //jfVertices=  bjet->auxdata<std::vector<ElementLink<xAOD::BTagVertexContainer> > >("JetFitter_JFvertices");
-    //std::cout << "Number of JFitter vertices is: " << jfVertices.size() << std::endl;
     // const std::vector<std::vector<ElementLink<DataVector<xAOD::Vertex> > > > SV1vertices = bjet->auxdata<std::vector<std::vector<ElementLink<DataVector<xAOD::Vertex> > > > >("SV1_vertices");
     const std::vector<ElementLink<xAOD::VertexContainer > >  SV1vertices = bjet->auxdata<std::vector<ElementLink<xAOD::VertexContainer > > >("SV1_vertices");
-    
+    std::vector<ElementLink<xAOD::BTagVertexContainer> > jfvertices =  bjet->auxdata<std::vector<ElementLink<xAOD::BTagVertexContainer> > >("JetFitter_JFvertices");
+    //std::cout << "Number of vertices for SV1 = " << SV1vertices.size() << ", for JetFitter =  " << jfvertices.size() << std::endl;
+
     for (int sv1V=0; sv1V< SV1vertices.size(); sv1V++) {
       const xAOD::Vertex*  tmpVertex=*(SV1vertices.at(sv1V));
       j_sv1_vtxx.push_back(tmpVertex->x());
@@ -738,10 +740,13 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sv1_vtxy->push_back(j_sv1_vtxy);
     v_jet_sv1_vtxz->push_back(j_sv1_vtxz);
 
-    for (unsigned int jfv=0; jfv< jfVertices.size(); jfv++) {
-      //const xAOD::BTagVertex*  tmpVertex=*(jfVertices.at(jfv)); 
-      //std::cout << " tmpVertex: " << tmpVertex->chi2() << std::endl;
+    for (unsigned int jfv=0; jfv< jfvertices.size(); jfv++) {
+      const xAOD::BTagVertex*  tmpVertex=*(jfvertices.at(jfv)); 
+      j_jf_chi2.push_back(tmpVertex->chi2());
+      j_jf_ndf.push_back(tmpVertex->NDF());
     }
+    v_jet_jf_chi2->push_back(j_jf_chi2);
+    v_jet_jf_ndf->push_back(j_jf_ndf);
 
     // =  bjet->auxdata<std::vector<ElementLink<xAOD::TrackParticleContainer> > >("JetFitter_tracksAtPVlinks");
 
@@ -1130,6 +1135,7 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_jf_nvtx1t->clear();
   v_jet_jf_n2t->clear();
   v_jet_jf_chi2->clear();
+  v_jet_jf_ndf->clear();
 
   v_jet_jfcombnn_pb->clear();
   v_jet_jfcombnn_pc->clear();

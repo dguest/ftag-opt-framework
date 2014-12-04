@@ -120,6 +120,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<int> *v_jet_jf_nvtx1t;
   std::vector<int> *v_jet_jf_n2t;
   std::vector<std::vector<float> > *v_jet_jf_chi2;
+  std::vector<std::vector<float> > *v_jet_jf_ndf;
 
   // JetFitterCombNN
   std::vector<float> *v_jet_jfcombnn_pb;
