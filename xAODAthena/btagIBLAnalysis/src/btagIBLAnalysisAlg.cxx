@@ -107,6 +107,9 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_sv0_m      =new std::vector<float>();
   v_jet_sv0_efc    =new std::vector<float>();
   v_jet_sv0_normdist    =new std::vector<float>();
+  v_jet_sv0_vtxx =new std::vector<std::vector<float> >();
+  v_jet_sv0_vtxy =new std::vector<std::vector<float> >();
+  v_jet_sv0_vtxz =new std::vector<std::vector<float> >();
   v_jet_sv1_ntrkj  =new std::vector<int>();
   v_jet_sv1_ntrkv  =new std::vector<int>();
   v_jet_sv1_n2t    =new std::vector<int>();
@@ -199,6 +202,9 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("mcwg",&mcweight);
   tree->Branch("nPV",&npv);
   tree->Branch("avgmu",&mu);
+  tree->Branch("PVx",&PV_x);
+  tree->Branch("PVy",&PV_y);
+  tree->Branch("PVz",&PV_z);
 
   tree->Branch("njets",&njets);
   tree->Branch("nbjets"     ,&nbjets);
@@ -236,6 +242,9 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_sv0_m",&v_jet_sv0_m);
   tree->Branch("jet_sv0_efc",&v_jet_sv0_efc);
   tree->Branch("jet_sv0_normdist",&v_jet_sv0_normdist);
+  tree->Branch("jet_sv0_vtxx",&v_jet_sv0_vtxx);
+  tree->Branch("jet_sv0_vtxy",&v_jet_sv0_vtxy);
+  tree->Branch("jet_sv0_vtxz",&v_jet_sv0_vtxz);
 
   tree->Branch("jet_sv1_ntrkj",&v_jet_sv1_ntrkj);
   tree->Branch("jet_sv1_ntrkv",&v_jet_sv1_ntrkv);
@@ -369,7 +378,14 @@ StatusCode btagIBLAnalysisAlg::execute() {
   xAOD::VertexContainer::const_iterator vtx_itr = vertices->begin();
   xAOD::VertexContainer::const_iterator vtx_end = vertices->end(); 
   for ( ; vtx_itr != vtx_end; ++vtx_itr ){
-    if ( (*vtx_itr)->nTrackParticles() >= 2 ) ++eventNPV;
+    if ( (*vtx_itr)->nTrackParticles() >= 2 ){
+      ++eventNPV;
+      if( (*vtx_itr)->vertexType() == 1 ){
+	PV_x =  (*vtx_itr)->x();
+	PV_y =  (*vtx_itr)->y();
+	PV_z =  (*vtx_itr)->z();
+      }
+    }
   }
   npv = eventNPV;
 
@@ -704,6 +720,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> j_trk_ip3d_z0;
     std::vector<float> j_trk_ip3d_d0sig;
     std::vector<float> j_trk_ip3d_z0sig;
+    std::vector<float> j_sv0_vtxx;
+    std::vector<float> j_sv0_vtxy;
+    std::vector<float> j_sv0_vtxz;
     std::vector<float> j_sv1_vtxx;
     std::vector<float> j_sv1_vtxy;
     std::vector<float> j_sv1_vtxz;
@@ -726,9 +745,20 @@ StatusCode btagIBLAnalysisAlg::execute() {
    
     // VD: those are all tests that don't seem to work on DC14 xAOD
     // const std::vector<std::vector<ElementLink<DataVector<xAOD::Vertex> > > > SV1vertices = bjet->auxdata<std::vector<std::vector<ElementLink<DataVector<xAOD::Vertex> > > > >("SV1_vertices");
+    const std::vector<ElementLink<xAOD::VertexContainer > >  SV0vertices = bjet->auxdata<std::vector<ElementLink<xAOD::VertexContainer > > >("SV0_vertices");
     const std::vector<ElementLink<xAOD::VertexContainer > >  SV1vertices = bjet->auxdata<std::vector<ElementLink<xAOD::VertexContainer > > >("SV1_vertices");
     std::vector<ElementLink<xAOD::BTagVertexContainer> > jfvertices =  bjet->auxdata<std::vector<ElementLink<xAOD::BTagVertexContainer> > >("JetFitter_JFvertices");
     //std::cout << "Number of vertices for SV1 = " << SV1vertices.size() << ", for JetFitter =  " << jfvertices.size() << std::endl;
+
+    for (int sv0V=0; sv0V< SV0vertices.size(); sv0V++) {
+      const xAOD::Vertex*  tmpVertex=*(SV0vertices.at(sv0V));
+      j_sv0_vtxx.push_back(tmpVertex->x());
+      j_sv0_vtxy.push_back(tmpVertex->y());
+      j_sv0_vtxz.push_back(tmpVertex->z());
+    }
+    v_jet_sv0_vtxx->push_back(j_sv0_vtxx);
+    v_jet_sv0_vtxy->push_back(j_sv0_vtxy);
+    v_jet_sv0_vtxz->push_back(j_sv0_vtxz);
 
     for (int sv1V=0; sv1V< SV1vertices.size(); sv1V++) {
       const xAOD::Vertex*  tmpVertex=*(SV1vertices.at(sv1V));
@@ -1106,6 +1136,9 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_sv0_m->clear();
   v_jet_sv0_efc->clear();
   v_jet_sv0_normdist->clear();
+  v_jet_sv0_vtxx->clear();
+  v_jet_sv0_vtxy->clear();
+  v_jet_sv0_vtxz->clear();
 
   v_jet_sv1_ntrkj->clear();
   v_jet_sv1_ntrkv->clear();

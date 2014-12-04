@@ -46,6 +46,9 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   double mcweight;
   int npv;
   double mu;
+  double PV_x;
+  double PV_y;
+  double PV_z;
 
   // jet info
   int njets;
@@ -89,6 +92,9 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_jet_sv0_m;
   std::vector<float> *v_jet_sv0_efc;
   std::vector<float> *v_jet_sv0_normdist;
+  std::vector<std::vector<float> > *v_jet_sv0_vtxx;
+  std::vector<std::vector<float> > *v_jet_sv0_vtxy;
+  std::vector<std::vector<float> > *v_jet_sv0_vtxz;
 
   // SV1
   std::vector<int> *v_jet_sv1_ntrkj;
