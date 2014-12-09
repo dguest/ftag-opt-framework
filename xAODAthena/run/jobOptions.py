@@ -2,8 +2,8 @@
 # Specify input files
 # ====================================================================
 
-theApp.EvtMax = -1
-import AthenaPoolCnvSvc.ReadAthenaPool
+#theApp.EvtMax = -1
+#import AthenaPoolCnvSvc.ReadAthenaPool
 # define folders where samples are located
 mainfolder = "/afs/cern.ch/work/m/marx/btag/"
 ttbar8folder = mainfolder + "ttbar/8TeV/mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r5778_r5625_tid01571944_00/"
@@ -17,12 +17,32 @@ mainfolder = "/afs/cern.ch/work/v/vdao/xAODs/"
 foldername = mainfolder + "mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r5778_r5625_tid01571944_00/"
 
 import glob
-svcMgr.EventSelector.InputCollections = glob.glob(foldername+"*.root*")
+#svcMgr.EventSelector.InputCollections = glob.glob(foldername+"*.root*")
 
-svcMgr.EventSelector.InputCollections = [
-    #"/afs/cern.ch/work/f/filthaut/public/AOD.ath192xval_01606245._000001.pool.root.1"
-    "/afs/cern.ch/work/v/vdao//xAODs/mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e2928_s1982_s2008_r5787_tid01587947_00/AOD.01587947._004222.pool.root.1",
-     ]
+#svcMgr.EventSelector.InputCollections = [
+#    #"/afs/cern.ch/work/f/filthaut/public/AOD.ath192xval_01606245._000001.pool.root.1"
+#    "/afs/cern.ch/work/v/vdao//xAODs/mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e2928_s1982_s2008_r5787_tid01587947_00/AOD.01587947._004222.pool.root.1",
+#     ]
+
+from AthenaCommon.AthenaCommonFlags import jobproperties as jp
+jp.AthenaCommonFlags.EvtMax = -1
+#jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/v/vdao//xAODs/mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e2928_s1982_s2008_r5787_tid01587947_00/AOD.01587947._004222.pool.root.1"]
+#jp.AthenaCommonFlags.FilesInput= glob.glob(foldername+"*.root*")
+jp.AthenaCommonFlags.FilesInput=[
+    "/afs/cern.ch/work/v/vdao//xAODs/mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r5778_r5625_tid01571944_00/AOD.01571944._010005.pool.root.2"
+]
+#    "/afs/cern.ch/work/v/vdao//xAODs/mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r5778_r5625_tid01571944_00/AOD.01571944._010007.pool.root.1",
+#    "/afs/cern.ch/work/v/vdao//xAODs/mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r5778_r5625_tid01571944_00/AOD.01571944._010012.pool.root.1",
+#    "/afs/cern.ch/work/v/vdao//xAODs/mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r5778_r5625_tid01571944_00/AOD.01571944._010020.pool.root.1",
+#    "/afs/cern.ch/work/v/vdao//xAODs/mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r5778_r5625_tid01571944_00/AOD.01571944._010026.pool.root.1",
+#    "/afs/cern.ch/work/v/vdao//xAODs/mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r5778_r5625_tid01571944_00/AOD.01571944._010033.pool.root.2",
+#    "/afs/cern.ch/work/v/vdao//xAODs/mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r5778_r5625_tid01571944_00/AOD.01571944._010038.pool.root.2",
+#    "/afs/cern.ch/work/v/vdao//xAODs/mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r5778_r5625_tid01571944_00/AOD.01571944._010040.pool.root.2",
+#    "/afs/cern.ch/work/v/vdao//xAODs/mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r5778_r5625_tid01571944_00/AOD.01571944._010044.pool.root.2",
+#    "/afs/cern.ch/work/v/vdao//xAODs/mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r5778_r5625_tid01571944_00/AOD.01571944._010046.pool.root.1",
+#    "/afs/cern.ch/work/v/vdao//xAODs/mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r5778_r5625_tid01571944_00/AOD.01571944._010052.pool.root.5",
+#    "/afs/cern.ch/work/v/vdao//xAODs/mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r5778_r5625_tid01571944_00/AOD.01571944._010056.pool.root.1"
+#]
 # ====================================================================
 # Define output ntuple file name
 # ====================================================================
@@ -35,11 +55,54 @@ algSeq = CfgMgr.AthSequencer("AthAlgSeq")
 # ====================================================================
 # Add own algorithm and tools
 # ====================================================================
-#algSeq += CfgMgr.btagIBLAnalysisAlg("MyTry", RootStreamName = streamName, RootDirName = "/Histograms", OutputLevel=INFO) #DEBUG
+
+
+## from Anthony
+import MagFieldServices.SetupField
+# --- disable error protection of RecExCommon
+##aathenaCommonFlags.AllowIgnoreConfigError.set_Value_and_Lock(False)
+from AthenaCommon.DetFlags import DetFlags 
+DetFlags.ID_setOn()
+DetFlags.Calo_setOff()
+DetFlags.Muon_setOff()
+
+from RecExConfig.RecFlags import rec
+rec.doESD.set_Value_and_Lock        (False)###
+rec.doWriteESD.set_Value_and_Lock        (False)###
+rec.doAOD.set_Value_and_Lock             (False)
+rec.doWriteAOD.set_Value_and_Lock        (False)
+#rec.doTAG.set_Value_and_Lock             (False)
+rec.doWriteTAG.set_Value_and_Lock        (False)
+rec.doDPD.set_Value_and_Lock             (False)
+
+include ("RecExCommon/RecExCommon_topOptions.py")
+
+from DerivationFrameworkInDet.DerivationFrameworkInDetConf import DerivationFramework__TrackParametersForTruthParticles
+TruthDecor = DerivationFramework__TrackParametersForTruthParticles( name = "TruthTPDecor",
+                                                                    OutputLevel = DEBUG,
+                                                                    DecorationPrefix ="")
+ToolSvc +=TruthDecor
+
+augmentationTools = [TruthDecor]
+
+
+from DerivationFrameworkCore.DerivationFrameworkCoreConf import DerivationFramework__CommonAugmentation
+algSeq += CfgMgr.DerivationFramework__CommonAugmentation("MyDFTSOS_KERN",
+                                                         AugmentationTools = augmentationTools,
+                                                         OutputLevel = DEBUG )
+
+
+
+
+# ====================================================================
+# Add own algorithm and tools
+# ====================================================================
 alg = CfgMgr.btagIBLAnalysisAlg(OutputLevel=INFO) #DEBUG
 alg.JetCleaningTool.CutLevel = "LooseBad" # options: "VeryLooseBad","LooseBad","MediumBad","TightBad"
 algSeq += alg
 ToolSvc += CfgMgr.JetCalibrationTool("JetCalibrationTool", IsData=False,ConfigFile="JetCalibTools/data/CalibrationConfigs/JES_Full2012dataset_Preliminary_MC14.config", CalibSequence="EtaJES", JetCollection="AntiKt4LCTopo")
+
+
 # ====================================================================
 # Define an output root file for histograms
 # ====================================================================

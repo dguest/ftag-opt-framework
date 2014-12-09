@@ -4,7 +4,7 @@ import sys
 dsList=open("mc_samples.txt",'r')
 lines=dsList.readlines()
 
-suffix=".BTAGNTUP_V3"
+suffix=".BTAGNTUP_V3refE"
 
 ##suffix=".BTAGNTUP_V2" ### aborted due to huge mem leaks
 
@@ -12,6 +12,8 @@ def submitJob(ds) :
     #com = "pathena  jobOptions.py "
     com = "pathena  jobOptions_Test.py "
 
+    com += "--express "
+    com += " --skipScout "
     com += " --official --voms atlas:/atlas/perf-flavtag/Role=production "
 
     com += "--inDS " + ds + " "
@@ -33,6 +35,8 @@ def submitJob(ds) :
     com += "--outDS "+ oDS + " "
   
     com += "--nFilesPerJob 1 "
+    com += "--extFile mycool.db,BTagCalibALL-k0001.root "
+    com += "--addPoolFC ,BTagCalibALL-k0001.root "
     #com += "--destSE UNI-FREIBURG_SCRATCHDISK "
     return com
 
