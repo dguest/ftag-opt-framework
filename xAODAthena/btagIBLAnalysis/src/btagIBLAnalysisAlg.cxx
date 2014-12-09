@@ -24,24 +24,14 @@
 
 using xAOD::IParticle;
 
-namespace {
-  template <class T>
-  bool
-  is_nan(const T & n){
-    return (n!=n);
-  }
+
+bool particleInCollection( const xAOD::TrackParticle *trkPart,
+			   std::vector< ElementLink< xAOD::TrackParticleContainer > > trkColl) {
   
-  double chargeOnParticle(const int pid){
-    if (pid == 1000010020) return 1.0; //deuteron
-    if (pid == 1000010030) return 1.0; //triton
-    double charge(std::numeric_limits<double>::quiet_NaN());
-    TDatabasePDG p;
-    TParticlePDG* ap = TDatabasePDG::Instance()->GetParticle (pid);
-    if (ap){
-      charge=ap->Charge()/3.0; //see :http://root.cern.ch/root/html/TParticlePDG.html#TParticlePDG:fCharge
-    }
-    return charge;
+  for (unsigned int iT=0; iT<trkColl.size(); iT++) {
+    if ( trkPart==*(trkColl.at(iT)) ) return true;
   }
+  return false;
 }
 
 
@@ -51,7 +41,8 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pS
 
   declareProperty( "JetCleaningTool", m_jetCleaningTool );
   declareProperty( "JetCalibrationTool", m_jetCalibrationTool );
-
+  
+  declareProperty( "ReduceInfo", m_reduceInfo=false );
 }
 
 
@@ -729,22 +720,26 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> j_jf_chi2;
     std::vector<float> j_jf_ndf;
 
+    if (m_reduceInfo) continue;
+
     bool is8TeV= true;
     if ( bjet->isAvailable<std::vector<ElementLink<xAOD::BTagVertexContainer> > >("JetFitter_JFvertices") ) is8TeV=false;
 
     std::vector< ElementLink< xAOD::TrackParticleContainer > > assocTracks =
       bjet->auxdata<std::vector<ElementLink<xAOD::TrackParticleContainer> > >("BTagTrackToJetAssociator");
+    std::vector< ElementLink< xAOD::TrackParticleContainer > > SV0Tracks ;
     std::vector< ElementLink< xAOD::TrackParticleContainer > > SV1Tracks ;
+    std::vector< ElementLink< xAOD::TrackParticleContainer > > IP2DTracks;
     std::vector< ElementLink< xAOD::TrackParticleContainer > > IP3DTracks;
     std::vector< ElementLink< xAOD::TrackParticleContainer > > JFTracks;
     
     if (!is8TeV) {
+      IP2DTracks= bjet->auxdata<std::vector<ElementLink< xAOD::TrackParticleContainer> > >("IP2D_TrackParticleLinks");
       IP3DTracks= bjet->auxdata<std::vector<ElementLink< xAOD::TrackParticleContainer> > >("IP3D_TrackParticleLinks");
+      SV0Tracks = bjet->SV0_TrackParticleLinks();
       SV1Tracks = bjet->SV1_TrackParticleLinks();
     }  //bjet->IP3D_TrackParticleLinks();
    
-    // VD: those are all tests that don't seem to work on DC14 xAOD
-    // const std::vector<std::vector<ElementLink<DataVector<xAOD::Vertex> > > > SV1vertices = bjet->auxdata<std::vector<std::vector<ElementLink<DataVector<xAOD::Vertex> > > > >("SV1_vertices");
     const std::vector<ElementLink<xAOD::VertexContainer > >  SV0vertices = bjet->auxdata<std::vector<ElementLink<xAOD::VertexContainer > > >("SV0_vertices");
     const std::vector<ElementLink<xAOD::VertexContainer > >  SV1vertices = bjet->auxdata<std::vector<ElementLink<xAOD::VertexContainer > > >("SV1_vertices");
     std::vector<ElementLink<xAOD::BTagVertexContainer> > jfvertices =  bjet->auxdata<std::vector<ElementLink<xAOD::BTagVertexContainer> > >("JetFitter_JFvertices");
@@ -794,133 +789,136 @@ StatusCode btagIBLAnalysisAlg::execute() {
     
     //std::cout << "TOT tracks: " << j_btag_ntrk << " IP3D: " << j_ip3d_ntrk << " ... grade: " << tmpGrading.size() << std::endl;
 
-    if (!is8TeV) {
-      /// track loop
-      for (unsigned int iT=0; iT<assocTracks.size(); iT++) {
-	if (!assocTracks.at(iT).isValid()) continue;
-	const xAOD::TrackParticle* tmpTrk= *(assocTracks.at(iT));
-	//std::cout << "after: " << iT << std::endl;
-	tmpTrk->summaryValue( getInt, xAOD::numberOfPixelHits );
-	int nSi=getInt;
-	tmpTrk->summaryValue( getInt, xAOD::numberOfSCTHits );
-	nSi+=getInt;
-	if (nSi<2) continue;
-	
-	j_btag_ntrk++;
-	j_trk_pt.push_back(tmpTrk->pt());
-	j_trk_eta.push_back(tmpTrk->eta());
-	j_trk_theta.push_back(tmpTrk->theta());
-	j_trk_phi.push_back(tmpTrk->phi());
-	j_trk_chi2.push_back(tmpTrk->chiSquared());
-	j_trk_ndf.push_back(tmpTrk->numberDoF());
-	
-	// algo
-	unsigned int trackAlgo=0;
-	int index=-1;
-	
-	for (unsigned int iT=0; iT<IP3DTracks.size(); iT++) {
-	  if ( tmpTrk==*(IP3DTracks.at(iT)) ) {
-	    trackAlgo+=1<<IP3D;
-	    index=iT;
-	    break;
-	  }
+    if (is8TeV) continue;
+    
+    /// track loop
+    for (unsigned int iT=0; iT<assocTracks.size(); iT++) {
+      if (!assocTracks.at(iT).isValid()) continue;
+      const xAOD::TrackParticle* tmpTrk= *(assocTracks.at(iT));
+      //std::cout << "after: " << iT << std::endl;
+      tmpTrk->summaryValue( getInt, xAOD::numberOfPixelHits );
+      int nSi=getInt;
+      tmpTrk->summaryValue( getInt, xAOD::numberOfSCTHits );
+      nSi+=getInt;
+      if (nSi<2) continue;
+      
+      j_btag_ntrk++;
+      j_trk_pt.push_back(tmpTrk->pt());
+      j_trk_eta.push_back(tmpTrk->eta());
+      j_trk_theta.push_back(tmpTrk->theta());
+      j_trk_phi.push_back(tmpTrk->phi());
+      j_trk_chi2.push_back(tmpTrk->chiSquared());
+      j_trk_ndf.push_back(tmpTrk->numberDoF());
+      
+      // algo
+      unsigned int trackAlgo=0;
+      int index=-1;
+      
+      for (unsigned int iT=0; iT<IP3DTracks.size(); iT++) {
+	if ( tmpTrk==*(IP3DTracks.at(iT)) ) {
+	  trackAlgo+=1<<IP3D;
+	  index=iT;
+	  break;
 	}
-	if (index!=-1) {
-	  j_trk_ip3d_grade.push_back(tmpGrading.at(index));
-	  j_trk_ip3d_d0.push_back(tmpD0.at(index));
-	  j_trk_ip3d_z0.push_back(tmpZ0.at(index));
-	  j_trk_ip3d_d0sig.push_back(tmpD0sig.at(index));
-	  j_trk_ip3d_z0sig.push_back(tmpZ0sig.at(index));
-	  
-	} else {
-	  j_trk_ip3d_grade.push_back(-10);
-	  j_trk_ip3d_d0.push_back(-999);
-	  j_trk_ip3d_z0.push_back(-999);
-	  j_trk_ip3d_d0sig.push_back(-999);
-	  j_trk_ip3d_z0sig.push_back(-999);
-	}
+      }
+      if (index!=-1) {
+	j_trk_ip3d_grade.push_back(tmpGrading.at(index));
+	j_trk_ip3d_d0.push_back(tmpD0.at(index));
+	j_trk_ip3d_z0.push_back(tmpZ0.at(index));
+	j_trk_ip3d_d0sig.push_back(tmpD0sig.at(index));
+	j_trk_ip3d_z0sig.push_back(tmpZ0sig.at(index));
 	
-	for (unsigned int iT=0; iT<SV1Tracks.size(); iT++) {
-	  if ( tmpTrk==*(SV1Tracks.at(iT)) ) {
-	    trackAlgo+=1<<SV1;
-	    break;
-	  }
-	}
-        for (unsigned int iT=0; iT<JFTracks.size(); iT++) {
-	  if ( tmpTrk==*(JFTracks.at(iT)) ) {
-	    trackAlgo+=1<<JF;
-	    break;
-	  }
-	}
-	j_trk_algo.push_back(trackAlgo);
-	
-	//origin
-	int origin=PUFAKE;
-	const xAOD::TruthParticle* truth = truthParticle( tmpTrk );
-	float truthProb=-1; // need to check MCtruth classifier
-	truthProb = tmpTrk->auxdata< float >( "truthMatchProbability" );
-	if (truth &&  truthProb>0.75) {
-	  int truthBarcode=truth->barcode();
-	  if (truthBarcode>2e5) origin=GEANT;
-	  else {
-	    origin=FRAG;
-	    for (unsigned int iT=0; iT<tracksFromB.size(); iT++) {
-	      if (truth==tracksFromB.at(iT)) {
-		origin=FROMB;
-		break;
-	      }
-	    }
-	    for (unsigned int iT=0; iT<tracksFromC.size(); iT++) {
-	      if (truth==tracksFromC.at(iT)) {
-		origin=FROMC;
-		break;
-	      }
-	    }
-	  }
-	}
-	j_trk_orig.push_back(origin);
+      } else {
+	j_trk_ip3d_grade.push_back(-10);
+	j_trk_ip3d_d0.push_back(-999);
+	j_trk_ip3d_z0.push_back(-999);
+	j_trk_ip3d_d0sig.push_back(-999);
+	j_trk_ip3d_z0sig.push_back(-999);
+      }
+      
+      if (particleInCollection( tmpTrk, IP2DTracks))  trackAlgo+=1<<IP2D;
 
-	//hit content
-	//Blayer
-	tmpTrk->summaryValue( getInt, xAOD::numberOfBLayerHits );
-	j_trk_nBLHits.push_back(getInt);
-	getInt=0;
-	tmpTrk->summaryValue( getInt, xAOD::numberOfBLayerSharedHits );
-	j_trk_nsharedBLHits.push_back(getInt);
-	getInt=0;
-	tmpTrk->summaryValue( getInt, xAOD::numberOfBLayerSplitHits );
-	j_trk_nsplitBLHits.push_back(getInt);
-	getInt=0;
-	tmpTrk->summaryValue( getInt, xAOD::expectBLayerHit );
-	j_trk_expectBLayerHit.push_back(getInt);
-	getInt=0;
-	//Pixel
-	tmpTrk->summaryValue( getInt, xAOD::numberOfPixelHits );
-	j_trk_nPixHits.push_back(getInt);
-	getInt=0;
-	tmpTrk->summaryValue( getInt, xAOD::numberOfPixelSharedHits );
-	j_trk_nsharedPixHits.push_back(getInt);
-	getInt=0;
-	tmpTrk->summaryValue( getInt, xAOD::numberOfPixelSplitHits );
-	j_trk_nsplitPixHits.push_back(getInt);
-	getInt=0;
-	//SCT
-	tmpTrk->summaryValue( getInt, xAOD::numberOfSCTHits );
-	j_trk_nSCTHits .push_back(getInt);
-	getInt=0;
-	
-	// spatial coordinates
-	j_trk_d0.push_back( tmpTrk->d0() );
-	j_trk_z0.push_back( tmpTrk->z0() );
-	if ( origin==PUFAKE ) {
-	  j_trk_d0_truth.push_back( -999 );
-	  j_trk_z0_truth.push_back( -999 );
-	} else {
-	  //j_trk_d0_truth.push_back( truth->auxdata< float >( "d0" ) );
-	  //j_trk_z0_truth.push_back( truth->auxdata< float >( "z0" ) );
+      if (particleInCollection( tmpTrk, SV0Tracks))  trackAlgo+=1<<SV0;
+      if (particleInCollection( tmpTrk, SV1Tracks))  trackAlgo+=1<<SV1;
+
+      /* //VD: currently broken
+      for (unsigned int iT=0; iT<JFTracks.size(); iT++) {
+	if ( tmpTrk==*(JFTracks.at(iT)) ) {
+	  trackAlgo+=1<<JF;
+	  break;
 	}
-	
-      } // track loop
+      }
+      */
+      j_trk_algo.push_back(trackAlgo);
+      
+      //origin
+      int origin=PUFAKE;
+      const xAOD::TruthParticle* truth = truthParticle( tmpTrk );
+      float truthProb=-1; // need to check MCtruth classifier
+      truthProb = tmpTrk->auxdata< float >( "truthMatchProbability" );
+      if (truth &&  truthProb>0.75) {
+	int truthBarcode=truth->barcode();
+	if (truthBarcode>2e5) origin=GEANT;
+	else {
+	  origin=FRAG;
+	  for (unsigned int iT=0; iT<tracksFromB.size(); iT++) {
+	    if (truth==tracksFromB.at(iT)) {
+	      origin=FROMB;
+	      break;
+	    }
+	  }
+	  for (unsigned int iT=0; iT<tracksFromC.size(); iT++) {
+	    if (truth==tracksFromC.at(iT)) {
+	      origin=FROMC;
+	      break;
+	    }
+	  }
+	}
+      }
+      j_trk_orig.push_back(origin);
+      
+      //hit content
+      //Blayer
+      tmpTrk->summaryValue( getInt, xAOD::numberOfBLayerHits );
+      j_trk_nBLHits.push_back(getInt);
+      getInt=0;
+      tmpTrk->summaryValue( getInt, xAOD::numberOfBLayerSharedHits );
+      j_trk_nsharedBLHits.push_back(getInt);
+      getInt=0;
+      tmpTrk->summaryValue( getInt, xAOD::numberOfBLayerSplitHits );
+      j_trk_nsplitBLHits.push_back(getInt);
+      getInt=0;
+      tmpTrk->summaryValue( getInt, xAOD::expectBLayerHit );
+      j_trk_expectBLayerHit.push_back(getInt);
+      getInt=0;
+      //Pixel
+      tmpTrk->summaryValue( getInt, xAOD::numberOfPixelHits );
+      j_trk_nPixHits.push_back(getInt);
+      getInt=0;
+      tmpTrk->summaryValue( getInt, xAOD::numberOfPixelSharedHits );
+      j_trk_nsharedPixHits.push_back(getInt);
+      getInt=0;
+      tmpTrk->summaryValue( getInt, xAOD::numberOfPixelSplitHits );
+      j_trk_nsplitPixHits.push_back(getInt);
+      getInt=0;
+      //SCT
+      tmpTrk->summaryValue( getInt, xAOD::numberOfSCTHits );
+      j_trk_nSCTHits .push_back(getInt);
+      getInt=0;
+      
+      // spatial coordinates
+      j_trk_d0.push_back( tmpTrk->d0() );
+      j_trk_z0.push_back( tmpTrk->z0() );
+      if ( origin==PUFAKE ) {
+	j_trk_d0_truth.push_back( -999 );
+	j_trk_z0_truth.push_back( -999 );
+      } else {
+	j_trk_d0_truth.push_back( truth->auxdata< float >( "d0" ) );
+	j_trk_z0_truth.push_back( truth->auxdata< float >( "z0" ) );
+      }
+    } // track loop
+
+    /*
     } else {
       j_trk_ip3d_grade=tmpGrading;
       j_trk_ip3d_d0   =tmpD0;
@@ -928,7 +926,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       j_trk_ip3d_d0sig=tmpD0sig;
       j_trk_ip3d_z0sig=tmpZ0sig;
     } // track loop 8 TeV
-    
+    */
 
     v_jet_btag_ntrk->push_back(j_btag_ntrk);
     v_jet_sv1_ntrk->push_back(j_sv1_ntrk);
@@ -1053,56 +1051,6 @@ void btagIBLAnalysisAlg :: GetParentTracks(const xAOD::TruthParticle* part,
   }
   
 }
-
-/*
-bool  btagIBLAnalysisAlg :: decorateTruth(const xAOD::TruthParticle & particle){
-  const Amg::Vector3D momentum(particle.px(), particle.py(), particle.pz());
-  const int pid(particle.pdgId());
-  double charge = chargeOnParticle(pid);
-  if (is_nan(charge)){
-    ATH_MSG_WARNING("charge not found on particle with pid "<<pid);
-    return false;
-  }
-  
-  static bool errorEmitted(false);
-  const xAOD::TruthVertex * ptruthVertex(0);
-  try{
-    ptruthVertex=particle.prodVtx();
-  } catch (std::exception e){
-    if (not errorEmitted) ATH_MSG_WARNING("A non existent production vertex was requested in calculating the track parameters d0 etc");
-    errorEmitted=true;
-    return false;
-  }
-  if (!ptruthVertex){
-    ATH_MSG_WARNING("A production vertex pointer was retrieved, but it is NULL");
-    return false;
-  }
-  const Amg::Vector3D position(ptruthVertex->x(), ptruthVertex->y(), ptruthVertex->z());
-  
-  //delete ptruthVertex;ptruthVertex=0;
-  const Trk::CurvilinearParameters cParameters(position, momentum, charge);
-  const Trk::TrackParameters* tP = m_extrapolator->extrapolate(cParameters,Trk::PerigeeSurface(), Trk::anyDirection, false);
-  if (tP){
-    double d0_truth = tP->parameters()[Trk::d0];
-    double theta_truth = tP->parameters()[Trk::theta];
-    double z0_truth = tP->parameters()[Trk::z0];
-    double phi_truth = tP->parameters()[Trk::phi];
-    double qOverP_truth = tP->parameters()[Trk::qOverP]; //P or Pt ??
-    double z0st_truth = z0_truth * std::sin(theta_truth);
-    particle.auxdecor<float>("d0") = d0_truth;
-    particle.auxdecor<float>("z0") = z0_truth;
-    particle.auxdecor<float>("phi") = phi_truth;
-    particle.auxdecor<float>("theta") = theta_truth;
-    particle.auxdecor<float>("z0st") = z0st_truth;
-    particle.auxdecor<float>("qopt") = qOverP_truth;
-    delete tP;tP=0;
-    return true;
-  } else {
-    ATH_MSG_WARNING("The TrackParameters pointer for this TruthParticle is NULL");
-    return false;
-  }
-}
-*/
 
 void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_pt->clear();
