@@ -17,7 +17,9 @@
 class IJetSelector;
 class IJetCalibrationTool;
 
-enum TAGGERALGO{ IP3D=0,
+enum TAGGERALGO{ IP2D=0,
+		 IP3D,
+		 SV0,
 		 SV1,
 		 JF }; 
 
@@ -196,9 +198,17 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 		       std::vector<const xAOD::TruthParticle*> &tracksFromC, 
 		       bool isfromC, std::string indent);
   bool decorateTruth(const xAOD::TruthParticle & particle);
+  
+  //bool particleInCollection( const xAOD::TrackParticle *trkPart,
+  //std::vector< ElementLink< xAOD::TrackParticleContainer > > trkColl);
+  
+  
 #endif // not __MAKECINT__  
 
 
+  /// from outside
+  bool m_reduceInfo; //if set to true is allows to run over xAOD and not crashing when info are missing
+  
  private: 
 
   /// tool handle for jet cleaning tool
