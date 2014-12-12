@@ -86,9 +86,9 @@ if is8TeV and isXAOD:
 elif isXAOD:
     taggers=[
         ["MV1"     , "mv1"     ,   0.0 ,  0.9945 , 30000, 1 ],   #20000
-        ["MV1c"    , "mv1c"    ,   0   ,  1      ,  3000, 3 ],
+#        ["MV1c"    , "mv1c"    ,   0   ,  1      ,  3000, 3 ],
         ["MV2c00"  , "mv2c00"  ,  -0.5 ,  0.5    ,  3000, 2 ],
-        ["MV2c10"  , "mv2c10"  ,  -0.5 ,  0.5    ,  3000, 4 ],
+#        ["MV2c10"  , "mv2c10"  ,  -0.5 ,  0.5    ,  3000, 4 ],
         ["MV2c20"  , "mv2c20"  ,  -0.5 ,  0.5    ,  3000, 7 ],
         ["IP3D"    , "ip3d_llr", -12.  ,   30    ,  3000, 8 ],
         ["SV1"     , "sv1_llr" ,  -4.  ,   13    ,  3000, 6 ],
@@ -146,7 +146,7 @@ def GetROC(tag,intree, bVSlight):
 
     if bVSlight:
         found=False
-        for bin in xrange(1,hsig.GetNbinsX()+1):
+        for bin in xrange(1,hsig.GetNbinsX()+2):
             partInt=hsig.Integral(bin,hsig.GetNbinsX()+10)
             #print str(bin)+"    "+str(partInt)
             if partInt<effThreshold and not found:
