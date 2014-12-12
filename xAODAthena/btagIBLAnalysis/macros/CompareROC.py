@@ -81,7 +81,7 @@ myLumi= "t#bar{t} simulation"
 myLumi2= "jet p_{T}>25 GeV, |#eta|<2.5"
 myText(0.20,0.24,1,myLumi,0.045)
 myText(0.20,0.19,1,myLumi2,0.045)
-legend4=TLegend(0.58,0.53,0.92,0.95)
+legend4=TLegend(0.48,0.53,0.92,0.95)
 legend4.SetTextFont(42)
 legend4.SetTextSize(0.030)
 legend4.SetFillColor(0)
@@ -97,6 +97,7 @@ for tag in taggerList:
     curve2=f2.Get(tag+"---bl")
     if curve2==None: continue
     count+=1
+    if count==5: count+=1
     curve2.SetLineStyle(2)
     curve.SetLineColor(count)
     curve2.SetLineColor(count)
@@ -157,6 +158,7 @@ for tag in taggerList:
     print curve
     if curve2==None: continue
     count+=1
+    if count==5: count+=1
     curve2.SetLineStyle(2)
     curve.SetLineColor(count)
     curve2.SetLineColor(count)
