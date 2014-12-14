@@ -64,6 +64,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_jet_E;
   std::vector<float> *v_jet_m;
   std::vector<int> *v_jet_truthflav;
+  std::vector<int> *v_jet_nBHadr;
   std::vector<int> *v_jet_GhostL_q;
   std::vector<int> *v_jet_GhostL_HadI;
   std::vector<int> *v_jet_GhostL_HadF;
@@ -94,6 +95,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_jet_sv0_m;
   std::vector<float> *v_jet_sv0_efc;
   std::vector<float> *v_jet_sv0_normdist;
+  std::vector<int> *v_jet_sv0_Nvtx;
   std::vector<std::vector<float> > *v_jet_sv0_vtxx;
   std::vector<std::vector<float> > *v_jet_sv0_vtxy;
   std::vector<std::vector<float> > *v_jet_sv0_vtxz;
@@ -109,6 +111,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_jet_sv1_pc;
   std::vector<float> *v_jet_sv1_pu;
   std::vector<float> *v_jet_sv1_llr;
+  std::vector<int>   *v_jet_sv1_Nvtx;
   std::vector<std::vector<float> > *v_jet_sv1_vtxx;
   std::vector<std::vector<float> > *v_jet_sv1_vtxy;
   std::vector<std::vector<float> > *v_jet_sv1_vtxz;
@@ -150,7 +153,12 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_bH_eta;
   std::vector<float> *v_bH_phi;
   std::vector<float> *v_bH_Lxy;
+  std::vector<float> *v_bH_x;
+  std::vector<float> *v_bH_y;
+  std::vector<float> *v_bH_z;
   std::vector<float> *v_bH_dRjet;
+  std::vector<int>   *v_bH_nBtracks;
+  std::vector<int>   *v_bH_nCtracks;
 
   // track info
   std::vector<int>   *v_jet_btag_ntrk;
@@ -164,7 +172,11 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 
   std::vector<std::vector<int> > *v_jet_trk_algo;
   std::vector<std::vector<int> > *v_jet_trk_orig;
-
+  std::vector<std::vector<float> > *v_jet_trk_vtx_dx;
+  std::vector<std::vector<float> > *v_jet_trk_vtx_dy;
+  std::vector<std::vector<float> > *v_jet_trk_vtx_X;
+  std::vector<std::vector<float> > *v_jet_trk_vtx_Y;
+  
   std::vector<std::vector<int> > *v_jet_trk_nBLHits;
   std::vector<std::vector<int> > *v_jet_trk_nsharedBLHits;
   std::vector<std::vector<int> > *v_jet_trk_nsplitBLHits;
