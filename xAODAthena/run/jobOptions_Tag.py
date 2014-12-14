@@ -25,7 +25,7 @@ jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/v/vdao//xAODs/mc14_13TeV.
 ## Frank's retag
 #jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/f/filthaut/public/AOD_Retag.pool.root"]
 
-jp.AthenaCommonFlags.FilesInput = [ "../../AOD_Test.pool.root"]
+#jp.AthenaCommonFlags.FilesInput = [ "../../AOD_Test.pool.root"]
 
 
 # ====================================================================
@@ -34,6 +34,8 @@ jp.AthenaCommonFlags.FilesInput = [ "../../AOD_Test.pool.root"]
 svcMgr += CfgMgr.THistSvc()
 svcMgr.THistSvc.Output += ["BTAGSTREAM DATAFILE='flavntuple.root' OPT='RECREATE'"]
 # ====================================================================
+
+##algSeq = CfgMgr.AthSequencer("AthAlgSeq")
 
 ## THIS IS A TEMPORARY solution to avoud Memleaks
 from BTagging.BTaggingFlags import BTaggingFlags
@@ -55,6 +57,7 @@ DetFlags.ID_setOn()
 DetFlags.Calo_setOff()
 DetFlags.Muon_setOff()
 from RecExConfig.RecFlags import rec
+rec.doTrigger.set_Value_and_Lock(False) 
 rec.doESD.set_Value_and_Lock        (False)###
 rec.doWriteESD.set_Value_and_Lock        (False)###
 rec.doAOD.set_Value_and_Lock             (False)
