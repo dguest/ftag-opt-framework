@@ -918,9 +918,13 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	}
       } 
       if (truth){
-	j_trk_vtx_X.push_back(truth->prodVtx()->x());
-	j_trk_vtx_Y.push_back(truth->prodVtx()->y());
-      }
+	if (truth->prodVtx()) {
+	  j_trk_vtx_X.push_back(truth->prodVtx()->x());
+	  j_trk_vtx_Y.push_back(truth->prodVtx()->y());
+	} else {
+	  j_trk_vtx_X.push_back(-666);
+	  j_trk_vtx_Y.push_back(-666);
+	}
       else{
 	j_trk_vtx_X.push_back(-999);
 	j_trk_vtx_Y.push_back(-999);
