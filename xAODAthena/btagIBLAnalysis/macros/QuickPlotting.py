@@ -24,6 +24,8 @@ if len(sys.argv) !=7: Helper()
 #    print " ..... outputfolder is a file .... please correct"
 #    sys.exit(1)
 
+
+
 odir= sys.argv[5]
 
 ########################################################################################
@@ -48,6 +50,11 @@ f2=TFile(infile2,"R")
 ###################################################################################
 ### set by the user
 jetType= sys.argv[6]
+special=False
+if jetType=="lFLAT":
+    special=True
+    jetType="l"
+
 if jetType!="b" and jetType!="c" and jetType!="l":
     print "jetType not recognized (b,c,l) .... aborting "
     Helper()
@@ -67,7 +74,7 @@ while obj!=None:
 plotList.sort()
 plotList=list(set(plotList))
 print plotList
-taggerList=["IP3D","SV1"]
+taggerList=["IP3D","SV1","MV2c00","MV2c20","MV1","JetFitter"]
 
 
 canvases=[]
@@ -79,9 +86,13 @@ for tag in taggerList:
 
         f1.cd()
         base=f1.Get(var)
-        base.GetYaxis().SetTitle(tag+" 70% eff.")
+        if special:
+            base.GetYaxis().SetTitle("light eff. @70% flat b-eff.")
+        else :
+            base.GetYaxis().SetTitle(tag+" 70% eff.")
         if jetType=="c": base.SetMaximum(0.35)
         if jetType=="l": base.SetMaximum(0.05)
+        if special:  base.SetMaximum(0.20)
         base.Draw("HIST")
         legend4=TLegend(0.70,0.75,0.92,0.95)
         legend4.SetTextFont(42)
@@ -92,7 +103,11 @@ for tag in taggerList:
         legend4.SetBorderSize(0)
         count=2
         myText(0.20,0.24,1,jetType+"-jets",0.045)
-        curve=f1.Get( "Eff_"+jetType+"__Eff__"+var.replace("Base__","")+"__"+tag+"_70")
+        curve=None
+        if special:
+            curve=f1.Get( "Eff_b__Eff__"+var.replace("Base__","")+"__"+tag+"lightrej_70")
+        else:
+            curve=f1.Get( "Eff_"+jetType+"__Eff__"+var.replace("Base__","")+"__"+tag+"_70")
         curve.SetLineColor(count);
         curve.SetMarkerColor(count);
         legend4.AddEntry(curve ,leg1, "LPE")
@@ -100,7 +115,11 @@ for tag in taggerList:
 
         count=4
         f2.cd()
-        curve=f2.Get( "Eff_"+jetType+"__Eff__"+var.replace("Base__","")+"__"+tag+"_70")
+        curve=None
+        if special:
+            curve=f2.Get( "Eff_b__Eff__"+var.replace("Base__","")+"__"+tag+"lightrej_70")
+        else:
+            curve=f2.Get( "Eff_"+jetType+"__Eff__"+var.replace("Base__","")+"__"+tag+"_70")
         curve.SetLineColor(count);
         curve.SetMarkerColor(count);
         legend4.AddEntry(curve ,leg2, "LPE")
@@ -109,7 +128,12 @@ for tag in taggerList:
         legend4.Draw()
         myC.Update()
         canvases.append(myC)
-        myC.Print(odir+"/"+myC.GetName()+"__"+jetType+".eps")
+        if special:
+            myC.Print(odir+"/"+myC.GetName()+"__"+jetType+"_flat.eps")
+            myC.Print(odir+"/"+myC.GetName()+"__"+jetType+"_flat.pdf")
+        else:
+            myC.Print(odir+"/"+myC.GetName()+"__"+jetType+".eps")
+            myC.Print(odir+"/"+myC.GetName()+"__"+jetType+".pdf")
 
 #time.sleep(1000)
 
