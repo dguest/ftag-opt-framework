@@ -714,7 +714,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     // Other
     v_jet_sv1ip3d->push_back(bjet->SV1plusIP3D_discriminant());
     v_jet_mv1    ->push_back(bjet->MV1_discriminant());
-    try{
+   try{
       v_jet_mv1c   ->push_back(bjet->auxdata<double>("MV1c_discriminant"));
       v_jet_mv2c00 ->push_back(bjet->auxdata<double>("MV2c00_discriminant"));
       v_jet_mv2c10 ->push_back(bjet->auxdata<double>("MV2c10_discriminant"));
@@ -791,7 +791,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     const std::vector<ElementLink<xAOD::VertexContainer > >  SV0vertices = bjet->auxdata<std::vector<ElementLink<xAOD::VertexContainer > > >("SV0_vertices");
     const std::vector<ElementLink<xAOD::VertexContainer > >  SV1vertices = bjet->auxdata<std::vector<ElementLink<xAOD::VertexContainer > > >("SV1_vertices");
     std::vector<ElementLink<xAOD::BTagVertexContainer> > jfvertices =  bjet->auxdata<std::vector<ElementLink<xAOD::BTagVertexContainer> > >("JetFitter_JFvertices");
-    //std::cout << "Number of vertices for SV1 = " << SV1vertices.size() << ", for JetFitter =  " << jfvertices.size() << std::endl;
+    //std::cout << "Number of vertices for SV0 = " << SV0vertices.size() << ", for SV1 = " << SV1vertices.size() << ", for JetFitter =  " << jfvertices.size() << std::endl;
     v_jet_sv0_Nvtx->push_back(SV0vertices.size());
     v_jet_sv1_Nvtx->push_back(SV1vertices.size());
 
@@ -925,6 +925,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	  j_trk_vtx_X.push_back(-666);
 	  j_trk_vtx_Y.push_back(-666);
 	}
+      }
       else{
 	j_trk_vtx_X.push_back(-999);
 	j_trk_vtx_Y.push_back(-999);
