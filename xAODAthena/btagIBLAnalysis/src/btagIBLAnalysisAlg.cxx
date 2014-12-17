@@ -146,6 +146,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_mv2c10=new std::vector<double>();
   v_jet_mv2c20=new std::vector<double>();
   v_jet_mvb=new std::vector<double>();
+  v_jet_msv1=new std::vector<double>();
+  v_jet_msv2=new std::vector<double>();
 
   v_bH_pt   =new std::vector<float>();
   v_bH_eta  =new std::vector<float>();
@@ -295,6 +297,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_mv2c10",&v_jet_mv2c10);
   tree->Branch("jet_mv2c20",&v_jet_mv2c20);
   tree->Branch("jet_mvb",&v_jet_mvb);
+  tree->Branch("jet_msv1",&v_jet_msv1);
+  tree->Branch("jet_msv2",&v_jet_msv2);
 
   tree->Branch("bH_pt",&v_bH_pt);
   tree->Branch("bH_eta",&v_bH_eta);
@@ -645,7 +649,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     bjet->taggerInfo(sv0efc, xAOD::SV0_efracsvx);
     v_jet_sv0_efc->push_back(sv0efc);
     float sv0ndist;
-    bjet->taggerInfo(sv0efc, xAOD::SV0_normdist);
+    bjet->taggerInfo(sv0ndist, xAOD::SV0_normdist);
     v_jet_sv0_normdist->push_back(sv0ndist);
     
     // SV1
@@ -665,7 +669,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     bjet->taggerInfo(sv1efc, xAOD::SV1_efracsvx);
     v_jet_sv1_efc->push_back(sv1efc);
     float sv1ndist;
-    bjet->taggerInfo(sv1efc, xAOD::SV1_normdist);
+    bjet->taggerInfo(sv1ndist, xAOD::SV1_normdist);
     v_jet_sv1_normdist->push_back(sv1ndist);
     v_jet_sv1_pb->push_back(bjet->SV1_pb());
     v_jet_sv1_pc->push_back(bjet->SV1_pc());
@@ -714,6 +718,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     // Other
     v_jet_sv1ip3d->push_back(bjet->SV1plusIP3D_discriminant());
     v_jet_mv1    ->push_back(bjet->MV1_discriminant());
+    v_jet_msv1   ->push_back(bjet->auxdata<double>("MultiSVbb1_discriminant"));
+    v_jet_msv2   ->push_back(bjet->auxdata<double>("MultiSVbb2_discriminant"));
    try{
       v_jet_mv1c   ->push_back(bjet->auxdata<double>("MV1c_discriminant"));
       v_jet_mv2c00 ->push_back(bjet->auxdata<double>("MV2c00_discriminant"));
@@ -787,7 +793,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       SV0Tracks = bjet->SV0_TrackParticleLinks();
       SV1Tracks = bjet->SV1_TrackParticleLinks();
     }  //bjet->IP3D_TrackParticleLinks();
-   
+
     const std::vector<ElementLink<xAOD::VertexContainer > >  SV0vertices = bjet->auxdata<std::vector<ElementLink<xAOD::VertexContainer > > >("SV0_vertices");
     const std::vector<ElementLink<xAOD::VertexContainer > >  SV1vertices = bjet->auxdata<std::vector<ElementLink<xAOD::VertexContainer > > >("SV1_vertices");
     std::vector<ElementLink<xAOD::BTagVertexContainer> > jfvertices =  bjet->auxdata<std::vector<ElementLink<xAOD::BTagVertexContainer> > >("JetFitter_JFvertices");
@@ -1163,6 +1169,8 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_mv2c10->clear();
   v_jet_mv2c20->clear();
   v_jet_mvb->clear();
+  v_jet_msv1->clear();
+  v_jet_msv2->clear();
 
   v_bH_pt->clear();
   v_bH_eta->clear();
