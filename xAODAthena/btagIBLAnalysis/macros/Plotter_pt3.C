@@ -33,50 +33,34 @@ TFile* outF;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-string getCut(string tagger, bool a8TeV) {
-  if (tagger=="MV1") {
-    if (a8TeV) return "0.793362375";
-    else      return  "0.945487725";
-  }
-  if (tagger=="MV1c") {
-    if (a8TeV) return "0.7068333333";
-    else      return  "0.779833333333";
-  }
-  if (tagger=="MV2c00") {
-    if (a8TeV) return "0.0561666666667";
-    else      return  "0.0308333333333";
-  }
-  if (tagger=="MV2c10") {
-    if (a8TeV) return  "0.0295";
-    else      return  "-0.00416666666667";
-  }
-  if (tagger=="MV2c20") {
-    if (a8TeV) return  "0.0105";
-    else      return  "-0.0215";
-  }
-  if (tagger=="IP3D") {
-    if (a8TeV) return  "1.475";
-    else      return  "2.007";
-  }
-  if (tagger=="IP3D+SV1") {
-    if (a8TeV) return  "2.4575";
-    else      return  "4.3625";
-  }
-  if (tagger=="MVb") {
-    if (a8TeV) return  "0.0874416666667";
-    else      return  "-0.120991666667";
-  }
-  if (tagger=="SV1") {
-    if (a8TeV) return  "0.0874416666667";
-    else      return  "0.354833333333";
-  }
-  if (tagger=="JetFitter") {
-    if (a8TeV) return  "-1.4655";
-    else      return  "-1.6125"; ///"-1.215  , -2.3 on Z
-  }
-  
+float getLowBin(string tagger) {
+  if (tagger=="MV1")       return  0.0;
+  if (tagger=="MV1c")      return  0.0;
+  if (tagger=="MV2c00")    return  -0.5;
+  if (tagger=="MV2c10")    return  -0.5;
+  if (tagger=="MV2c20")    return  -0.5;
+  if (tagger=="IP3D")      return  -12.; 
+  if (tagger=="IP3D+SV1")  return  -10.;
+  if (tagger=="MVb")       return  -1.05;
+  if (tagger=="SV1")       return  -4.;
+  if (tagger=="JetFitter") return  -15;
   cout << "NOT SUPPORTED!!! " << endl;
-  return "0";
+  return 0.0;
+}
+
+float getHighBin(string tagger) {
+  if (tagger=="MV1")       return  1.0;
+  if (tagger=="MV1c")      return  1.0;
+  if (tagger=="MV2c00")    return  0.5;
+  if (tagger=="MV2c10")    return  0.5;
+  if (tagger=="MV2c20")    return  0.5;
+  if (tagger=="IP3D")      return  30; 
+  if (tagger=="IP3D+SV1")  return  35;
+  if (tagger=="MVb")       return  0.8;
+  if (tagger=="SV1")       return  13;
+  if (tagger=="JetFitter") return  10;
+  cout << "NOT SUPPORTED!!! " << endl;
+  return 0.;
 }
 
 string getVariable(string tagger, bool a8TeV) {
@@ -106,13 +90,13 @@ string getVariable(string tagger, bool a8TeV) {
   }
 
   cout << "NOT SUPPORTED!!! " << endl;
-  return "0";
+  return "0.";
 }
 
 
 
-TH1D* GetHisto(string varName, string cutBase, 
-	       string varLabel,string yLabel, 
+TH2D* GetHisto(string varName, string cutBase, 
+	       string varLabel,string tagger, 
 	       int nBin, float Max, float Min,
 	       bool normalize=false) {
   
@@ -121,48 +105,88 @@ TH1D* GetHisto(string varName, string cutBase,
   tmpName=tmpName.ReplaceAll(" ","").ReplaceAll("&","").ReplaceAll("(","").ReplaceAll(")","").ReplaceAll("=","").ReplaceAll(">","").ReplaceAll("<","").ReplaceAll("/1e3","").ReplaceAll(".","").ReplaceAll("+","");
   string theName=string(tmpName);
 
-  TH1D* den  =new TH1D( theName.c_str(), theName.c_str(), nBin, Max, Min); den->Sumw2();
-  string fullVar=varName+">>"+den->GetName();
-  //  cout << "fullVar: " << fullVar << endl;
-  //  cout << "cutBase: " << cutBase << endl;
-  myT_1->Draw( fullVar.c_str(), cutBase.c_str(),"goff");//,1000000);
-  //  cout << nBin << " , " << Max << " , " << Min << endl;
-  //  cout << "Int: " << den->Integral() << endl; 
+  TH2D* den  =new TH2D( theName.c_str(), theName.c_str(), 
+			nBin, Max, Min, 
+			1000, getLowBin(tagger), getHighBin(tagger) ); 
+  den->Sumw2();
+  string fullVar=getVariable(tagger, false)+":"+varName+">>"+den->GetName();
+  cout << "fullVar: " << fullVar << endl;
+  cout << "cutBase: " << cutBase << endl;
+  myT_1->Draw( fullVar.c_str(), cutBase.c_str(),"goff");//,2000000);
+  cout << nBin << " , " << Max << " , " << Min << endl;
+  cout << "Int: " << den->Integral() << endl; 
 
-  den->SetBinContent(1, den->GetBinContent(0)+den->GetBinContent(1));
-  den->SetBinError(1, sqrt(pow(den->GetBinError(0),2)+pow(den->GetBinError(1),2)));
-  den->SetBinContent(0, 0.0);
-  den->SetBinError(0, 0.0);
-  den->SetBinContent(den->GetNbinsX(), den->GetBinContent(den->GetNbinsX())+den->GetBinContent(den->GetNbinsX()+1));
-  den->SetBinError(den->GetNbinsX(), sqrt(pow(den->GetBinError(den->GetNbinsX()),2)+pow(den->GetBinError(den->GetNbinsX()+1),2)));
-  den->SetBinContent(den->GetNbinsX()+1, 0.0);
-  den->SetBinError(den->GetNbinsX()+1, 0.0);
-  den->SetLineWidth(3);
-  den->SetLineColor(2);
-  den->SetMarkerStyle(20);
-  den->SetMarkerSize(0.6);
-  den->SetMarkerColor(2);
- 
-  if (normalize) {
-    float maxV=den->GetMaximum()*1.1/den->Integral();
-    den->Scale(1./den->Integral());
-    den->SetMaximum(maxV);
-  }
   return den;
 }
 
 
+TCanvas* myC1;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 TGraphAsymmErrors* GetEfficiency(string varName, 
-				 string cutBase, string effCut, 
+				 string cutBase, string tagger, 
 				 string varLabel,string yLabel, 
 				 int nBin, float Max, float Min, float &numC) {
   
-  TH1D* num  =GetHisto(varName, cutBase+effCut, varLabel, "num", nBin, Max, Min);
-  TH1D* den  =GetHisto(varName, cutBase, varLabel, "num", nBin, Max, Min);
-  cout << " num: " << num->Integral() << " , den: " << den->Integral() << endl;
-  numC=num->Integral();
+  TH2D* bjets=GetHisto(varName, cutBase+" && jet_truthflav==5", 
+		       varLabel, tagger, nBin, Max, Min);
+
+  TH2D* ljets=GetHisto(varName, cutBase+" && (jet_truthflav!=4 && jet_truthflav!=5 && jet_truthflav!=15) ", 
+		       varLabel, tagger, nBin, Max, Min);
+
+  /*
+  myC1=new TCanvas("test","test",800,600);
+  myC1->Divide(2,1);
+  myC1->cd(1);
+  bjets->Draw("COLZ");
+  myC1->cd(2);
+  ljets->Draw("COLZ");
+  myC1->Update();
+  */
+
+  bjets->SetDirectory(0);
+  ljets->SetDirectory(0);
+  cout << "Integrals: " << bjets->Integral() << "  .... " << ljets->Integral() << endl;
+
+  TH1D* num  =new TH1D("num","num",nBin, Max, Min); num->Sumw2();
+  TH1D* den  =new TH1D("den","den",nBin, Max, Min); den->Sumw2();
+
+  int masterBin=1000;;
+  for (int bin=1; bin<=nBin; bin++) {
+    // use the b-jets to find the cut in each bin
+    int SmallX=bin;
+    int BigX=bin;
+    if (SmallX==1 ) SmallX=0;
+    if (BigX==nBin) BigX=nBin+1;
+
+    float bInt=bjets->Integral(SmallX,BigX,0,masterBin+1);
+    float lInt=ljets->Integral(SmallX,BigX,0,masterBin+1);
+    //cout << " for this bin: " << bin 
+    //<< " small: " << SmallX << " big: " << BigX << endl;
+    //cout << "Full integrals: " << bInt << " , " << lInt << endl;
+    den->SetBinContent(bin,lInt);
+    den->SetBinError(bin,sqrt(lInt));
+    
+    int binCut=-1;
+    float prevEff=0;
+    for (int bin2=1; bin2<=masterBin; bin2++) {
+      float bIntCut=bjets->Integral(SmallX,BigX,bin2,masterBin+1);
+      float tmpEff=bIntCut/bInt;
+      if ( fabs(tmpEff-0.70)<=fabs(prevEff-0.7) ) {
+	binCut=bin2;
+	prevEff=tmpEff;
+      } else {
+	break;
+      }
+    }
+    float lIntCut=ljets->Integral(SmallX,BigX,binCut,masterBin+1);
+    cout << " Cut of: " << binCut 
+	 << " gives and eff of: " << prevEff 
+	 << " .... and fakeRate of: " << lIntCut/lInt << endl ;
+    num->SetBinContent(bin,lIntCut);
+    num->SetBinError(bin,sqrt(lIntCut));
+  
+  } // bin loop
 
   TGraphAsymmErrors* graphHisto= new TGraphAsymmErrors(num,den);
   graphHisto->SetLineWidth(3);
@@ -176,7 +200,7 @@ TGraphAsymmErrors* GetEfficiency(string varName,
 
 
 
-void GetComparison(string file1, string cutBase, string effCut,
+void GetComparison(string file1, string cutBase, string tagger,
 		   string Cut1 , string Cut2 , string Cut3 , 
 		   string varName, string varLabel,string yLabel, 
 		   int nBin, float Max, float Min) {
@@ -193,18 +217,18 @@ void GetComparison(string file1, string cutBase, string effCut,
   TH1D* mainH=new TH1D("histo_den", "2", nBin, Max, Min);
   mainH->Reset();
   mainH->SetTitle( (";"+varLabel+";"+yLabel+";").c_str() );
-  mainH->SetMaximum(1.05);
+  mainH->SetMaximum(0.10);
   mainH->SetMinimum(0.0);
   mainH->Draw("HIST");
   mainH->SetDirectory(0);
-
-    if (myT_1==0) {
+  
+  if (myT_1==0) {
     myT_1=new TChain("bTag");
     cout << " OPENING FILE: " << file1 << endl;
     if ( file1.find("root")!=string::npos )  {
       myT_1->Add( file1.c_str() );
     } else {
-      cout << "Input is a directory: ging fancy: " << endl;
+      cout << "Input is a directory: going fancy: " << endl;
       DIR*     dir;
       dirent*  pdir;
       dir = opendir( file1.c_str() );     // open current directory
@@ -228,22 +252,14 @@ void GetComparison(string file1, string cutBase, string effCut,
   cout << "TOTAL number of events is: " << myT_1->GetEntries() << endl;
  
   TGraphAsymmErrors* gra1=GetEfficiency( varName, 
-					 (cutBase+Cut1+" ").c_str(),  effCut, 
+					 (cutBase+" ").c_str(),  tagger, 
 					 varLabel, yLabel,
 					 nBin, Max, Min, numC);
   gra1->SetLineColor(2);
   gra1->SetMarkerColor(2);
   gra1->Draw("P");
-  //gra1->SetDirectory(0);
+
   /*
-  TGraphAsymmErrors* gra1b=GetEfficiency( varName, 
-					  (cutBase+Cut1+" && bH_Lxy>33").c_str(),  effCut, 
-					  varLabel, yLabel,
-					  nBin, Max, Min, numC);
-  gra1b->SetLineColor(6);
-  gra1b->SetMarkerColor(6);
-  gra1b->Draw("P");
-  */
   TGraphAsymmErrors* gra2=GetEfficiency( varName, 
 					 (cutBase+Cut2), effCut, 
 					 varLabel, yLabel,
@@ -259,7 +275,8 @@ void GetComparison(string file1, string cutBase, string effCut,
   gra3->SetLineColor(4);
   gra3->SetMarkerColor(4);
   gra3->Draw("P");
- 
+  */
+
   gra1->Draw("P");
 
   TLine* myL=new TLine(Min,1.0,Max,1.0);
@@ -292,10 +309,10 @@ void GetComparison(string file1, string cutBase, string effCut,
   legend4->SetLineColor(0);
   legend4->SetFillStyle(0);
   legend4->SetBorderSize(0);
-  legend4->AddEntry(gra1 ,"b-jets","l");
+  //legend4->AddEntry(gra1 ,"b-jets","l");
   //legend4->AddEntry(gra1b,"b-jets (after bL)","l");
-  legend4->AddEntry(gra2 ,"c-jets"   ,"l");
-  legend4->AddEntry(gra3 ,"light-jet","l");
+  //legend4->AddEntry(gra2 ,"c-jets"   ,"l");
+  //legend4->AddEntry(gra3 ,"light-jet","l");
   legend4->Draw("SAME");
  
   varName=tmpVarName;
@@ -307,19 +324,18 @@ void GetComparison(string file1, string cutBase, string effCut,
   baseName= baseName.ReplaceAll("/1e3","").ReplaceAll("abs(","").ReplaceAll(")","").ReplaceAll("=","").ReplaceAll(">","_").ReplaceAll("eff.","").ReplaceAll("%","").ReplaceAll("@","_").ReplaceAll(" ","").ReplaceAll("+","");
   
   TString plotName= varToPrint.ReplaceAll(".eps","");
-  if (numC!=0) outF->WriteObject(mainH,baseName);
+  outF->WriteObject(mainH,baseName);
 
   TString bEff="Eff_b__"+plotName;
   TString cEff="Eff_c__"+plotName;
   TString lEff="Eff_l__"+plotName;
-  if (numC!=0) {
   gra1->SetName(bEff);
   gra1->Write();
-  gra2->SetName(cEff);
-  gra2->Write();
-  gra3->SetName(lEff);
-  gra3->Write();
-  }
+  //gra2->SetName(cEff);
+  //gra2->Write();
+  //gra3->SetName(lEff);
+  //gra3->Write();
+  
   //outF->WriteObject(gra1,bEff);
   //outF->WriteObject(gra2,cEff);
   //outF->WriteObject(gra3,lEff);
@@ -328,98 +344,6 @@ void GetComparison(string file1, string cutBase, string effCut,
   can->Print( varToPrint );
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void GetComparisonSimple(string file1, string cutBase,  
-			 string Cut1 , string Cut2 , string Cut3 , 
-			 string varName, string varLabel,string yLabel, 
-			 int nBin, float Max, float Min, bool log=false) {
-
-  TCanvas* can=new TCanvas( (varLabel+"  "+yLabel).c_str(), (varLabel+"  "+yLabel).c_str(), 800, 600);
-  if (log) can->SetLogy();
-  
-  if (myT_1==0) {
-    myT_1=new TChain("bTag");
-    cout << " OPENING FILE: " << file1 << endl;
-    if ( file1.find("root")!=string::npos )  {
-      myT_1->Add( file1.c_str() );
-    } else {
-      cout << "Input is a directory: ging fancy: " << endl;
-      DIR*     dir;
-      dirent*  pdir;
-      dir = opendir( file1.c_str() );     // open current directory
-      int number_of_words=0;
-      int text_length = 30;
-      char filename[300];
-      while (pdir = readdir(dir))  {
-	cout << pdir->d_name << endl;
-      }
-    }
-  }
-    
-  cout << "TOTAL number of events is: " << myT_1->GetEntries() << endl;
-  cout << cutBase+Cut1 << endl;
-
-  TH1D* gra1=GetHisto( varName,
-		       (cutBase+Cut1+" ").c_str(), 
-		       varLabel, yLabel,
-		       nBin, Max, Min,true);
-  gra1->SetLineColor(2);
-  gra1->SetLineWidth(3);
-  gra1->SetMarkerColor(2);
-  gra1->SetTitle( (";"+varLabel+";"+yLabel+";").c_str() );
-  gra1->SetMinimum(0.001);
-  TH1D* gra1b=GetHisto( varName, 
-			(cutBase+Cut1+" && bH_Lxy>33").c_str(), 
-			varLabel, yLabel,
-			nBin, Max, Min,true);
-  gra1b->SetLineColor(6);
-  gra1b->SetMarkerColor(6);
-
-
-  TH1D* gra2=GetHisto( varName, 
-		       cutBase+Cut2, 
-		       varLabel, yLabel,
-		       nBin, Max, Min,true);
-  gra2->SetLineColor(8);
-  gra2->SetMarkerColor(8);
- 
-  
-  TH1D* gra3=GetHisto( varName, 
-		       cutBase+Cut3, 
-		       varLabel, yLabel,
-		       nBin, Max, Min,true);
-  gra3->SetLineColor(4);
-  gra3->SetMarkerColor(4);
-
-  float maxV=gra1->GetMaximum();
-  if (gra1b->GetMaximum()>maxV) maxV=gra1b->GetMaximum();
-  if (gra2->GetMaximum()>maxV)  maxV=gra2->GetMaximum();
-  if (gra3->GetMaximum()>maxV)  maxV=gra3->GetMaximum();
-  gra1->SetMaximum(maxV);
-
-  gra1->Draw("HIST");
-  gra2->Draw("SAMEHIST");
-  gra3->Draw("SAMEHIST");
-  gra1b->Draw("SAMEHIST");
-  gra1->Draw("SAMEHIST");
-
-  TLegend* legend4=new TLegend(0.67,0.68,0.920,0.93);
-  legend4->SetTextFont(42);
-  legend4->SetTextSize(0.04);
-  legend4->SetFillColor(0);
-  legend4->SetLineColor(0);
-  legend4->SetFillStyle(0);
-  legend4->SetBorderSize(0);
-  legend4->AddEntry(gra1 ,"b-jets","l");
-  legend4->AddEntry(gra1b,"b-jets (after IBL)","l");
-  legend4->AddEntry(gra2 ,"c-jets"   ,"l");
-  legend4->AddEntry(gra3 ,"light-jet","l");
-  legend4->Draw("SAME");
-
-  TString varToPrint="Var__"+varName+".eps";
-  varToPrint=varToPrint.ReplaceAll("/1e3","");
-  can->Print( varToPrint );
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void PrintTagger(string tagger, string file1)  {
@@ -443,14 +367,17 @@ void PrintTagger(string tagger, string file1)  {
   }
   
   // MV1: quite detailed info
-  string yLabel=tagger+"@70% eff.";
-  string effCut=" && "+getVariable(tagger, is8TeV)+">"+getCut(tagger, is8TeV)+" ";
+  string yLabel=tagger+"light rej @70% eff.";
+  string effCut=" && "+getVariable(tagger, is8TeV)+">"+" ";
  
+  /*
   GetComparison(file1,CutBase, effCut,
 		Cut1, Cut2, Cut3,
 	        "bH_Lxy", "b-hadron transverse decay length (mm)", yLabel,  
 		40,  0, 100);
-  GetComparison(file1,CutBase, effCut,
+  */
+
+  GetComparison(file1,CutBase, tagger,
 		Cut1, Cut2, Cut3,
 	        "jet_pt/1e3", "jet p_{T} (GeV)", yLabel,  
 		30,  25, 800);
@@ -466,29 +393,30 @@ void PrintTagger(string tagger, string file1)  {
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Plotter_pt2(const char* infile,
+void Plotter_pt3(const char* infile,
 		 const char* outfolder) {
   gStyle->SetOptStat(0);
   SetAtlasStyle();
-  
+  cout << "inside pt3!!!!" << endl;
+
   outputFolder=outfolder;
   if (outputFolder.find("8TeV")!=string::npos) is8TeV=true;
   if (outputFolder.find("XAOD")!=string::npos) isXAOD=true;
   
-  outF=new TFile( (outputFolder+"/effPlots.root").c_str(),"RECREATE");
+  outF=new TFile( (outputFolder+"/effPlotsFix.root").c_str(),"RECREATE");
   cout << "Created file: " << outF->GetName() << endl;
 
   string file1=infile;
   gSystem->Exec( ("mkdir -p "+outputFolder).c_str());
 
   PrintTagger("MV1",file1);
-  //PrintTagger("MV1c",file1);
+  ////////////////////////////PrintTagger("MV1c",file1);
   PrintTagger("MV2c00",file1);
-  //PrintTagger("MV2c10",file1);
+  ////////////////////////////PrintTagger("MV2c10",file1);
   PrintTagger("MV2c20",file1);
-  //PrintTagger("MVb",file1);
+  ////////////////////////////PrintTagger("MVb",file1);
   PrintTagger("IP3D",file1);
-  //PrintTagger("IP3D+SV1",file1);
+  ////////////////////////////PrintTagger("IP3D+SV1",file1);
   PrintTagger("SV1",file1);
   PrintTagger("JetFitter",file1);
 

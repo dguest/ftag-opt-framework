@@ -55,7 +55,8 @@ while obj!=None:
     if "---bc" in name:
         pass
     else:
-        taggerList.append( name.split("---")[0] )
+        if "MVb" not in name: 
+            taggerList.append( name.split("---")[0] )
     obj=iterator()
 print taggerList
 

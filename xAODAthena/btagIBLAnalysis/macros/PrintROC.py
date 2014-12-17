@@ -59,7 +59,7 @@ if ".root" in second:
         sys.exit(1)
     fileList.append(second)
 else:
-    fileList=glob(second+"/*.root")
+    fileList=glob(second+"/*/*.root*")
     
 if len(fileList)==0:
     print " ..... no files selected .... please check"
@@ -114,9 +114,9 @@ def GetHisto(tag, intree, val):
     tmpH.Sumw2()
     var="jet_"+tag[1]+">>"+tmpH.GetName()
     cut=""
-    if not is8TeV: cut="jet_truthflav=="+str(val)+" && jet_pt>25e3"
+    if not is8TeV: cut="jet_truthflav=="+str(val)+" && jet_pt>25e3  && jet_truthMatch==1 "
     else:          cut="jet_trueFlav=="+str(val)+" && jet_pt>25e3 && jet_truthmatched==1 "
-    intree.Draw( var, cut,"goof") #,100000)
+    intree.Draw( var, cut,"goof",1000000)
     tmpH.SetBinContent(1,tmpH.GetBinContent(1)+tmpH.GetBinContent(0))
     tmpH.SetBinError(1,sqrt(pow(tmpH.GetBinError(1),2)+pow(tmpH.GetBinError(0),2)))
     tmpH.SetBinContent(0,0.0)
@@ -175,6 +175,9 @@ intree=TChain("bTag")
 for file in fileList:
     intree.Add(file)
 
+print "    "
+print "TOTAL NUMBER OF ENTRIES IS: "+str(intree.GetEntries())
+print "    "
 
 countT=-1
 light=TH1F("b VS light","b VS light",100,0.3,1);
