@@ -147,6 +147,8 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<double> *v_jet_mv2c10;
   std::vector<double> *v_jet_mv2c20;
   std::vector<double> *v_jet_mvb;
+  std::vector<double> *v_jet_msv1;
+  std::vector<double> *v_jet_msv2;
 
   // B hadron
   std::vector<float> *v_bH_pt;
