@@ -1,0 +1,4 @@
+/storage/users/vd1007/xAODAthena/files/reTag_base2_ttbar_kRefs/user.vdao.mc14_13TeV.110401.PowhegPythia_ttbar_nonallhad.merge.AOD.e2928_s1982_s2008_r5787_r5853.BTAGNTUP_v01ref08_BTAGSTREAM.14004009//user.vdao.4601048.BTAGSTREAM._000207.root
+/storage/users/vd1007/xAODAthena/files/reTag_base2_ttbar_kRefs/user.vdao.mc14_13TeV.110401.PowhegPythia_ttbar_nonallhad.merge.AOD.e2928_s1982_s2008_r5787_r5853.BTAGNTUP_v01ref08_BTAGSTREAM.14004009//user.vdao.4601048.BTAGSTREAM._000035.root
+/storage/users/vd1007/xAODAthena/files/reTag_base2_ttbar_kRefs/user.vdao.mc14_13TeV.110401.PowhegPythia_ttbar_nonallhad.merge.AOD.e2928_s1982_s2008_r5787_r5853.BTAGNTUP_v01ref08_BTAGSTREAM.14004009//user.vdao.4601048.BTAGSTREAM._000410.root
+/storage/users/vd1007/xAODAthena/files/reTag_base2_ttbar_kRefs/user.vdao.mc14_13TeV.110401.PowhegPythia_ttbar_nonallhad.merge.AOD.e2928_s1982_s2008_r5787_r5853.BTAGNTUP_v01ref08_BTAGSTREAM.14004009//user.vdao.4601048.BTAGSTREAM._000244.root
