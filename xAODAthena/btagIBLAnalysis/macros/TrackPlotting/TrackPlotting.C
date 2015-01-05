@@ -35,6 +35,7 @@ bool HistoSet::FillHistos(int jIndex, int tIndex, TrackPlotting* baseTree) {
   }
 
   (m_1Dhist.at(TRK_PT))->Fill( (baseTree->jet_trk_pt->at(jIndex)).at(tIndex)/1e3 );
+  (m_1Dhist.at(TRK_PT_JPT_R))->Fill( (baseTree->jet_trk_pt->at(jIndex)).at(tIndex)/baseTree->jet_pt->at(jIndex) ); 
   (m_1Dhist.at(TRK_ETA))->Fill( (baseTree->jet_trk_eta->at(jIndex)).at(tIndex) );
   (m_1Dhist.at(TRK_ORIG))->Fill( (baseTree->jet_trk_orig->at(jIndex)).at(tIndex) );
   (m_1Dhist.at(TRK_ALGO))->Fill( (baseTree->jet_trk_algo->at(jIndex)).at(tIndex) );
@@ -42,15 +43,17 @@ bool HistoSet::FillHistos(int jIndex, int tIndex, TrackPlotting* baseTree) {
   (m_1Dhist.at(TRK_NPIX))->Fill( (baseTree->jet_trk_nPixHits->at(jIndex)).at(tIndex) );
   (m_1Dhist.at(TRK_NSI))->Fill( (baseTree->jet_trk_nPixHits->at(jIndex)).at(tIndex)+(baseTree->jet_trk_nSCTHits->at(jIndex)).at(tIndex) );
   (m_1Dhist.at(TRK_D0))->Fill( (baseTree->jet_trk_d0->at(jIndex)).at(tIndex) );
-  (m_1Dhist.at(TRK_Z0))->Fill( (baseTree->jet_trk_z0->at(jIndex)).at(tIndex)-baseTree->PVz  );
-  (m_1Dhist.at(TRK_Z0ST))->Fill( (baseTree->jet_trk_z0->at(jIndex)).at(tIndex)*sin((baseTree->jet_trk_theta->at(jIndex)).at(tIndex)) );
+  (m_1Dhist.at(TRK_Z0))->Fill( (baseTree->jet_trk_z0->at(jIndex)).at(tIndex)-baseTree->PVz-7.3  );
+  (m_1Dhist.at(TRK_Z0ST))->Fill( (baseTree->jet_trk_z0->at(jIndex)).at(tIndex)*sin((baseTree->jet_trk_theta->at(jIndex)).at(tIndex))-baseTree->PVz-7.3 );
   
   (m_1Dhist.at(TRK_IP3D_D0))->Fill( (baseTree->jet_trk_ip3d_d0->at(jIndex)).at(tIndex) );
   (m_1Dhist.at(TRK_IP3D_Z0))->Fill( (baseTree->jet_trk_ip3d_z0->at(jIndex)).at(tIndex) );
-  (m_1Dhist.at(TRK_IP3D_Z0ST))->Fill( (baseTree->jet_trk_ip3d_z0->at(jIndex)).at(tIndex)*
-sin((baseTree->jet_trk_theta->at(jIndex)).at(tIndex)) );
+  (m_1Dhist.at(TRK_IP3D_Z0ST))->Fill( (baseTree->jet_trk_ip3d_z0->at(jIndex)).at(tIndex)*sin((baseTree->jet_trk_theta->at(jIndex)).at(tIndex)) );
   (m_1Dhist.at(TRK_IP3D_GRADE))->Fill( (baseTree->jet_trk_ip3d_grade->at(jIndex)).at(tIndex) );
 
+  (m_2Dhist.at(TRK_PT_JPT_R))->Fill( baseTree->jet_pt->at(jIndex)/1e3,
+				     (baseTree->jet_trk_pt->at(jIndex)).at(tIndex)/1e3); 
+    
   return true;
 }
 
@@ -87,6 +90,7 @@ void HistoSet::Initialize() {
   
   m_1Dhist.push_back( new TH1D("n_trk"   ,"n_trk"   , 40, -0.5,39.5) );
   m_1Dhist.push_back( new TH1D("trk_pt"  ,"trk_pt"  ,500, 0,50) );
+  m_1Dhist.push_back( new TH1D("trk_pt_jpt"  ,"trk_pt_jpt"  ,1000, 0,0.3) );
   m_1Dhist.push_back( new TH1D("trk_eta" ,"trk_eta" ,100, -2.5, 2.5) );
   m_1Dhist.push_back( new TH1D("trk_orig","trk_orig",  5, -1.5, 3.5) );
   m_1Dhist.push_back( new TH1D("trk_algo","trk_algo", 60, -0.5, 59.5) );
@@ -95,7 +99,7 @@ void HistoSet::Initialize() {
   m_1Dhist.push_back( new TH1D("trk_nSi","trk_nSi"  , 20, -0.5,19.5) );
   m_1Dhist.push_back( new TH1D("trk_d0" ,"trk_d0"   , 200, -6, 6) );
   m_1Dhist.push_back( new TH1D("trk_z0" ,"trk_z0"   , 200, -6, 6) );
-  m_1Dhist.push_back( new TH1D("trk_z0st" ,"trk_z0st"   , 200, -200,200) );
+  m_1Dhist.push_back( new TH1D("trk_z0st" ,"trk_z0st"   , 200, -6, 6) );
   m_1Dhist.push_back( new TH1D("trk_ip3d_d0" ,"trk_ip3d_d0"   , 200, -6,6) );
   m_1Dhist.push_back( new TH1D("trk_ip3d_z0" ,"trk_ip3d_z0"   , 200, -6,6) );
   m_1Dhist.push_back( new TH1D("trk_ip3d_z0st","trk_ip3d_z0st"   , 200, -6,6) );
@@ -103,7 +107,8 @@ void HistoSet::Initialize() {
 
   m_2Dhist.push_back( new TH2D("n_trk_jpt" , "n_trk_jpt" , 100,0, 1000,30,0,30) );
   m_2Dhist.push_back( new TH2D("n_trk_blxy", "n_trk_blxy", 100,0, 100 ,30,0,30) );
-  
+  m_2Dhist.push_back( new TH2D("jet_pt_VS_trk_pt","jet_pt_VS_trk_pt"  ,100,0,1000,500,0,50) );
+
   for (unsigned int i=0; i<m_1Dhist.size(); i++) m_1Dhist.at(i)->Sumw2();
   for (unsigned int i=0; i<m_2Dhist.size(); i++) m_2Dhist.at(i)->Sumw2();
   

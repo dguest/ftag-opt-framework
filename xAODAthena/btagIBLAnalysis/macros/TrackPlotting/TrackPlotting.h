@@ -25,6 +25,7 @@ class HistoSet {
   enum histoName1D{
     N_TRK=0,
     TRK_PT,
+    TRK_PT_JPT_R,
     TRK_ETA,
     TRK_ORIG,
     TRK_ALGO,
@@ -44,6 +45,7 @@ class HistoSet {
   enum histoName2D{
     N_TRK_JPT,
     N_TRK_BLXY,
+    TRK_PT_JPT,
     LAST2D,
   };
   
