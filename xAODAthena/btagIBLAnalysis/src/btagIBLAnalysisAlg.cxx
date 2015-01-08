@@ -718,13 +718,13 @@ StatusCode btagIBLAnalysisAlg::execute() {
     // Other
     v_jet_sv1ip3d->push_back(bjet->SV1plusIP3D_discriminant());
     v_jet_mv1    ->push_back(bjet->MV1_discriminant());
-    v_jet_msv1   ->push_back(bjet->auxdata<double>("MultiSVbb1_discriminant"));
-    v_jet_msv2   ->push_back(bjet->auxdata<double>("MultiSVbb2_discriminant"));
    try{
       v_jet_mv1c   ->push_back(bjet->auxdata<double>("MV1c_discriminant"));
       v_jet_mv2c00 ->push_back(bjet->auxdata<double>("MV2c00_discriminant"));
       v_jet_mv2c10 ->push_back(bjet->auxdata<double>("MV2c10_discriminant"));
       v_jet_mv2c20 ->push_back(bjet->auxdata<double>("MV2c20_discriminant"));
+      v_jet_msv1   ->push_back(bjet->auxdata<double>("MultiSVbb1_discriminant"));
+      v_jet_msv2   ->push_back(bjet->auxdata<double>("MultiSVbb2_discriminant"));
       v_jet_mvb    ->push_back(bjet->auxdata<double>("MVb_discriminant"));
     }
     catch(...){
