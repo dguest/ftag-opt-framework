@@ -147,8 +147,25 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<double> *v_jet_mv2c10;
   std::vector<double> *v_jet_mv2c20;
   std::vector<double> *v_jet_mvb;
-  std::vector<double> *v_jet_msv1;
-  std::vector<double> *v_jet_msv2;
+  //MSV
+  std::vector<double> *v_jet_multisvbb1;
+  std::vector<double> *v_jet_multisvbb2;
+  std::vector<int> *v_jet_msv_N2Tpair;
+  std::vector<float> *v_jet_msv_energyTrkInJet;
+  std::vector<int> *v_jet_msv_nvsec;
+  std::vector<float> *v_jet_msv_normdist;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_mass;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_efrc;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_ntrk;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_pt;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_eta;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_phi;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_dls;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_x;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_y;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_z;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_chi;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_ndf;
 
   // B hadron
   std::vector<float> *v_bH_pt;
@@ -226,6 +243,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 
   /// from outside
   bool m_reduceInfo; //if set to true is allows to run over xAOD and not crashing when info are missing
+  bool m_doMSV; //if set to true it includes variables from multi SV tagger
   
  private: 
 

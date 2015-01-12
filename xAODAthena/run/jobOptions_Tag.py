@@ -1,7 +1,8 @@
 # ====================================================================
 # MAIN SWITCHES
 # ====================================================================
-ReduceInfo   =False ##write minimal amount of info on the output file 
+ReduceInfo   =False ##write minimal amount of info on the output file
+DoMSV        =False ##include variables for MSV tagger
 #(only option that will work on original DC14 xAOD)
 doRetag      =True  ## perform retagging
 doRecomputePV=True  ## need to be true when re-tagging to recover JetFitter performance
@@ -87,7 +88,7 @@ if ReduceInfo==False:
 #if BTaggingFlags.Active: 
 #BTaggingFlags.CalibrationFromLocalReplica = True 
 #BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/' 
-#BTaggingFlags.CalibrationTag = 'k0001' 
+#BTaggingFlags.CalibrationTag = 'k0001'
 
 if doRetag:
   JetCollectionList = ['AntiKt4LCTopoJets' ]
@@ -184,6 +185,7 @@ if doRetag:
 # ====================================================================
 alg = CfgMgr.btagIBLAnalysisAlg(OutputLevel=INFO) #DEBUG
 alg.ReduceInfo=ReduceInfo
+alg.DoMSV=DoMSV
 alg.JetCleaningTool.CutLevel = "LooseBad" # options: "VeryLooseBad","LooseBad",
 algSeq += alg
 ToolSvc += CfgMgr.JetCalibrationTool("JetCalibrationTool", 

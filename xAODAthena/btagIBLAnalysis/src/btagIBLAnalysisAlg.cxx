@@ -14,6 +14,7 @@
 #include "xAODTruth/TruthEventContainer.h"
 #include "xAODJet/JetContainer.h"
 #include "xAODTracking/Vertex.h"
+#include "xAODBTagging/SecVtxHelper.h"
 
 #include "JetInterface/IJetSelector.h"
 #include "JetCalibTools/IJetCalibrationTool.h"
@@ -43,6 +44,7 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pS
   declareProperty( "JetCalibrationTool", m_jetCalibrationTool );
   
   declareProperty( "ReduceInfo", m_reduceInfo=false );
+  declareProperty( "DoMSV", m_doMSV=false );
 }
 
 
@@ -146,8 +148,25 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_mv2c10=new std::vector<double>();
   v_jet_mv2c20=new std::vector<double>();
   v_jet_mvb=new std::vector<double>();
-  v_jet_msv1=new std::vector<double>();
-  v_jet_msv2=new std::vector<double>();
+
+  v_jet_multisvbb1 = new std::vector<double>();
+  v_jet_multisvbb2 = new std::vector<double>();
+  v_jet_msv_N2Tpair = new std::vector<int>();
+  v_jet_msv_energyTrkInJet = new std::vector<float>();
+  v_jet_msv_nvsec = new std::vector<int>();
+  v_jet_msv_normdist = new std::vector<float>();
+  v_jet_msv_vtx_mass = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_efrc = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_ntrk = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_pt   = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_eta  = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_phi  = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_dls  = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_x = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_y   = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_z  = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_chi  = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_ndf  = new std::vector<std::vector<float> >();
 
   v_bH_pt   =new std::vector<float>();
   v_bH_eta  =new std::vector<float>();
@@ -303,8 +322,25 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_mv2c10",&v_jet_mv2c10);
   tree->Branch("jet_mv2c20",&v_jet_mv2c20);
   tree->Branch("jet_mvb",&v_jet_mvb);
-  tree->Branch("jet_msv1",&v_jet_msv1);
-  tree->Branch("jet_msv2",&v_jet_msv2);
+
+  tree->Branch("jet_multisvbb1",&v_jet_multisvbb1);
+  tree->Branch("jet_multisvbb2",&v_jet_multisvbb2);
+  tree->Branch("jet_msv_N2Tpair",&v_jet_msv_N2Tpair);
+  tree->Branch("jet_msv_energyTrkInJet",&v_jet_msv_energyTrkInJet);
+  tree->Branch("jet_msv_nvsec",&v_jet_msv_nvsec);
+  tree->Branch("jet_msv_normdist",&v_jet_msv_normdist);
+  tree->Branch("jet_msv_vtx_mass",&v_jet_msv_vtx_mass);
+  tree->Branch("jet_msv_vtx_efrc",&v_jet_msv_vtx_efrc);
+  tree->Branch("jet_msv_vtx_ntrk",&v_jet_msv_vtx_ntrk);
+  tree->Branch("jet_msv_vtx_pt",&v_jet_msv_vtx_pt);
+  tree->Branch("jet_msv_vtx_eta",&v_jet_msv_vtx_eta);
+  tree->Branch("jet_msv_vtx_phi",&v_jet_msv_vtx_phi);
+  tree->Branch("jet_msv_vtx_dls",&v_jet_msv_vtx_dls);
+  tree->Branch("jet_msv_vtx_x",&v_jet_msv_vtx_x);
+  tree->Branch("jet_msv_vtx_y",&v_jet_msv_vtx_y);
+  tree->Branch("jet_msv_vtx_z",&v_jet_msv_vtx_z);
+  tree->Branch("jet_msv_vtx_chi",&v_jet_msv_vtx_chi);
+  tree->Branch("jet_msv_vtx_ndf",&v_jet_msv_vtx_ndf);
 
   tree->Branch("bH_pt",&v_bH_pt);
   tree->Branch("bH_eta",&v_bH_eta);
@@ -728,19 +764,115 @@ StatusCode btagIBLAnalysisAlg::execute() {
     // Other
     v_jet_sv1ip3d->push_back(bjet->SV1plusIP3D_discriminant());
     v_jet_mv1    ->push_back(bjet->MV1_discriminant());
-   try{
+    try{
       v_jet_mv1c   ->push_back(bjet->auxdata<double>("MV1c_discriminant"));
       v_jet_mv2c00 ->push_back(bjet->auxdata<double>("MV2c00_discriminant"));
       v_jet_mv2c10 ->push_back(bjet->auxdata<double>("MV2c10_discriminant"));
       v_jet_mv2c20 ->push_back(bjet->auxdata<double>("MV2c20_discriminant"));
-      v_jet_msv1   ->push_back(bjet->auxdata<double>("MultiSVbb1_discriminant"));
-      v_jet_msv2   ->push_back(bjet->auxdata<double>("MultiSVbb2_discriminant"));
       v_jet_mvb    ->push_back(bjet->auxdata<double>("MVb_discriminant"));
     }
     catch(...){
       //todo: write out some warning here but don't want to clog logfiles for now
     }
-  
+
+    if(m_doMSV){
+      // MSV
+      //need initial values if no msv vertex is find, fix in MSVvariablesFactory
+      double msv1;
+      double msv2;
+      int    msv_n2t;
+      float  msv_ergtkjet;
+      int    msv_nvsec;
+      float  msv_nrdist;
+      
+      bjet->variable<double>("MultiSVbb1", "discriminant", msv1);
+      v_jet_multisvbb1->push_back(msv1);
+      
+      bjet->variable<double>("MultiSVbb2", "discriminant", msv2);
+      v_jet_multisvbb2->push_back(msv2);
+      
+      bjet->variable<int>("MSV", "N2Tpair", msv_n2t);
+      v_jet_msv_N2Tpair->push_back(msv_n2t);
+    
+      bjet->variable<float>("MSV", "energyTrkInJet", msv_ergtkjet);
+      v_jet_msv_energyTrkInJet->push_back(msv_ergtkjet);
+      
+      bjet->variable<int>("MSV", "nvsec", msv_nvsec);
+      v_jet_msv_nvsec->push_back(msv_nvsec);
+      
+      bjet->variable<float>("MSV", "normdist", msv_nrdist);
+      v_jet_msv_normdist->push_back(msv_nrdist);
+    
+      std::vector< ElementLink< xAOD::VertexContainer > > msvVertices;
+      bjet->variable<std::vector<ElementLink<xAOD::VertexContainer> > >("MSV", "vertices", msvVertices);
+      
+      //tmp vectors
+      std::vector<float> j_msv_mass = std::vector<float>(msv_nvsec,0);
+      std::vector<float> j_msv_efrc = std::vector<float>(msv_nvsec,0);
+      std::vector<float> j_msv_ntrk = std::vector<float>(msv_nvsec,0);
+      std::vector<float> j_msv_pt   = std::vector<float>(msv_nvsec,0);
+      std::vector<float> j_msv_eta  = std::vector<float>(msv_nvsec,0);
+      std::vector<float> j_msv_phi  = std::vector<float>(msv_nvsec,0);
+      std::vector<float> j_msv_dls  = std::vector<float>(msv_nvsec,0);
+      std::vector<float> j_msv_xp  = std::vector<float>(msv_nvsec,0);
+      std::vector<float> j_msv_yp  = std::vector<float>(msv_nvsec,0);
+      std::vector<float> j_msv_zp  = std::vector<float>(msv_nvsec,0);
+      std::vector<float> j_msv_chi = std::vector<float>(msv_nvsec,0);
+      std::vector<float> j_msv_ndf = std::vector<float>(msv_nvsec,0);
+    
+      // loop over vertices
+      int ivtx=0;
+      if(msvVertices.size()>0){
+	const std::vector<ElementLink<xAOD::VertexContainer> >::const_iterator verticesEnd = msvVertices.end();
+	for(std::vector<ElementLink<xAOD::VertexContainer> >::const_iterator vtxIter=msvVertices.begin(); vtxIter!=verticesEnd; ++vtxIter){
+	  if(msvVertices.size()>=10) continue;
+	  float mass = xAOD::SecVtxHelper::VertexMass(**vtxIter);
+	  float efrc = xAOD::SecVtxHelper::EnergyFraction(**vtxIter);
+	  int   ntrk = xAOD::SecVtxHelper::VtxNtrk(**vtxIter);
+	  float pt   = xAOD::SecVtxHelper::Vtxpt(**vtxIter);
+	  float eta  = xAOD::SecVtxHelper::Vtxeta(**vtxIter);
+	  float phi  = xAOD::SecVtxHelper::Vtxphi(**vtxIter);
+	  float dls  = xAOD::SecVtxHelper::VtxnormDist(**vtxIter);
+	  float xp   = (**vtxIter)->x();
+	  float yp   = (**vtxIter)->y();
+	  float zp   = (**vtxIter)->z();
+	  float chi  = (**vtxIter)->chiSquared();
+	  float ndf  = (**vtxIter)->numberDoF();
+	  
+	  if(ivtx<10){
+	    j_msv_mass[ivtx] = mass;
+	    j_msv_efrc[ivtx]  = efrc;
+	    j_msv_ntrk[ivtx]  = ntrk;
+	    j_msv_pt[ivtx]    = pt;
+	    j_msv_eta[ivtx]   = eta;
+	    j_msv_phi[ivtx]   = phi;
+	    j_msv_dls[ivtx]   = dls;
+	    j_msv_xp[ivtx]    = xp;
+	    j_msv_yp[ivtx]    = yp;
+	    j_msv_zp[ivtx]    = zp;
+	    j_msv_chi[ivtx]   = chi;
+	    j_msv_ndf[ivtx]   = ndf;
+	    ivtx++;
+	  }
+	}
+      }
+      
+      // fill info per vertex
+      v_jet_msv_vtx_mass->push_back(j_msv_mass);
+      v_jet_msv_vtx_efrc->push_back(j_msv_efrc);
+      v_jet_msv_vtx_ntrk->push_back(j_msv_ntrk);
+      v_jet_msv_vtx_pt->push_back(j_msv_pt);
+      v_jet_msv_vtx_eta->push_back(j_msv_eta);
+      v_jet_msv_vtx_phi->push_back(j_msv_phi);
+      v_jet_msv_vtx_dls->push_back(j_msv_dls);
+      v_jet_msv_vtx_x->push_back(j_msv_xp);
+      v_jet_msv_vtx_y->push_back(j_msv_yp);
+      v_jet_msv_vtx_z->push_back(j_msv_eta);
+      v_jet_msv_vtx_chi->push_back(j_msv_chi);
+      v_jet_msv_vtx_ndf->push_back(j_msv_ndf);
+      
+    } // end m_doMSV
+      
     /// now the tracking part: prepare all the tmpVectors
     int j_btag_ntrk=0;
     int j_sv1_ntrk =0;
@@ -1202,8 +1334,25 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_mv2c10->clear();
   v_jet_mv2c20->clear();
   v_jet_mvb->clear();
-  v_jet_msv1->clear();
-  v_jet_msv2->clear();
+
+  v_jet_multisvbb1->clear();
+  v_jet_multisvbb2->clear();
+  v_jet_msv_N2Tpair->clear();
+  v_jet_msv_energyTrkInJet->clear();
+  v_jet_msv_nvsec->clear();
+  v_jet_msv_normdist->clear();
+  v_jet_msv_vtx_mass->clear();
+  v_jet_msv_vtx_efrc->clear();
+  v_jet_msv_vtx_ntrk->clear();
+  v_jet_msv_vtx_pt->clear();
+  v_jet_msv_vtx_eta->clear();
+  v_jet_msv_vtx_phi->clear();
+  v_jet_msv_vtx_dls->clear();
+  v_jet_msv_vtx_x->clear();
+  v_jet_msv_vtx_y->clear();
+  v_jet_msv_vtx_z->clear();
+  v_jet_msv_vtx_chi->clear();
+  v_jet_msv_vtx_ndf->clear();
 
   v_bH_pt->clear();
   v_bH_eta->clear();
