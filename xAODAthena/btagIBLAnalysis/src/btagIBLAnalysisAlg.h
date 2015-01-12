@@ -186,6 +186,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<std::vector<int> > *v_jet_trk_nsharedPixHits;
   std::vector<std::vector<int> > *v_jet_trk_nsplitPixHits;
   std::vector<std::vector<int> > *v_jet_trk_nSCTHits;
+  std::vector<std::vector<int> > *v_jet_trk_nsharedSCTHits;
   std::vector<std::vector<int> > *v_jet_trk_expectBLayerHit;
   std::vector<std::vector<float> > *v_jet_trk_d0;
   std::vector<std::vector<float> > *v_jet_trk_z0;
@@ -197,7 +198,10 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<std::vector<float> > *v_jet_trk_IP3D_z0;
   std::vector<std::vector<float> > *v_jet_trk_IP3D_d0sig;
   std::vector<std::vector<float> > *v_jet_trk_IP3D_z0sig;
-  
+
+  std::vector<std::vector<float> >   *v_jet_trk_IP2D_llr;
+  std::vector<std::vector<float> >   *v_jet_trk_IP3D_llr;
+
   // those are just quick accessors
   std::vector<int>   *v_jet_sv1_ntrk;
   std::vector<int>   *v_jet_ip3d_ntrk;

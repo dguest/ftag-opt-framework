@@ -182,9 +182,12 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_trk_nsharedPixHits=new std::vector<std::vector<int> >();
   v_jet_trk_nsplitPixHits=new std::vector<std::vector<int> >();
   v_jet_trk_nSCTHits=new std::vector<std::vector<int> >();
+  v_jet_trk_nsharedSCTHits=new std::vector<std::vector<int> >();
   v_jet_trk_expectBLayerHit=new std::vector<std::vector<int> >();
   v_jet_trk_d0=new std::vector<std::vector<float> >();
   v_jet_trk_z0=new std::vector<std::vector<float> >();
+  // v_jet_trk_d0sig=new std::vector<std::vector<float> >();
+  // v_jet_trk_z0sig=new std::vector<std::vector<float> >();
   
   v_jet_trk_d0_truth=new std::vector<std::vector<float> >();
   v_jet_trk_z0_truth=new std::vector<std::vector<float> >();
@@ -195,6 +198,9 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_trk_IP3D_d0sig=new std::vector<std::vector<float> >();
   v_jet_trk_IP3D_z0sig=new std::vector<std::vector<float> >();
   
+  v_jet_trk_IP2D_llr=new std::vector<std::vector<float> >();
+  v_jet_trk_IP3D_llr=new std::vector<std::vector<float> >();
+
   // those are just quick accessors
   v_jet_sv1_ntrk =new std::vector<int>();
   v_jet_ip3d_ntrk=new std::vector<int>();
@@ -333,6 +339,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_trk_nsharedPixHits",&v_jet_trk_nsharedPixHits);
   tree->Branch("jet_trk_nsplitPixHits",&v_jet_trk_nsplitPixHits);
   tree->Branch("jet_trk_nSCTHits",&v_jet_trk_nSCTHits);
+  tree->Branch("jet_trk_nsharedSCTHits",&v_jet_trk_nsharedSCTHits);
   tree->Branch("jet_trk_expectBLayerHit",&v_jet_trk_expectBLayerHit);
  
   tree->Branch("jet_trk_d0",&v_jet_trk_d0);
@@ -345,6 +352,9 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_trk_ip3d_z0",&v_jet_trk_IP3D_z0);
   tree->Branch("jet_trk_ip3d_d0sig",&v_jet_trk_IP3D_d0sig);
   tree->Branch("jet_trk_ip3d_z0sig",&v_jet_trk_IP3D_z0sig);
+
+  tree->Branch("jet_trk_ip2d_llr",&v_jet_trk_IP2D_llr);
+  tree->Branch("jet_trk_ip3d_llr",&v_jet_trk_IP3D_llr);
 
   tree->Branch("jet_sv1_ntrk",&v_jet_sv1_ntrk);
   tree->Branch("jet_ip3d_ntrk",&v_jet_ip3d_ntrk);
@@ -751,6 +761,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<int> j_trk_nsharedPixHits       ;
     std::vector<int> j_trk_nsplitPixHits       ;
     std::vector<int> j_trk_nSCTHits       ;
+    std::vector<int> j_trk_nsharedSCTHits       ;
     std::vector<int> j_trk_expectBLayerHit;
     std::vector<float> j_trk_vtx_X;
     std::vector<float> j_trk_vtx_Y;
@@ -773,6 +784,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> j_sv1_vtxz;
     std::vector<float> j_jf_chi2;
     std::vector<float> j_jf_ndf;
+    std::vector<float> j_trk_ip2d_llr;
+    std::vector<float> j_trk_ip3d_llr;
 
     if (m_reduceInfo) continue;
 
@@ -841,6 +854,15 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> tmpZ0   = bjet->auxdata<std::vector<float> >("IP3D_valZ0wrtPVofTracks");
     std::vector<float> tmpD0sig= bjet->auxdata<std::vector<float> >("IP3D_sigD0wrtPVofTracks");
     std::vector<float> tmpZ0sig= bjet->auxdata<std::vector<float> >("IP3D_sigZ0wrtPVofTracks");
+
+    std::vector<float> tmpIP3DBwgt= bjet->auxdata<std::vector<float> >("IP3D_weightBofTracks");
+    std::vector<float> tmpIP3DUwgt= bjet->auxdata<std::vector<float> >("IP3D_weightUofTracks");
+    std::vector<float> tmpIP2DBwgt= bjet->auxdata<std::vector<float> >("IP2D_weightBofTracks");
+    std::vector<float> tmpIP2DUwgt= bjet->auxdata<std::vector<float> >("IP2D_weightUofTracks");
+    
+    float ip2d_llr = -999;
+    float ip3d_llr = -999;
+
     j_ip3d_ntrk=tmpGrading.size();
     
     //std::cout << "TOT tracks: " << j_btag_ntrk << " IP3D: " << j_ip3d_ntrk << " ... grade: " << tmpGrading.size() << std::endl;
@@ -883,13 +905,18 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	j_trk_ip3d_z0.push_back(tmpZ0.at(index));
 	j_trk_ip3d_d0sig.push_back(tmpD0sig.at(index));
 	j_trk_ip3d_z0sig.push_back(tmpZ0sig.at(index));
-	
+	if (tmpIP3DUwgt.at(index)!=0) ip3d_llr = log(tmpIP3DBwgt.at(index)/tmpIP3DUwgt.at(index));
+	if (tmpIP2DUwgt.at(index)!=0) ip2d_llr = log(tmpIP2DBwgt.at(index)/tmpIP2DUwgt.at(index));
+	j_trk_ip3d_llr.push_back(ip3d_llr);
+	j_trk_ip2d_llr.push_back(ip2d_llr);
       } else {
 	j_trk_ip3d_grade.push_back(-10);
 	j_trk_ip3d_d0.push_back(-999);
 	j_trk_ip3d_z0.push_back(-999);
 	j_trk_ip3d_d0sig.push_back(-999);
 	j_trk_ip3d_z0sig.push_back(-999);
+	j_trk_ip3d_llr.push_back(-999);
+	j_trk_ip2d_llr.push_back(-999);
       }
       
       if (particleInCollection( tmpTrk, IP2DTracks))  trackAlgo+=1<<IP2D;
@@ -966,6 +993,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
       tmpTrk->summaryValue( getInt, xAOD::numberOfSCTHits );
       j_trk_nSCTHits .push_back(getInt);
       getInt=0;
+      tmpTrk->summaryValue( getInt, xAOD::numberOfSCTSharedHits );
+      j_trk_nsharedSCTHits.push_back(getInt);
+      getInt=0;
       
       // spatial coordinates
       j_trk_d0.push_back( tmpTrk->d0() );
@@ -1000,6 +1030,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_trk_nsharedPixHits->push_back(j_trk_nsharedPixHits);
     v_jet_trk_nsplitPixHits->push_back(j_trk_nsplitPixHits);
     v_jet_trk_nSCTHits->push_back(j_trk_nSCTHits);
+    v_jet_trk_nsharedSCTHits->push_back(j_trk_nsharedSCTHits);
     v_jet_trk_expectBLayerHit->push_back(j_trk_expectBLayerHit);
     v_jet_trk_d0->push_back(j_trk_d0 );
     v_jet_trk_z0->push_back(j_trk_z0 );
@@ -1011,6 +1042,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_trk_IP3D_d0sig->push_back(j_trk_ip3d_d0sig );
     v_jet_trk_IP3D_z0sig->push_back(j_trk_ip3d_z0sig );
 
+    v_jet_trk_IP2D_llr->push_back(j_trk_ip3d_llr);
+    v_jet_trk_IP3D_llr->push_back(j_trk_ip2d_llr);
   
   } // jet loop
 
@@ -1200,6 +1233,7 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_trk_nsharedPixHits->clear();
   v_jet_trk_nsplitPixHits->clear();
   v_jet_trk_nSCTHits->clear();
+  v_jet_trk_nsharedSCTHits->clear();
   v_jet_trk_expectBLayerHit->clear();
   v_jet_trk_d0->clear();
   v_jet_trk_z0->clear();
@@ -1215,6 +1249,8 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_trk_vtx_dx->clear();
   v_jet_trk_vtx_dy->clear();
 
+  v_jet_trk_IP2D_llr->clear();
+  v_jet_trk_IP3D_llr->clear();
 
   v_jet_sv1_ntrk->clear();
   v_jet_ip3d_ntrk->clear();
