@@ -629,7 +629,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
        // to do: in case of 2, get the closest
     } 
     v_jet_nBHadr->push_back(ghostB.size());
-    
+
     std::vector<const xAOD::TruthParticle*> tracksFromB; 
     std::vector<const xAOD::TruthParticle*> tracksFromC; 
     if ( matchedBH!=NULL ) {
@@ -679,44 +679,45 @@ StatusCode btagIBLAnalysisAlg::execute() {
     
     // SV0
     v_jet_sv0_sig3d->push_back(bjet->SV0_significance3D());
-    int sv0ntrkj;
+    int sv0ntrkj = -1;
     bjet->taggerInfo(sv0ntrkj, xAOD::SV0_NGTinJet);
     v_jet_sv0_ntrkj->push_back(sv0ntrkj);
-    int sv0ntrkv;
+    int sv0ntrkv = -1;
     bjet->taggerInfo(sv0ntrkv, xAOD::SV0_NGTinSvx);
     v_jet_sv0_ntrkv->push_back(sv0ntrkv);
-    int sv0n2t;
+    int sv0n2t = -1;
     bjet->taggerInfo(sv0n2t, xAOD::SV0_N2Tpair);
     v_jet_sv0_n2t->push_back(sv0n2t);
-    float sv0m;
+    float sv0m = -1;
     bjet->taggerInfo(sv0m, xAOD::SV0_masssvx);
     v_jet_sv0_m->push_back(sv0m);
-    float sv0efc;
+    float sv0efc = -1;
     bjet->taggerInfo(sv0efc, xAOD::SV0_efracsvx);
     v_jet_sv0_efc->push_back(sv0efc);
-    float sv0ndist;
+    float sv0ndist = -1;
     bjet->taggerInfo(sv0ndist, xAOD::SV0_normdist);
     v_jet_sv0_normdist->push_back(sv0ndist);
-    
+
     // SV1
-    int sv1ntrkj;
+    int sv1ntrkj = -1;
     bjet->taggerInfo(sv1ntrkj, xAOD::SV1_NGTinJet);
     v_jet_sv1_ntrkj->push_back(sv1ntrkj);
-    int sv1ntrkv;
+    int sv1ntrkv = -1;
     bjet->taggerInfo(sv1ntrkv, xAOD::SV1_NGTinSvx);
     v_jet_sv1_ntrkv->push_back(sv1ntrkv);
-    int sv1n2t;
+    int sv1n2t = -1;
     bjet->taggerInfo(sv1n2t, xAOD::SV1_N2Tpair);
     v_jet_sv1_n2t->push_back(sv1n2t);
-    float sv1m;
+    float sv1m = -1;
     bjet->taggerInfo(sv1m, xAOD::SV1_masssvx);
     v_jet_sv1_m->push_back(sv1m);
-    float sv1efc;
+    float sv1efc = -1;
     bjet->taggerInfo(sv1efc, xAOD::SV1_efracsvx);
     v_jet_sv1_efc->push_back(sv1efc);
-    float sv1ndist;
+    float sv1ndist = -1;
     bjet->taggerInfo(sv1ndist, xAOD::SV1_normdist);
     v_jet_sv1_normdist->push_back(sv1ndist);
+
     v_jet_sv1_pb->push_back(bjet->SV1_pb());
     v_jet_sv1_pc->push_back(bjet->SV1_pc());
     v_jet_sv1_pu->push_back(bjet->SV1_pu());
@@ -727,31 +728,31 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_jf_pc->push_back(bjet->JetFitter_pc());
     v_jet_jf_pu->push_back(bjet->JetFitter_pu());
     v_jet_jf_llr->push_back(bjet->JetFitter_loglikelihoodratio());
-    float jfm;
+    float jfm = -999;
     bjet->taggerInfo(jfm, xAOD::JetFitter_mass);
     v_jet_jf_m->push_back(jfm);
-    float jfefc;
+    float jfefc = -999;
     bjet->taggerInfo(jfefc, xAOD::JetFitter_energyFraction);
     v_jet_jf_efc->push_back(jfefc);
-    float jfdeta;
+    float jfdeta = -999;
     bjet->taggerInfo(jfdeta, xAOD::JetFitter_deltaeta);
     v_jet_jf_deta->push_back(jfdeta);
-    float jfdphi;
+    float jfdphi = -999;
     bjet->taggerInfo(jfdphi, xAOD::JetFitter_deltaphi);
     v_jet_jf_dphi->push_back(jfdphi);
-    int jfntrkAtVx;
+    int jfntrkAtVx = -1;
     bjet->taggerInfo(jfntrkAtVx, xAOD::JetFitter_nTracksAtVtx);
     v_jet_jf_ntrkAtVx->push_back(jfntrkAtVx);
-    int jfnvtx;
+    int jfnvtx = -1;
     bjet->taggerInfo(jfnvtx, xAOD::JetFitter_nVTX);
     v_jet_jf_nvtx->push_back(jfnvtx);
-    float jfsig3d;
+    float jfsig3d = -999;
     bjet->taggerInfo(jfsig3d, xAOD::JetFitter_significance3d);
     v_jet_jf_sig3d->push_back(jfsig3d);
-    int jfnvtx1t;
+    int jfnvtx1t = -1;
     bjet->taggerInfo(jfnvtx1t, xAOD::JetFitter_nSingleTracks);
     v_jet_jf_nvtx1t->push_back(jfnvtx1t);
-    int jfn2t;
+    int jfn2t = -1;
     bjet->taggerInfo(jfn2t, xAOD::JetFitter_N2Tpair);
     v_jet_jf_n2t->push_back(jfn2t);
     
@@ -805,7 +806,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     
       std::vector< ElementLink< xAOD::VertexContainer > > msvVertices;
       bjet->variable<std::vector<ElementLink<xAOD::VertexContainer> > >("MSV", "vertices", msvVertices);
-      
+
       //tmp vectors
       std::vector<float> j_msv_mass = std::vector<float>(msv_nvsec,0);
       std::vector<float> j_msv_efrc = std::vector<float>(msv_nvsec,0);
