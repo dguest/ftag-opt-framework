@@ -6,12 +6,31 @@ DoMSV        =False ##include variables for MSV tagger
 #(only option that will work on original DC14 xAOD)
 doRetag      =True  ## perform retagging
 doRecomputePV=True  ## need to be true when re-tagging to recover JetFitter performance
+doComputeReference=False
 
+# ===================================================================
+# ===================================================================
+# ===================================================================
+# ===================================================================
 if doRetag==False:
   ReduceInfo=True
 
 if doRecomputePV:
   doRetag=True
+
+if doComputeReference:
+  ReduceInfo=True
+  doRetag   =True
+  doRecomputePV=True
+
+from BTagging.BTaggingFlags import BTaggingFlags
+## chainging to other official calib file
+BTaggingFlags.CalibrationTag = 'BTagCalibALL-08-00'
+
+## chainging to private calib file
+#BTaggingFlags.CalibrationFromLocalReplica = True 
+#BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/' 
+#BTaggingFlags.CalibrationTag = 'k0803' ##'k0002' 
 
 #theApp.EvtMax = -1
 import glob
@@ -41,6 +60,24 @@ svcMgr.THistSvc.Output += ["BTAGSTREAM DATAFILE='flavntuple.root' OPT='RECREATE'
 ## THIS IS A TEMPORARY solution to avoud Memleaks
 from BTagging.BTaggingFlags import BTaggingFlags
 BTaggingFlags.MVb=False
+
+if  doComputeReference:
+  BTaggingFlags.Runmodus = "reference"
+  BTaggingFlags.SV0 = False
+  BTaggingFlags.SV2 = False
+  BTaggingFlags.GbbNNTag = False
+  BTaggingFlags.JetFitterTag = False
+  BTaggingFlags.JetFitterNN = False
+  BTaggingFlags.MVb = False
+  BTaggingFlags.MV1 = False
+  BTaggingFlags.MV2 = False
+  BTaggingFlags.MV1c = False
+  BTaggingFlags.MV2c00 = False
+  BTaggingFlags.MV2c10 = False
+  BTaggingFlags.MV2c20 = False
+  BTaggingFlags.MultiSVbb1 = False
+  BTaggingFlags.MultiSVbb2 = False
+  pass
 
 if doRecomputePV:
   BTaggingFlags.PrimaryVertexCollectionName='PrimaryVerticesValerio'
@@ -82,13 +119,6 @@ if ReduceInfo==False:
   algSeq += CfgMgr.DerivationFramework__CommonAugmentation("MyDFTSOS_KERN",
                                                            AugmentationTools = augmentationTools,
                                                            OutputLevel = DEBUG )
-
-### to change the references
-
-#if BTaggingFlags.Active: 
-#BTaggingFlags.CalibrationFromLocalReplica = True 
-#BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/' 
-#BTaggingFlags.CalibrationTag = 'k0001'
 
 if doRetag:
   JetCollectionList = ['AntiKt4LCTopoJets' ]
@@ -175,6 +205,24 @@ if doRetag:
   BTaggingFlags.btaggingESDList += [ BaseNameJFSecVtx + author + tmpJFVxname for author in AuthorSubString]
   BTaggingFlags.btaggingESDList += [ BaseAuxNameJFSecVtx + author + tmpJFVxname + 'Aux.' for author in AuthorSubString]
 
+  
+  ### Valerio: test for editing the tools configuration from here
+  ### these are just some examples of the possibilities that Wouter's tool allows
+  from BTagging.BTaggingConfiguration import getTool
+  ip3dTRKsel=getTool("IP3DTrackSelector", "BTagTrackToJetAssociator")
+  ip2dTRKsel=getTool("IP2DTrackSelector", "BTagTrackToJetAssociator")
+  ip3dTRKsel.nHitBLayer=0
+  ip2dTRKsel.nHitBLayer=0
+  #value="NoJetFitterCombNN"
+  value="Default"
+  mv2c00Tool=getTool("MV2c00Tag","BTagTrackToJetAssociator","AntiKt4LCTopo")
+  mv2c00Tool.trainingConfig=value
+  ####mv2c00Tool.OutputLevel=DEBUG
+  mv2c10Tool=getTool("MV2c10Tag","BTagTrackToJetAssociator","AntiKt4LCTopo")
+  mv2c10Tool.trainingConfig=value
+  mv2c20Tool=getTool("MV2c20Tag","BTagTrackToJetAssociator","AntiKt4LCTopo")
+  mv2c20Tool.trainingConfig=value
+  print mv2c00Tool
 
 ####################################################################################
 ####################################################################################
@@ -187,7 +235,7 @@ alg = CfgMgr.btagIBLAnalysisAlg(OutputLevel=INFO) #DEBUG
 alg.ReduceInfo=ReduceInfo
 alg.DoMSV=DoMSV
 alg.JetCleaningTool.CutLevel = "LooseBad" # options: "VeryLooseBad","LooseBad",
-algSeq += alg
+if not doComputeReference: algSeq += alg
 ToolSvc += CfgMgr.JetCalibrationTool("JetCalibrationTool", 
                                      IsData=False,
                                      ConfigFile="JetCalibTools/data/CalibrationConfigs/JES_Full2012dataset_Preliminary_MC14.config", 
