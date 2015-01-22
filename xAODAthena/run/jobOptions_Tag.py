@@ -216,12 +216,12 @@ if doRetag:
   #value="NoJetFitterCombNN"
   value="Default"
   mv2c00Tool=getTool("MV2c00Tag","BTagTrackToJetAssociator","AntiKt4LCTopo")
-  mv2c00Tool.trainingConfig=value
+  #mv2c00Tool.trainingConfig=value
   ####mv2c00Tool.OutputLevel=DEBUG
   mv2c10Tool=getTool("MV2c10Tag","BTagTrackToJetAssociator","AntiKt4LCTopo")
-  mv2c10Tool.trainingConfig=value
+  #mv2c10Tool.trainingConfig=value
   mv2c20Tool=getTool("MV2c20Tag","BTagTrackToJetAssociator","AntiKt4LCTopo")
-  mv2c20Tool.trainingConfig=value
+  #mv2c20Tool.trainingConfig=value
   print mv2c00Tool
 
 ####################################################################################
