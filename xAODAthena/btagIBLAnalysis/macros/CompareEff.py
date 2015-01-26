@@ -47,7 +47,7 @@ f2=TFile(infile2,"R")
 
 ###################################################################################
 ### set by the user
-taggerList=["MV1","MV2c00","MVb","IP3D","SV1","JETFITTER"]
+taggerList=["MV1","MV2c00","IP3D","SV1","JetFitter"]
 jetType= sys.argv[6]
 if jetType!="b" and jetType!="c" and jetType!="l":
     print "jetType not recognized (b,c,l) .... aborting "
