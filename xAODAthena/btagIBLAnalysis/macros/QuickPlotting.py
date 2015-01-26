@@ -18,25 +18,11 @@ def Helper():
     print " "
     sys.exit(1)
 if len(sys.argv) !=7: Helper()
-
-#odir = sys.argv[1]
-#if ".root" in odir:
-#    print " ..... outputfolder is a file .... please correct"
-#    sys.exit(1)
-
-
-
 odir= sys.argv[5]
 
 ########################################################################################
 #########################################################################################
 gSystem.Exec("mkdir -p "+odir)
-
-#infile1="14TeV/output.root"
-##infile1="8TeV/output.root"
-#infile2="8TeVd3pd/output.root"
-#infile1="8TeV/output.root"
-#infile2="test/output.root"
 
 infile1=sys.argv[1]
 infile2=sys.argv[2]
@@ -56,7 +42,7 @@ if jetType=="lFLAT":
     jetType="l"
 
 if jetType!="b" and jetType!="c" and jetType!="l":
-    print "jetType not recognized (b,c,l) .... aborting "
+    print "jetType: "+jetType+" not recognized (b,c,l) .... aborting "
     Helper()
 ###################################################################################
 
@@ -80,10 +66,18 @@ taggerList=["IP3D","SV1","MV2c00","MV2c20","MV1","JetFitter"]
 canvases=[]
 for tag in taggerList:
     for var in plotList:
-        myC=TCanvas( var.replace("Base__","")+"_"+tag , var.replace("Base__","")+"_"+tag, 800,600);
-        myC.SetGridy()
-        myC.SetGridx()
-
+        myC=TCanvas( var.replace("Base__","")+"_"+tag , var.replace("Base__","")+"_"+tag, 800,800);
+        pad_1=TPad("pad_1", "up", 0., 0.35, 1., 1.);
+        pad_1.SetBottomMargin(0);
+        pad_1.Draw();   
+        pad_1.SetGridy()
+        pad_1.SetGridx()
+        pad_2=TPad("pad_2", "down", 0.0, 0.00, 1.0, 0.35);
+        pad_2.SetTopMargin(0);
+        pad_2.SetBottomMargin(0.28);
+        pad_2.Draw();
+        pad_1.cd();
+        
         f1.cd()
         base=f1.Get(var)
         if special:
@@ -94,49 +88,86 @@ for tag in taggerList:
         if jetType=="l": base.SetMaximum(0.05)
         if special:  base.SetMaximum(0.20)
         base.Draw("HIST")
-        legend4=TLegend(0.70,0.75,0.92,0.95)
+        if special: base.GetXaxis().SetRangeUser(25,600);
+        legend4=TLegend(0.60,0.75,0.82,0.95)
         legend4.SetTextFont(42)
-        legend4.SetTextSize(0.030)
+        legend4.SetTextSize(0.035)
         legend4.SetFillColor(0)
         legend4.SetLineColor(0)
         legend4.SetFillStyle(0)
         legend4.SetBorderSize(0)
         count=2
-        myText(0.20,0.24,1,jetType+"-jets",0.045)
-        curve=None
+        myText(0.20,0.75,1,tag,0.06)
+        curve1=None
         if special:
-            curve=f1.Get( "Eff_b__Eff__"+var.replace("Base__","")+"__"+tag+"lightrej_70")
+            curve1=f1.Get( "Eff_b__Eff__"+var.replace("Base__","")+"__"+tag+"lightrej_70")
         else:
-            curve=f1.Get( "Eff_"+jetType+"__Eff__"+var.replace("Base__","")+"__"+tag+"_70")
-        curve.SetLineColor(count);
-        curve.SetMarkerColor(count);
-        legend4.AddEntry(curve ,leg1, "LPE")
-        curve.Draw("PE")
+            curve1=f1.Get( "Eff_"+jetType+"__Eff__"+var.replace("Base__","")+"__"+tag+"_70")
+        curve1.SetLineColor(count);
+        curve1.SetMarkerColor(count);
+        legend4.AddEntry(curve1 ,leg1, "LPE")
+        curve1.Draw("PE")
 
         count=4
         f2.cd()
-        curve=None
+        curve2=None
         if special:
-            curve=f2.Get( "Eff_b__Eff__"+var.replace("Base__","")+"__"+tag+"lightrej_70")
+            curve2=f2.Get( "Eff_b__Eff__"+var.replace("Base__","")+"__"+tag+"lightrej_70")
         else:
-            curve=f2.Get( "Eff_"+jetType+"__Eff__"+var.replace("Base__","")+"__"+tag+"_70")
-        curve.SetLineColor(count);
-        curve.SetMarkerColor(count);
-        legend4.AddEntry(curve ,leg2, "LPE")
-        curve.Draw("PE")
+            curve2=f2.Get( "Eff_"+jetType+"__Eff__"+var.replace("Base__","")+"__"+tag+"_70")
+        curve2.SetLineColor(count);
+        curve2.SetMarkerColor(count);
+        legend4.AddEntry(curve2 ,leg2, "LPE")
+        curve2.Draw("PE")
         
         legend4.Draw()
+
+        pad_2.cd()
+        ratio=base.Clone("ratio")
+        ratio.GetYaxis().SetTitle("rel. diff.")
+        #print str(ratio.GetXaxis().GetTitleOffset())+" "+str(ratio.GetXaxis().GetTitleSize())+" "+str(ratio.GetXaxis().GetLabelSize())
+        #print str(ratio.GetYaxis().GetTitleOffset())+" "+str(ratio.GetYaxis().GetTitleSize())+" "+str(ratio.GetYaxis().GetLabelSize())
+        ratio.GetYaxis().SetTitleOffset(1.1)
+        ratio.GetXaxis().SetLabelSize(0.10)
+        ratio.GetXaxis().SetTitleSize(0.10)
+        ratio.GetYaxis().SetTitleOffset(0.7)
+        ratio.GetYaxis().SetLabelSize(0.09)
+        ratio.GetYaxis().SetTitleSize(0.09)
+
+        ratio.SetMaximum(0.4)
+        ratio.SetMinimum(-0.4)
+        ratio.SetLineColor(kGray)
+        ratio.Draw("HIST")
+
+        ratioH=base.Clone("ratio")
+        for bin in xrange(1,base.GetNbinsX()+1):
+            px1=Double(0)
+            py1=Double(0)
+            py2=Double(0)
+            curve1.GetPoint(bin-1,px1,py1)
+            curve2.GetPoint(bin-1,px1,py2)
+            if py1!=0:
+                ratioH.SetBinContent(bin, py2/py1-1)
+            else:
+                ratioH.SetBinContent(bin, -1)
+            ey1=curve1.GetErrorYhigh(bin-1)
+            ey2=curve2.GetErrorYhigh(bin-1)
+            if py1!=0 and py2!=0:
+                ratioH.SetBinError(bin, py2/py1*sqrt( pow(ey1/py1,2) + pow(ey2/py2,2) ) )
+            
+        ratioH.SetLineColor(4)
+        ratioH.SetLineWidth(3)
+        ratioH.SetMarkerSize(1)
+        ratioH.SetMarkerColor(4)
+        ratioH.SetMarkerStyle(20)
+        ratioH.Draw("SAMEE")
+        
         myC.Update()
         canvases.append(myC)
         if special:
             myC.Print(odir+"/"+myC.GetName()+"__"+jetType+"_flat.eps")
-            myC.Print(odir+"/"+myC.GetName()+"__"+jetType+"_flat.pdf")
+            #myC.Print(odir+"/"+myC.GetName()+"__"+jetType+"_flat.pdf")
         else:
             myC.Print(odir+"/"+myC.GetName()+"__"+jetType+".eps")
-            myC.Print(odir+"/"+myC.GetName()+"__"+jetType+".pdf")
-
-#time.sleep(1000)
-
-#myC.Print(odir+"/bVSlightALL.eps")
-
+            #myC.Print(odir+"/"+myC.GetName()+"__"+jetType+".pdf")
 
