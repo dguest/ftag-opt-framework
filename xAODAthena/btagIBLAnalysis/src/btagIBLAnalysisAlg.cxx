@@ -45,6 +45,7 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pS
   
   declareProperty( "ReduceInfo", m_reduceInfo=false );
   declareProperty( "DoMSV", m_doMSV=false );
+  declareProperty( "Rel20", m_rel20=false );
 }
 
 
@@ -462,7 +463,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
   // Truth stuff
   //--------------------------- 
   const xAOD::TruthEventContainer* xTruthEventContainer = NULL;
-  CHECK( evtStore()->retrieve( xTruthEventContainer, "TruthEvent") );
+  std::string truthevt = "TruthEvent";
+  if (m_rel20) truthevt = "TruthEvents";
+  CHECK( evtStore()->retrieve( xTruthEventContainer, truthevt) );
   
   // select truth electrons for electron-jet overlap removal
   std::vector<TLorentzVector> truth_electrons;
@@ -947,7 +950,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sv0_Nvtx->push_back(SV0vertices.size());
     v_jet_sv1_Nvtx->push_back(SV1vertices.size());
 
-    for (int sv0V=0; sv0V< SV0vertices.size(); sv0V++) {
+    for (unsigned int sv0V=0; sv0V< SV0vertices.size(); sv0V++) {
       const xAOD::Vertex*  tmpVertex=*(SV0vertices.at(sv0V));
       j_sv0_vtxx.push_back(tmpVertex->x());
       j_sv0_vtxy.push_back(tmpVertex->y());
@@ -957,7 +960,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sv0_vtxy->push_back(j_sv0_vtxy);
     v_jet_sv0_vtxz->push_back(j_sv0_vtxz);
 
-    for (int sv1V=0; sv1V< SV1vertices.size(); sv1V++) {
+    for (unsigned int sv1V=0; sv1V< SV1vertices.size(); sv1V++) {
       const xAOD::Vertex*  tmpVertex=*(SV1vertices.at(sv1V));
       j_sv1_vtxx.push_back(tmpVertex->x());
       j_sv1_vtxy.push_back(tmpVertex->y());
@@ -1137,8 +1140,10 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	j_trk_d0_truth.push_back( -999 );
 	j_trk_z0_truth.push_back( -999 );
       } else {
-	j_trk_d0_truth.push_back( truth->auxdata< float >( "d0" ) );
-	j_trk_z0_truth.push_back( truth->auxdata< float >( "z0" ) );
+	if (!m_rel20){
+	  j_trk_d0_truth.push_back( truth->auxdata< float >( "d0" ) );
+	  j_trk_z0_truth.push_back( truth->auxdata< float >( "z0" ) );
+	}
       }
     } // track loop
 

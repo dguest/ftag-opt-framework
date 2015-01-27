@@ -3,6 +3,7 @@
 # ====================================================================
 ReduceInfo   =False ##write minimal amount of info on the output file
 DoMSV        =False ##include variables for MSV tagger
+Rel20        =False ##switch between rel19 and rel20
 #(only option that will work on original DC14 xAOD)
 doRetag      =True  ## perform retagging
 doRecomputePV=True  ## need to be true when re-tagging to recover JetFitter performance
@@ -22,6 +23,9 @@ if doComputeReference:
   ReduceInfo=True
   doRetag   =True
   doRecomputePV=True
+
+if Rel20:
+  ReduceInfo=True    
 
 from BTagging.BTaggingFlags import BTaggingFlags
 ## chainging to other official calib file
@@ -109,16 +113,16 @@ from AthenaCommon.AlgSequence import AlgSequence
 algSeq = AlgSequence()
 
 if ReduceInfo==False:
-  from DerivationFrameworkInDet.DerivationFrameworkInDetConf import DerivationFramework__TrackParametersForTruthParticles
-  TruthDecor = DerivationFramework__TrackParametersForTruthParticles( name = "TruthTPDecor",
-                                                                      ##OutputLevel = DEBUG,
-                                                                      DecorationPrefix ="")
-  ToolSvc +=TruthDecor
-  augmentationTools = [TruthDecor]
-  from DerivationFrameworkCore.DerivationFrameworkCoreConf import DerivationFramework__CommonAugmentation
-  algSeq += CfgMgr.DerivationFramework__CommonAugmentation("MyDFTSOS_KERN",
-                                                           AugmentationTools = augmentationTools,
-                                                           OutputLevel = DEBUG )
+   from DerivationFrameworkInDet.DerivationFrameworkInDetConf import DerivationFramework__TrackParametersForTruthParticles
+   TruthDecor = DerivationFramework__TrackParametersForTruthParticles( name = "TruthTPDecor",
+                                                                       OutputLevel = DEBUG,
+                                                                       DecorationPrefix ="")
+   ToolSvc +=TruthDecor
+   augmentationTools = [TruthDecor]
+   from DerivationFrameworkCore.DerivationFrameworkCoreConf import DerivationFramework__CommonAugmentation
+   algSeq += CfgMgr.DerivationFramework__CommonAugmentation("MyDFTSOS_KERN",
+                                                            AugmentationTools = augmentationTools,
+                                                            OutputLevel = DEBUG )
 
 if doRetag:
   JetCollectionList = ['AntiKt4LCTopoJets' ]
@@ -234,10 +238,13 @@ if doRetag:
 alg = CfgMgr.btagIBLAnalysisAlg(OutputLevel=INFO) #DEBUG
 alg.ReduceInfo=ReduceInfo
 alg.DoMSV=DoMSV
+alg.Rel20=Rel20
 alg.JetCleaningTool.CutLevel = "LooseBad" # options: "VeryLooseBad","LooseBad",
 if not doComputeReference: algSeq += alg
+calibfile = "JetCalibTools/data/CalibrationConfigs/JES_Full2012dataset_Preliminary_MC14.config"
+if Rel20: calibfile = "JES_Full2012dataset_Preliminary_MC14.config"
 ToolSvc += CfgMgr.JetCalibrationTool("JetCalibrationTool", 
                                      IsData=False,
-                                     ConfigFile="JetCalibTools/data/CalibrationConfigs/JES_Full2012dataset_Preliminary_MC14.config", 
+                                     ConfigFile=calibfile, 
                                      CalibSequence="EtaJES",
                                      JetCollection="AntiKt4LCTopo")
