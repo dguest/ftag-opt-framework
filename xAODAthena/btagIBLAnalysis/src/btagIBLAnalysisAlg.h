@@ -245,6 +245,10 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   bool m_reduceInfo; //if set to true is allows to run over xAOD and not crashing when info are missing
   bool m_doMSV; //if set to true it includes variables from multi SV tagger
   bool m_rel20; //if set to true code works for rel20, if set to false it will work for rel19
+  std::string m_jetCollectionName; // name of the jet collection to work with
+  float m_jetPtCut; // pT cut to apply
+  bool m_calibrateJets;
+  bool m_cleanJets;
   
  private: 
 

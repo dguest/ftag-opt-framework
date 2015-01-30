@@ -46,6 +46,10 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pS
   declareProperty( "ReduceInfo", m_reduceInfo=false );
   declareProperty( "DoMSV", m_doMSV=false );
   declareProperty( "Rel20", m_rel20=false );
+  declareProperty( "JetCollectionName", m_jetCollectionName = "AntiKt4LCTopoJets" );
+  declareProperty( "JetPtCut", m_jetPtCut = 20.e3 );
+  declareProperty( "CalibrateJets", m_calibrateJets = true );
+  declareProperty( "CleanJets", m_cleanJets = true );
 }
 
 
@@ -62,8 +66,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   // Register output tree
   ServiceHandle<ITHistSvc> histSvc("THistSvc",name());
   CHECK( histSvc.retrieve() );
-  tree = new TTree("bTag","bTag");
-  CHECK( histSvc->regTree("/BTAGSTREAM/tree",tree) );
+  tree = new TTree(("bTag_"+m_jetCollectionName).c_str(),("bTag"+m_jetCollectionName).c_str());
+  CHECK( histSvc->regTree("/BTAGSTREAM/tree_"+m_jetCollectionName,tree) );
 
   // Retrieve the jet cleaning tool
   CHECK( m_jetCleaningTool.retrieve() );
@@ -494,7 +498,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
   //--------------------------- 
  
   const xAOD::JetContainer* jets = 0;
-  CHECK( evtStore()->retrieve( jets, "AntiKt4LCTopoJets") ); // what about BTagging_AntiKt4Truth?
+  CHECK( evtStore()->retrieve( jets, m_jetCollectionName) ); // what about BTagging_AntiKt4Truth?
 
   const xAOD::JetContainer* truthjets = 0;
   CHECK( evtStore()->retrieve( truthjets, "AntiKt4TruthJets") );
@@ -512,17 +516,24 @@ StatusCode btagIBLAnalysisAlg::execute() {
   for ( const auto* jet : *jets ) {
     xAOD::Jet * newjet = 0;
 
-    m_jetCalibrationTool->calibratedCopy(*jet, newjet);
-
-    // jet cleaning - should be done after lepton overlap removal
-    if( (!m_jetCleaningTool->keep( *jet )) && (jet->pt() > 20e3) ) {
-      delete newjet;
-      badCleaning=true;
-      //return StatusCode::SUCCESS;
-      break;
+    if(m_calibrateJets) {
+      m_jetCalibrationTool->calibratedCopy(*jet, newjet);
+    }
+    else {
+      newjet = new xAOD::Jet(*jet);
     }
 
-    if ( newjet->pt() < 20e3 )  {
+    // jet cleaning - should be done after lepton overlap removal
+    if(m_cleanJets) {
+      if( (!m_jetCleaningTool->keep( *jet )) && (jet->pt() > 20e3) ) {
+        delete newjet;
+        badCleaning=true;
+        //return StatusCode::SUCCESS;
+        break;
+      }
+    }
+
+    if ( newjet->pt() < m_jetPtCut )  {
       delete newjet;
       continue;
     }

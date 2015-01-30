@@ -25,24 +25,24 @@ if doComputeReference:
   doRecomputePV=True
 
 if Rel20:
-  ReduceInfo=True    
+  ReduceInfo=True
 
 from BTagging.BTaggingFlags import BTaggingFlags
 ## chainging to other official calib file
 BTaggingFlags.CalibrationTag = 'BTagCalibALL-08-00'
 
 ## chainging to private calib file
-#BTaggingFlags.CalibrationFromLocalReplica = True 
-#BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/' 
-#BTaggingFlags.CalibrationTag = 'k0803' ##'k0002' 
+#BTaggingFlags.CalibrationFromLocalReplica = True
+#BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
+#BTaggingFlags.CalibrationTag = 'k0803' ##'k0002'
 
 #theApp.EvtMax = -1
 import glob
 from AthenaCommon.AthenaCommonFlags import jobproperties as jp
 jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1)
 
-## main test file
-jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/v/vdao//xAODs/mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e2928_s1982_s2008_r5787_tid01587947_00/AOD.01587947._004222.pool.root.1"]
+## main test file: TTbar xAOD r19 mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad
+jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/v/vdao//public/AOD.01587947._004222.pool.root.1"]
 
 ## Frank's original
 #jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/f/filthaut/public/AOD.01606245._000001.pool.root.1"]
@@ -94,12 +94,12 @@ if doRecomputePV:
 ## from Anthony: needed to compute truth quantities of tracks
 import MagFieldServices.SetupField
 # --- disable error protection of RecExCommon
-from AthenaCommon.DetFlags import DetFlags 
+from AthenaCommon.DetFlags import DetFlags
 DetFlags.ID_setOn()
 DetFlags.Calo_setOff()
 DetFlags.Muon_setOff()
 from RecExConfig.RecFlags import rec
-rec.doTrigger.set_Value_and_Lock(False) 
+rec.doTrigger.set_Value_and_Lock(False)
 rec.doESD.set_Value_and_Lock        (False)###
 rec.doWriteESD.set_Value_and_Lock        (False)###
 rec.doAOD.set_Value_and_Lock             (False)
@@ -124,21 +124,19 @@ if ReduceInfo==False:
                                                             AugmentationTools = augmentationTools,
                                                             OutputLevel = DEBUG )
 
-if doRetag:
-  JetCollectionList = ['AntiKt4LCTopoJets' ]
-  BTaggingFlags.CalibrationChannelAliases += [ "AntiKt4EMTopo->AntiKt4TopoEM,AntiKt4H1Topo" ]
-  BTaggingFlags.CalibrationChannelAliases += [ "AntiKt4LCTopo->AntiKt4LCTopo,AntiKt4TopoEM,AntiKt4H1Topo" ]
-  BTaggingFlags.CalibrationChannelAliases += [ "AntiKt10LCTopo->AntiKt6LCTopo,AntiKt6TopoEM,AntiKt4TopoEM,AntiKt4H1Topo" ]
-  BTaggingFlags.CalibrationChannelAliases += [ "AntiKt10Truth->AntiKt6TopoEM,AntiKt4TopoEM,AntiKt4H1Topo" ]
-  BTaggingFlags.CalibrationChannelAliases += [ "AntiKt10TruthWZ->AntiKt6TopoEM,AntiKt4TopoEM,AntiKt4H1Topo" ]
-  BTaggingFlags.CalibrationChannelAliases += [ "AntiKt4Truth->AntiKt4TopoEM,AntiKt4H1Topo" ]
-  BTaggingFlags.CalibrationChannelAliases += [ "AntiKt4TruthWZ->AntiKt4TopoEM,AntiKt4H1Topo" ]
-  BTaggingFlags.CalibrationChannelAliases += [ "AntiKt4Track->AntiKt4TopoEM" ]
-  BTaggingFlags.CalibrationChannelAliases += [ "AntiKt3Track->AntiKt4TopoEM" ]
+# Demonstrate to run on 2 jet collections at the same time
+JetCollections = ['AntiKt4PV0TrackJets', 'AntiKt4LCTopoJets' ]
+#JetCollections = ['AntiKt4LCTopoJets' ]
 
-  BTaggingFlags.Jets = [ name[:-4] for name in JetCollectionList]
+if doRetag:
+  JetCollectionList = [ (JetCollection,
+                         JetCollection.replace('ZTrack', 'Track').replace('PV0Track', 'Track'))
+                        for JetCollection in JetCollections ]
+  BTaggingFlags.CalibrationChannelAliases += [ "AntiKt4TopoEM->AntiKt4EMTopo" ]
+
+  BTaggingFlags.Jets = [ name[1][:-4] for name in JetCollectionList]
   btag = "BTagging_"
-  AuthorSubString = [ btag+name[:-4] for name in JetCollectionList]
+  AuthorSubString = [ btag+name[1][:-4] for name in JetCollectionList]
   tmpSVname = "SecVtx"
   tmpJFVxname = "JFVtx"
   SA = 'standalone_'
@@ -154,7 +152,7 @@ if doRetag:
 
   for i, jet in enumerate(JetCollectionList):
     try:
-      btagger = setupJetBTaggerTool(ToolSvc, JetCollection=jet[:-4], AddToToolSvc=True,
+      btagger = setupJetBTaggerTool(ToolSvc, JetCollection=jet[1][:-4], AddToToolSvc=True,
                                     Verbose=BTaggingFlags.OutputLevel < 3,
                                     options={"name"         : AuthorSubString[i].lower(),
                                              "BTagName"     : AuthorSubString[i],
@@ -162,21 +160,20 @@ if doRetag:
                                              "BTagSVName"   : tmpSVname,
                                              }
                                     )
-      jet = jet.replace("Track", "PV0Track") #It is important this line is here, and not above the btagger = line, for reference mode (since it needs to set the stream name correctly).
       SAbtagger = StandAloneJetBTaggerAlg(name=SA + AuthorSubString[i].lower(),
                                           JetBTaggerTool=btagger,
-                                          JetCollectionName = jet,
+                                          JetCollectionName = jet[0],
                                           #OutputLevel = DEBUG
                                           )
       algSeq += SAbtagger
       print SAbtagger
-      print "Vale2 " 
+      print "Vale2 "
     except AttributeError as error:
       print '#BTAG# --> ' + str(error)
-      print '#BTAG# --> ' + jet
+      print '#BTAG# --> ' + jet[1]
       print '#BTAG# --> ' + AuthorSubString[i]
       NotInJetToolManager.append(AuthorSubString[i])
-            
+
   if len(NotInJetToolManager) > 0:
     AuthorSubString = list(set(AuthorSubString) - set(NotInJetToolManager))
 
@@ -209,7 +206,7 @@ if doRetag:
   BTaggingFlags.btaggingESDList += [ BaseNameJFSecVtx + author + tmpJFVxname for author in AuthorSubString]
   BTaggingFlags.btaggingESDList += [ BaseAuxNameJFSecVtx + author + tmpJFVxname + 'Aux.' for author in AuthorSubString]
 
-  
+
   ### Valerio: test for editing the tools configuration from here
   ### these are just some examples of the possibilities that Wouter's tool allows
   from BTagging.BTaggingConfiguration import getTool
@@ -235,16 +232,24 @@ if doRetag:
 # ====================================================================
 # Add own algorithm and tools
 # ====================================================================
-alg = CfgMgr.btagIBLAnalysisAlg(OutputLevel=INFO) #DEBUG
-alg.ReduceInfo=ReduceInfo
-alg.DoMSV=DoMSV
-alg.Rel20=Rel20
-alg.JetCleaningTool.CutLevel = "LooseBad" # options: "VeryLooseBad","LooseBad",
-if not doComputeReference: algSeq += alg
+for JetCollection in JetCollections:
+  alg = CfgMgr.btagIBLAnalysisAlg("BTagAlg_"+JetCollection, OutputLevel=INFO) #DEBUG
+  alg.JetCollectionName = JetCollection
+  if "Track" in JetCollection:
+    alg.JetPtCut = 5.e3
+    alg.CleanJets = False
+    alg.CalibrateJets = False
+  else:
+    alg.JetPtCut = 20.e3
+  alg.ReduceInfo=ReduceInfo
+  alg.DoMSV=DoMSV
+  alg.Rel20=Rel20
+  alg.JetCleaningTool.CutLevel = "LooseBad" # options: "VeryLooseBad","LooseBad",
+  if not doComputeReference: algSeq += alg
 calibfile = "JetCalibTools/data/CalibrationConfigs/JES_Full2012dataset_Preliminary_MC14.config"
 if Rel20: calibfile = "JES_Full2012dataset_Preliminary_MC14.config"
-ToolSvc += CfgMgr.JetCalibrationTool("JetCalibrationTool", 
+ToolSvc += CfgMgr.JetCalibrationTool("JetCalibrationTool",
                                      IsData=False,
-                                     ConfigFile=calibfile, 
+                                     ConfigFile=calibfile,
                                      CalibSequence="EtaJES",
                                      JetCollection="AntiKt4LCTopo")
