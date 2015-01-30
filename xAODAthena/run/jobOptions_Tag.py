@@ -125,8 +125,8 @@ if ReduceInfo==False:
                                                             OutputLevel = DEBUG )
 
 # Demonstrate to run on 2 jet collections at the same time
-JetCollections = ['AntiKt4PV0TrackJets', 'AntiKt4LCTopoJets' ]
-#JetCollections = ['AntiKt4LCTopoJets' ]
+#JetCollections = ['AntiKt4PV0TrackJets', 'AntiKt4LCTopoJets' ]
+JetCollections = ['AntiKt4LCTopoJets' ]
 
 if doRetag:
   JetCollectionList = [ (JetCollection,
