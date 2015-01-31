@@ -30,6 +30,19 @@ odir= sys.argv[5]
 #########################################################################################
 gSystem.Exec("mkdir -p "+odir)
 
+def findStart(bin,target,curve):
+    start=bin-10
+    Tpx2=Double(0)
+    Tpy2=Double(0)
+    curve2.GetPoint(start,Tpx2,Tpy2)
+    while Tpx2<target and Tpx2!=0 and start>-10:
+        #print "      mah: "+str(start)+"  with: "+str(Tpx2)
+        start-=10
+        curve2.GetPoint(start,Tpx2,Tpy2)
+    if start<0: start=0
+    #print " ---> start is: "+str(start)+"  with: "+str(Tpx2)
+    return start
+
 #infile1="14TeV/output.root"
 ##infile1="8TeV/output.root"
 #infile2="8TeVd3pd/output.root"
@@ -59,6 +72,7 @@ while obj!=None:
             taggerList.append( name.split("---")[0] )
     obj=iterator()
 print taggerList
+##taggerList=["SV1"]
 
 light=TH1F("b VS light","b VS light",100,0.3,1);
 light.SetTitle(";b-jet efficiency;light-jet rejection;")
@@ -159,20 +173,27 @@ for tag in taggerList:
         px1=Double(0)
         py1=Double(0)
         curve.GetPoint(bin-1,px1,py1)
+        if bin%500==0: print str(bin)+" ....: "+str(px1)
         if py1==0: continue
-        print str(bin)+" , "+str(px1)+" "+str(py1)
         clo_py2=100000
         clo_px2=100000
-        for bin2 in xrange(1,ratC.GetN()+1):
+        endV=0
+        start=findStart(bin,px1,curve2)
+        for bin2 in xrange(start,ratC.GetN()+1):
+            #print "       bin2: "+str(bin2) 
             px2=Double(0)
             py2=Double(0)
             curve2.GetPoint(bin2-1,px2,py2)
+            if fabs(px2-px1)>0.05 : continue
             if fabs(px2-px1)<fabs(clo_px2-px1):
                 clo_py2=py2
                 clo_px2=px2
-
-        ratC.SetPoint(bin-1,px1,clo_py2/py1-1)
-                
+                endV=bin2
+            elif px2<px1:  break
+        #print "  ---> end is: "+str(endV)+"  with: "+str(clo_px2)
+        if clo_py2!=100000 : ratC.SetPoint(bin-1,px1,clo_py2/py1-1)
+        else               : ratC.SetPoint(bin-1,px1,-1)
+            
     ratC.SetLineWidth(4)
     ratC.SetLineColor(1)
     ratC.Draw("L")
@@ -266,26 +287,31 @@ for tag in taggerList:
         px1=Double(0)
         py1=Double(0)
         curve.GetPoint(bin-1,px1,py1)
+        if bin%500==0: print str(bin)+" ....: "+str(px1)
         if py1==0: continue
-        print str(bin)+" , "+str(px1)+" "+str(py1)
-        clo_py2=100000
-        clo_px2=100000
-        for bin2 in xrange(1,ratC.GetN()+1):
+#        print str(bin)+" ..... : "+str(px1)#+" "+str(py1)
+        endV=0
+        start=findStart(bin,px1,curve2)
+        for bin2 in xrange(start,ratC.GetN()+1):
+            ##print "       bin2: "+str(bin2) 
             px2=Double(0)
             py2=Double(0)
             curve2.GetPoint(bin2-1,px2,py2)
+            if fabs(px2-px1)>0.05 : continue
             if fabs(px2-px1)<fabs(clo_px2-px1):
                 clo_py2=py2
                 clo_px2=px2
-
-        ratC.SetPoint(bin-1,px1,clo_py2/py1-1)
-                
+                endV=bin2
+            elif px2<px1:  break
+        ##print "  ---> end is: "+str(endV)+"  with: "+str(clo_px2)
+        if clo_py2!=100000 : ratC.SetPoint(bin-1,px1,clo_py2/py1-1)
+        else               : ratC.SetPoint(bin-1,px1,-1)
+        
     ratC.SetLineWidth(4)
     ratC.SetLineColor(1)
     ratC.Draw("L")
     myCx.Update()
-
-
+    
     myCx.Print(odir+"/bVSc__"+tag+".eps")
 
 myC2.cd()
