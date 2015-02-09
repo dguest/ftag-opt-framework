@@ -3,7 +3,7 @@
 # ====================================================================
 ReduceInfo   =False ##write minimal amount of info on the output file
 DoMSV        =False ##include variables for MSV tagger
-Rel20        =False ##switch between rel19 and rel20
+Rel20        =True ##switch between rel19 and rel20
 #(only option that will work on original DC14 xAOD)
 doRetag      =True  ## perform retagging
 doRecomputePV=True  ## need to be true when re-tagging to recover JetFitter performance
@@ -24,12 +24,12 @@ if doComputeReference:
   doRetag   =True
   doRecomputePV=True
 
-if Rel20:
-  ReduceInfo=True
+#if Rel20:
+#  ReduceInfo=True
 
 from BTagging.BTaggingFlags import BTaggingFlags
 ## chainging to other official calib file
-BTaggingFlags.CalibrationTag = 'BTagCalibALL-08-00'
+##BTaggingFlags.CalibrationTag = 'BTagCalibALL-08-00'
 
 ## chainging to private calib file
 #BTaggingFlags.CalibrationFromLocalReplica = True
@@ -42,7 +42,8 @@ from AthenaCommon.AthenaCommonFlags import jobproperties as jp
 jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1)
 
 ## main test file: TTbar xAOD r19 mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad
-jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/v/vdao//public/AOD.01587947._004222.pool.root.1"]
+## jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/v/vdao//public/AOD.01587947._004222.pool.root.1"]
+jp.AthenaCommonFlags.FilesInput = [ "AOD.pool.root"]
 
 ## Frank's original
 #jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/f/filthaut/public/AOD.01606245._000001.pool.root.1"]
@@ -114,9 +115,13 @@ algSeq = AlgSequence()
 
 if ReduceInfo==False:
    from DerivationFrameworkInDet.DerivationFrameworkInDetConf import DerivationFramework__TrackParametersForTruthParticles
+   TTPName = "TruthParticle"
+   if Rel20:
+     TTPName = "TruthParticles"
    TruthDecor = DerivationFramework__TrackParametersForTruthParticles( name = "TruthTPDecor",
                                                                        OutputLevel = DEBUG,
-                                                                       DecorationPrefix ="")
+                                                                       DecorationPrefix ="",
+                                                                       TruthParticleContainerName=TTPName)
    ToolSvc +=TruthDecor
    augmentationTools = [TruthDecor]
    from DerivationFrameworkCore.DerivationFrameworkCoreConf import DerivationFramework__CommonAugmentation
