@@ -7,16 +7,20 @@ import commands
 verbose = False
 
 # batch queue
-queue = "2nd"
+queue = "1nd"
 
 # input location on eos
-eosDir = "/eos/atlas/atlastier0/tzero/prod/mc14_13TeV/PowhegPythia_P2012_ttbar_nonallhad/110401/mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e2928_s1982_s2008_r5956_v114" 
+#eosDir = "/eos/atlas/atlastier0/tzero/prod/mc14_13TeV/PowhegPythia_P2012_ttbar_nonallhad/110401/mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e2928_s1982_s2008_r5956_v114" 
+eosDir = "/eos/atlas/atlastier0/tzero/prod/mc14_13TeV/Pythia8_AU2MSTW2008LO_zprime1000_tt/110903/mc14_13TeV.110903.Pythia8_AU2MSTW2008LO_zprime1000_tt.recon.AOD.e2743_s1982_s2008_r5956_v114"
 
 # output location on eos
 eosHome = "/eos/atlas/user/z/zaidan/btag/"
 
 # number of files per job
 nperjob = 20
+
+# max number of jobs
+njobs = 10
 
 # submit only a single test job (recommended when code changes)
 testJob = False
@@ -25,8 +29,9 @@ testJob = False
 printOnly = False
 
 # job label and version
-jobLabel = "ttbar"
-jobVersion = "09022015"
+#jobLabel = "ttbar"
+jobLabel = "zprime"
+jobVersion = "10022015"
 
 ######################################
 ###  User configuration ends here  ###
@@ -124,6 +129,9 @@ for fname in fileList :
         inputList = ""
         filesSoFar = 0
         ijob = ijob + 1
+
+        if ijob >= njobs :
+            break
 
         if testJob :
             break

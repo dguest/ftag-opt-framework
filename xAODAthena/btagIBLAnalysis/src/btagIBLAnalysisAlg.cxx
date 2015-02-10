@@ -1147,6 +1147,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
       // spatial coordinates
       j_trk_d0.push_back( tmpTrk->d0() );
       j_trk_z0.push_back( tmpTrk->z0() );
+      /// CAREFULL!!!!
+      //      always fill in dummy values when the info is not there.
+      ///     The size of these vectors should always match the number of tracks.
       if ( origin==PUFAKE ) {
 	j_trk_d0_truth.push_back( -999 );
 	j_trk_z0_truth.push_back( -999 );
@@ -1154,6 +1157,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	if (!m_rel20){
 	  j_trk_d0_truth.push_back( truth->auxdata< float >( "d0" ) );
 	  j_trk_z0_truth.push_back( truth->auxdata< float >( "z0" ) );
+	}else{
+	  j_trk_d0_truth.push_back( -999 );
+	  j_trk_z0_truth.push_back( -999 );
 	}
       }
     } // track loop
