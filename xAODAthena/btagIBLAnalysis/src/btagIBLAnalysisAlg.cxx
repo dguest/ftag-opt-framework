@@ -14,12 +14,13 @@
 #include "xAODTruth/TruthEventContainer.h"
 #include "xAODJet/JetContainer.h"
 #include "xAODTracking/Vertex.h"
+#include "ParticleJetTools/JetFlavourInfo.h"
 #include "xAODBTagging/SecVtxHelper.h"
 
 #include "JetInterface/IJetSelector.h"
 #include "JetCalibTools/IJetCalibrationTool.h"
 
-// some tracking mumbo jombo
+// some tracking mumbo jumbo
 #include "TDatabasePDG.h"
 #include "TParticlePDG.h"
 
@@ -211,6 +212,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_trk_vtx_dx=new std::vector<std::vector<float> >();
   v_jet_trk_vtx_dy=new std::vector<std::vector<float> >();
 
+  v_jet_trk_nNextToInnHits=new std::vector<std::vector<int> >();
+  v_jet_trk_nInnHits=new std::vector<std::vector<int> >();
   v_jet_trk_nBLHits=new std::vector<std::vector<int> >();
   v_jet_trk_nsharedBLHits=new std::vector<std::vector<int> >();
   v_jet_trk_nsplitBLHits=new std::vector<std::vector<int> >();
@@ -397,6 +400,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   //tree->Branch("jet_trk_vtx_dx",&v_jet_trk_vtx_dx);
   //tree->Branch("jet_trk_vtx_dy",&v_jet_trk_vtx_dy);
 
+  tree->Branch("jet_trk_nInnHits",&v_jet_trk_nInnHits);
+  tree->Branch("jet_trk_nNextToInnHits",&v_jet_trk_nNextToInnHits);
   tree->Branch("jet_trk_nBLHits",&v_jet_trk_nBLHits);
   tree->Branch("jet_trk_nsharedBLHits",&v_jet_trk_nsharedBLHits);
   tree->Branch("jet_trk_nsplitBLHits",&v_jet_trk_nsplitBLHits);
@@ -580,7 +585,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
   ATH_MSG_DEBUG( "Total number of jets is: "<< njets );
   uint8_t getInt(0);   // for accessing summary information
   float   getFlt(0.0); // for accessing summary information
-
   
   //std::cout << " ---------------------------------------------------------------------------------------------------------------- " << std::endl; 
   // Now run over the selected jets and do whatever else needs doing
@@ -644,8 +648,10 @@ StatusCode btagIBLAnalysisAlg::execute() {
     //std::vector<float> testjvf = jet->auxdata<std::vector<float> >("JVF"); //todo: pick the right vertex
     
     // Get flavour truth label
-    int thisJetTruthLabel;
-    jet->getAttribute("TruthLabelID",thisJetTruthLabel);
+    int thisJetTruthLabel=-1;
+    if (m_rel20) jetFlavourLabel(jet, xAOD::ConeFinalParton);
+    else         jet->getAttribute("TruthLabelID",thisJetTruthLabel);
+    
     v_jet_truthflav->push_back(thisJetTruthLabel);
     if(thisJetTruthLabel == 5) nbjets++;
     
@@ -721,8 +727,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_ip2d_pu->push_back( -99 );
       v_jet_ip2d_llr->push_back( -99 );
     }
-
-    
+        
     // IP3D
     std::vector< ElementLink< xAOD::TrackParticleContainer > > IP3DTracks;
     IP3DTracks= bjet->auxdata<std::vector<ElementLink< xAOD::TrackParticleContainer> > >("IP3D_TrackParticleLinks");
@@ -765,8 +770,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sv0_m->push_back(sv0m);
     v_jet_sv0_efc->push_back(sv0efc);
     v_jet_sv0_normdist->push_back(sv0ndist);
-
-
+    
     // SV1 //VD: check the existence of the vertex and only then fill the variables
     // this mimic what's done in MV2
     int sv1ntrkj = -1;
@@ -804,7 +808,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sv1_efc->push_back(sv1efc);
     v_jet_sv1_normdist->push_back(sv1ndist);
     v_jet_sv1_sig3d->push_back(sig3d);
-    
+   
     // JetFitter //VD: check the existence of the vertex and then fill the variables
     // this mimic what's done in MV2
     float jfm    = -99;
@@ -984,6 +988,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> j_trk_ndf;
     std::vector<int> j_trk_algo;
     std::vector<int> j_trk_orig;
+    std::vector<int> j_trk_nInnHits        ;
+    std::vector<int> j_trk_nNextToInnHits        ;
     std::vector<int> j_trk_nBLHits        ;
     std::vector<int> j_trk_nsharedBLHits        ;
     std::vector<int> j_trk_nsplitBLHits        ;
@@ -1040,7 +1046,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
     }  //bjet->IP3D_TrackParticleLinks();
 
     v_jet_sv0_Nvtx->push_back(SV0vertices.size());
+    //std::cout << "sv0: " << SV0vertices.size() << std::endl;
     for (unsigned int sv0V=0; sv0V< SV0vertices.size(); sv0V++) {
+      //std::cout << "sv0 vertex: " << std::endl;
       const xAOD::Vertex*  tmpVertex=*(SV0vertices.at(sv0V));
       j_sv0_vtxx.push_back(tmpVertex->x());
       j_sv0_vtxy.push_back(tmpVertex->y());
@@ -1051,7 +1059,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sv0_vtxz->push_back(j_sv0_vtxz);
     
     v_jet_sv1_Nvtx->push_back(SV1vertices.size());
+    //std::cout << "sv1: " << SV1vertices.size() << std::endl;
     for (int sv1V=0; sv1V< SV1vertices.size(); sv1V++) {
+      //std::cout << "sv1 vertex: " << std::endl;
       const xAOD::Vertex*  tmpVertex=*(SV1vertices.at(sv1V));
       j_sv1_vtxx.push_back(tmpVertex->x());
       j_sv1_vtxy.push_back(tmpVertex->y());
@@ -1060,6 +1070,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sv1_vtxx->push_back(j_sv1_vtxx);
     v_jet_sv1_vtxy->push_back(j_sv1_vtxy);
     v_jet_sv1_vtxz->push_back(j_sv1_vtxz);
+    
+    //std::cout << "before Remco" << std::endl;
 
     std::vector<float> fittedPosition = bjet->auxdata<std::vector<float> >("JetFitter_fittedPosition"); // mod Remco
     std::vector<float> fittedCov = bjet->auxdata<std::vector<float> >("JetFitter_fittedCov"); // mod Remco
@@ -1083,7 +1095,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_jf_theta->push_back(-999); //mod Remco
     }
 
-    std::cout << " VALERIO: " << jfvertices.size() << " , " << jfnvtx << " , " << jfnvtx1t << " ..... and: " << fittedPosition.size() << std::endl;
+    //std::cout << " VALERIO: " << jfvertices.size() << " , " << jfnvtx << " , " << jfnvtx1t << " ..... and: " << fittedPosition.size() << std::endl;
     for (unsigned int jfv=0; jfv< jfvertices.size(); jfv++) {
       const xAOD::BTagVertex*  tmpVertex=*(jfvertices.at(jfv)); 
       const std::vector< ElementLink<xAOD::TrackParticleContainer> > tmpVect = tmpVertex->track_links(); //mod Remco
@@ -1107,7 +1119,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_jf_vtx_L3d->push_back(j_jf_vtx_L3d); //mod Remco
     v_jet_jf_vtx_sig3d->push_back(j_jf_vtx_sig3d); //mod Remco
     //v_jet_jf_vtx_nvtx->push_back(j_jf_vtx_nvtx); //mod Remco
-    std::cout <<  " .... final size: " << j_jf_vtx_L3d.size() << std::endl;
+    
     
     j_btag_ntrk=0;//assocTracks.size();
     j_sv1_ntrk = SV1Tracks.size();
@@ -1241,6 +1253,11 @@ StatusCode btagIBLAnalysisAlg::execute() {
       
       //hit content
       //Blayer
+      tmpTrk->summaryValue( getInt, xAOD::numberOfInnermostPixelLayerHits );
+      j_trk_nInnHits.push_back(getInt);
+      tmpTrk->summaryValue( getInt, xAOD::numberOfNextToInnermostPixelLayerHits );
+      j_trk_nNextToInnHits.push_back(getInt);
+
       tmpTrk->summaryValue( getInt, xAOD::numberOfBLayerHits );
       j_trk_nBLHits.push_back(getInt);
       getInt=0;
@@ -1272,19 +1289,22 @@ StatusCode btagIBLAnalysisAlg::execute() {
       getInt=0;
       
       // spatial coordinates
-      j_trk_d0.push_back( tmpTrk->d0() );
-      j_trk_z0.push_back( tmpTrk->z0() );
+      //j_trk_d0.push_back( tmpTrk->d0() );
+      //j_trk_z0.push_back( tmpTrk->z0() );
       if ( origin==PUFAKE ) {
 	j_trk_d0_truth.push_back( -999 );
 	j_trk_z0_truth.push_back( -999 );
       } else {
-	if (!m_rel20){
-	  j_trk_d0_truth.push_back( truth->auxdata< float >( "d0" ) );
-	  j_trk_z0_truth.push_back( truth->auxdata< float >( "z0" ) );
-	} else {
-	  j_trk_d0_truth.push_back( -999 );
-	  j_trk_z0_truth.push_back( -999 );
+	float tmpd0T=-999;
+	float tmpz0T=-999;
+	try{
+	  tmpd0T=truth->auxdata< float >( "d0" );
+	  tmpz0T=truth->auxdata< float >( "z0" );
+	}  catch(...){
+	  //todo: write out some warning here but don't want to clog logfiles for now
 	}
+	j_trk_d0_truth.push_back( tmpd0T );
+	j_trk_z0_truth.push_back( tmpz0T );
       }
     } // track loop
 
@@ -1302,6 +1322,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_trk_orig->push_back(j_trk_orig);
     v_jet_trk_vtx_X->push_back(j_trk_vtx_X);
     v_jet_trk_vtx_Y->push_back(j_trk_vtx_Y);
+    v_jet_trk_nInnHits->push_back(j_trk_nInnHits);
+    v_jet_trk_nNextToInnHits->push_back(j_trk_nNextToInnHits);
     v_jet_trk_nBLHits->push_back(j_trk_nBLHits);
     v_jet_trk_nsharedBLHits->push_back(j_trk_nsharedBLHits);
     v_jet_trk_nsplitBLHits->push_back(j_trk_nsplitBLHits);
@@ -1535,6 +1557,8 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_trk_ndf->clear();
   v_jet_trk_algo->clear();
   v_jet_trk_orig->clear();
+  v_jet_trk_nInnHits->clear();
+  v_jet_trk_nNextToInnHits->clear();
   v_jet_trk_nBLHits->clear();
   v_jet_trk_nsharedBLHits->clear();
   v_jet_trk_nsplitBLHits->clear();
