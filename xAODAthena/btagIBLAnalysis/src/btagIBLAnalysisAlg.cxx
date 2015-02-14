@@ -66,8 +66,12 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   // Register output tree
   ServiceHandle<ITHistSvc> histSvc("THistSvc",name());
   CHECK( histSvc.retrieve() );
+  /*
   tree = new TTree(("bTag_"+m_jetCollectionName).c_str(),("bTag"+m_jetCollectionName).c_str());
   CHECK( histSvc->regTree("/BTAGSTREAM/tree_"+m_jetCollectionName,tree) );
+  */
+  tree = new TTree("bTag","bTag");
+  CHECK( histSvc->regTree("/BTAGSTREAM/tree",tree) );
 
   // Retrieve the jet cleaning tool
   CHECK( m_jetCleaningTool.retrieve() );
@@ -121,6 +125,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_sv1_pc   =new std::vector<float>();
   v_jet_sv1_pu   =new std::vector<float>();
   v_jet_sv1_llr  =new std::vector<float>();
+  v_jet_sv1_sig3d=new std::vector<float>();
   v_jet_sv1_vtxx =new std::vector<std::vector<float> >();
   v_jet_sv1_vtxy =new std::vector<std::vector<float> >();
   v_jet_sv1_vtxz =new std::vector<std::vector<float> >();
@@ -138,8 +143,15 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_jf_sig3d=new std::vector<int>();
   v_jet_jf_nvtx1t=new std::vector<int>();
   v_jet_jf_n2t=new std::vector<int>();
-  v_jet_jf_chi2=new std::vector<std::vector<float> >();
-  v_jet_jf_ndf=new std::vector<std::vector<float> >();
+  v_jet_jf_VTXsize=new std::vector<int>();
+  v_jet_jf_vtx_chi2=new std::vector<std::vector<float> >(); //mod Remco
+  v_jet_jf_vtx_ndf=new std::vector<std::vector<float> >(); //mod Remco
+  v_jet_jf_vtx_ntrk=new std::vector<std::vector<int> >(); //mod Remco
+  v_jet_jf_vtx_L3d=new std::vector<std::vector<float> >(); //mod Remco
+  v_jet_jf_vtx_sig3d=new std::vector<std::vector<float> >(); //mod Remco
+  v_jet_jf_vtx_nvtx=new std::vector<std::vector<int> >(); //mod Remco
+  v_jet_jf_phi=new std::vector<float>(); //mod Remco
+  v_jet_jf_theta=new std::vector<float>(); //mod Remco
 
   v_jet_jfcombnn_pb=new std::vector<float>();
   v_jet_jfcombnn_pc=new std::vector<float>();
@@ -220,18 +232,17 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_trk_IP3D_d0   =new std::vector<std::vector<float> >();
   v_jet_trk_IP3D_z0   =new std::vector<std::vector<float> >();
   v_jet_trk_IP3D_d0sig=new std::vector<std::vector<float> >();
-  v_jet_trk_IP3D_z0sig=new std::vector<std::vector<float> >();
-  
+  v_jet_trk_IP3D_z0sig=new std::vector<std::vector<float> >();  
   v_jet_trk_IP2D_llr=new std::vector<std::vector<float> >();
   v_jet_trk_IP3D_llr=new std::vector<std::vector<float> >();
+
+  v_jet_trk_jf_Vertex=new std::vector<std::vector<int> >(); //mod Remco
 
   // those are just quick accessors
   v_jet_sv1_ntrk =new std::vector<int>();
   v_jet_ip3d_ntrk=new std::vector<int>();
   v_jet_jf_ntrk  =new std::vector<int>();
   
-
-
   tree->Branch("runnb",&runnumber);
   tree->Branch("eventnb",&eventnumber);
   tree->Branch("mcchan",&mcchannel);
@@ -295,9 +306,14 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_sv1_pu",&v_jet_sv1_pu);
   tree->Branch("jet_sv1_llr",&v_jet_sv1_llr);
   tree->Branch("jet_sv1_Nvtx",&v_jet_sv1_Nvtx);
+  tree->Branch("jet_sv1_sig3d",&v_jet_sv1_sig3d);
   tree->Branch("jet_sv1_vtx_x",&v_jet_sv1_vtxx);
   tree->Branch("jet_sv1_vtx_y",&v_jet_sv1_vtxy);
   tree->Branch("jet_sv1_vtx_z",&v_jet_sv1_vtxz);
+
+  tree->Branch("PV_jf_x",&PV_jf_x); //mod Remco
+  tree->Branch("PV_jf_y",&PV_jf_y); //mod Remco
+  tree->Branch("PV_jf_z",&PV_jf_z); //mod Remco
 
   tree->Branch("jet_jf_pb",&v_jet_jf_pb);
   tree->Branch("jet_jf_pc",&v_jet_jf_pc);
@@ -312,8 +328,16 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_jf_sig3d",&v_jet_jf_sig3d);
   tree->Branch("jet_jf_nvtx1t",&v_jet_jf_nvtx1t);
   tree->Branch("jet_jf_n2t",&v_jet_jf_n2t);
-  tree->Branch("jet_jf_chi2",&v_jet_jf_chi2);
-  tree->Branch("jet_jf_ndf",&v_jet_jf_ndf);
+  tree->Branch("jet_jf_VTXsize",&v_jet_jf_VTXsize);
+  tree->Branch("jet_jf_vtx_chi2",&v_jet_jf_vtx_chi2); //mod Remco
+  tree->Branch("jet_jf_vtx_ndf",&v_jet_jf_vtx_ndf); //mod Remco
+  tree->Branch("jet_jf_vtx_ntrk",&v_jet_jf_vtx_ntrk); //mod Remco
+  tree->Branch("jet_jf_vtx_L3D",&v_jet_jf_vtx_L3d); //mod Remco
+  tree->Branch("jet_jf_vtx_sig3D",&v_jet_jf_vtx_sig3d); //mod Remco
+  //tree->Branch("jet_jf_vtx_nvtx",&v_jet_jf_vtx_nvtx); //mod Remco
+  tree->Branch("jet_jf_phi",&v_jet_jf_phi); //mod Remco
+  tree->Branch("jet_jf_theta",&v_jet_jf_theta); //mod Remco
+
 
   tree->Branch("jet_jfcombnn_pb",&v_jet_jfcombnn_pb);
   tree->Branch("jet_jfcombnn_pc",&v_jet_jfcombnn_pc);
@@ -396,6 +420,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
 
   tree->Branch("jet_trk_ip2d_llr",&v_jet_trk_IP2D_llr);
   tree->Branch("jet_trk_ip3d_llr",&v_jet_trk_IP3D_llr);
+
+  tree->Branch("jet_trk_jf_Vertex",&v_jet_trk_jf_Vertex); //mod Remco
 
   tree->Branch("jet_sv1_ntrk",&v_jet_sv1_ntrk);
   tree->Branch("jet_ip3d_ntrk",&v_jet_ip3d_ntrk);
@@ -555,6 +581,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
   uint8_t getInt(0);   // for accessing summary information
   float   getFlt(0.0); // for accessing summary information
 
+  
+  //std::cout << " ---------------------------------------------------------------------------------------------------------------- " << std::endl; 
   // Now run over the selected jets and do whatever else needs doing
   for (unsigned int j=0; j<selJets.size(); j++) {
     const xAOD::Jet* jet=selJets.at(j);
@@ -680,97 +708,152 @@ StatusCode btagIBLAnalysisAlg::execute() {
     const xAOD::BTagging* bjet = jet->btagging();
     
     // IP2D
-    v_jet_ip2d_pb->push_back(bjet->IP2D_pb());
-    v_jet_ip2d_pc->push_back(bjet->IP2D_pc());
-    v_jet_ip2d_pu->push_back(bjet->IP2D_pu());
-    v_jet_ip2d_llr->push_back(bjet->IP2D_loglikelihoodratio());
+    std::vector< ElementLink< xAOD::TrackParticleContainer > > IP2DTracks;
+    IP2DTracks= bjet->auxdata<std::vector<ElementLink< xAOD::TrackParticleContainer> > >("IP2D_TrackParticleLinks");
+    if ( IP2DTracks.size()>0 ) {
+      v_jet_ip2d_pb->push_back(bjet->IP2D_pb());
+      v_jet_ip2d_pc->push_back(bjet->IP2D_pc());
+      v_jet_ip2d_pu->push_back(bjet->IP2D_pu());
+      v_jet_ip2d_llr->push_back(bjet->IP2D_loglikelihoodratio());
+    } else {
+      v_jet_ip2d_pb->push_back( -99 );
+      v_jet_ip2d_pc->push_back( -99 );
+      v_jet_ip2d_pu->push_back( -99 );
+      v_jet_ip2d_llr->push_back( -99 );
+    }
+
     
     // IP3D
-    v_jet_ip3d_pb->push_back(bjet->IP3D_pb());
-    v_jet_ip3d_pc->push_back(bjet->IP3D_pc());
-    v_jet_ip3d_pu->push_back(bjet->IP3D_pu());
-    v_jet_ip3d_llr->push_back(bjet->IP3D_loglikelihoodratio());
+    std::vector< ElementLink< xAOD::TrackParticleContainer > > IP3DTracks;
+    IP3DTracks= bjet->auxdata<std::vector<ElementLink< xAOD::TrackParticleContainer> > >("IP3D_TrackParticleLinks");
+    if ( IP3DTracks.size() ) {
+      v_jet_ip3d_pb->push_back(bjet->IP3D_pb());
+      v_jet_ip3d_pc->push_back(bjet->IP3D_pc());
+      v_jet_ip3d_pu->push_back(bjet->IP3D_pu());
+      v_jet_ip3d_llr->push_back(bjet->IP3D_loglikelihoodratio());
+    } else {
+      v_jet_ip3d_pb->push_back( -99 );
+      v_jet_ip3d_pc->push_back( -99 );
+      v_jet_ip3d_pu->push_back( -99 );
+      v_jet_ip3d_llr->push_back( -99 );
+    }
     
-    // SV0
-    v_jet_sv0_sig3d->push_back(bjet->SV0_significance3D());
+    // SV0 //VD: check the existence of the vertex and only then fill the variables
+    // this mimic what's done in MV2
     int sv0ntrkj = -1;
-    bjet->taggerInfo(sv0ntrkj, xAOD::SV0_NGTinJet);
-    v_jet_sv0_ntrkj->push_back(sv0ntrkj);
     int sv0ntrkv = -1;
-    bjet->taggerInfo(sv0ntrkv, xAOD::SV0_NGTinSvx);
-    v_jet_sv0_ntrkv->push_back(sv0ntrkv);
     int sv0n2t = -1;
-    bjet->taggerInfo(sv0n2t, xAOD::SV0_N2Tpair);
+    float sv0m = -99;
+    float sv0efc = -99;
+    float sv0ndist = -99;
+    const std::vector<ElementLink<xAOD::VertexContainer > >  SV0vertices = bjet->auxdata<std::vector<ElementLink<xAOD::VertexContainer > > >("SV0_vertices");
+    
+    if ( SV0vertices.size()!=0 ) {
+      bjet->taggerInfo(sv0ntrkj, xAOD::SV0_NGTinJet);
+      bjet->taggerInfo(sv0ntrkv, xAOD::SV0_NGTinSvx);
+      bjet->taggerInfo(sv0n2t, xAOD::SV0_N2Tpair);
+      bjet->taggerInfo(sv0m, xAOD::SV0_masssvx);
+      bjet->taggerInfo(sv0efc, xAOD::SV0_efracsvx);
+      bjet->taggerInfo(sv0ndist, xAOD::SV0_normdist);
+      v_jet_sv0_sig3d->push_back(bjet->SV0_significance3D());
+    } else {
+      v_jet_sv0_sig3d->push_back( -99 );
+    }
+    v_jet_sv0_ntrkj->push_back(sv0ntrkj);
+    v_jet_sv0_ntrkv->push_back(sv0ntrkv);
     v_jet_sv0_n2t->push_back(sv0n2t);
-    float sv0m = -1;
-    bjet->taggerInfo(sv0m, xAOD::SV0_masssvx);
     v_jet_sv0_m->push_back(sv0m);
-    float sv0efc = -1;
-    bjet->taggerInfo(sv0efc, xAOD::SV0_efracsvx);
     v_jet_sv0_efc->push_back(sv0efc);
-    float sv0ndist = -1;
-    bjet->taggerInfo(sv0ndist, xAOD::SV0_normdist);
     v_jet_sv0_normdist->push_back(sv0ndist);
 
-    // SV1
-    int sv1ntrkj = -1;
-    bjet->taggerInfo(sv1ntrkj, xAOD::SV1_NGTinJet);
-    v_jet_sv1_ntrkj->push_back(sv1ntrkj);
-    int sv1ntrkv = -1;
-    bjet->taggerInfo(sv1ntrkv, xAOD::SV1_NGTinSvx);
-    v_jet_sv1_ntrkv->push_back(sv1ntrkv);
-    int sv1n2t = -1;
-    bjet->taggerInfo(sv1n2t, xAOD::SV1_N2Tpair);
-    v_jet_sv1_n2t->push_back(sv1n2t);
-    float sv1m = -1;
-    bjet->taggerInfo(sv1m, xAOD::SV1_masssvx);
-    v_jet_sv1_m->push_back(sv1m);
-    float sv1efc = -1;
-    bjet->taggerInfo(sv1efc, xAOD::SV1_efracsvx);
-    v_jet_sv1_efc->push_back(sv1efc);
-    float sv1ndist = -1;
-    bjet->taggerInfo(sv1ndist, xAOD::SV1_normdist);
-    v_jet_sv1_normdist->push_back(sv1ndist);
 
-    v_jet_sv1_pb->push_back(bjet->SV1_pb());
-    v_jet_sv1_pc->push_back(bjet->SV1_pc());
-    v_jet_sv1_pu->push_back(bjet->SV1_pu());
-    v_jet_sv1_llr->push_back(bjet->SV1_loglikelihoodratio());
+    // SV1 //VD: check the existence of the vertex and only then fill the variables
+    // this mimic what's done in MV2
+    int sv1ntrkj = -1;
+    int sv1ntrkv = -1;
+    int sv1n2t = -1;
+    float sv1m = -99;
+    float sv1efc = -99;
+    float sv1ndist = -99;
+    float sig3d=-99;
+    const std::vector<ElementLink<xAOD::VertexContainer > >  SV1vertices = bjet->auxdata<std::vector<ElementLink<xAOD::VertexContainer > > >("SV1_vertices");
+    if ( SV1vertices.size()!=0 ) {
+      bjet->taggerInfo(sv1ntrkj, xAOD::SV1_NGTinJet);
+      bjet->taggerInfo(sv1ntrkv, xAOD::SV1_NGTinSvx);
+      bjet->taggerInfo(sv1n2t, xAOD::SV1_N2Tpair);
+      bjet->taggerInfo(sv1m, xAOD::SV1_masssvx);
+      bjet->taggerInfo(sv1efc, xAOD::SV1_efracsvx);
+      bjet->taggerInfo(sv1ndist, xAOD::SV1_normdist);
+      try {
+	bjet->variable<float>("SV1", "significance3d" , sig3d);
+      } catch(...) {}
+      v_jet_sv1_pb->push_back(bjet->SV1_pb());
+      v_jet_sv1_pc->push_back(bjet->SV1_pc());
+      v_jet_sv1_pu->push_back(bjet->SV1_pu());
+      v_jet_sv1_llr->push_back(bjet->SV1_loglikelihoodratio());
+    } else {
+      v_jet_sv1_pb->push_back( -99 );
+      v_jet_sv1_pc->push_back( -99 );
+      v_jet_sv1_pu->push_back( -99 );
+      v_jet_sv1_llr->push_back( -99 );
+    }
+    v_jet_sv1_ntrkj->push_back(sv1ntrkj);
+    v_jet_sv1_ntrkv->push_back(sv1ntrkv);
+    v_jet_sv1_n2t->push_back(sv1n2t);
+    v_jet_sv1_m->push_back(sv1m);
+    v_jet_sv1_efc->push_back(sv1efc);
+    v_jet_sv1_normdist->push_back(sv1ndist);
+    v_jet_sv1_sig3d->push_back(sig3d);
     
-    // JetFitter
-    v_jet_jf_pb->push_back(bjet->JetFitter_pb());
-    v_jet_jf_pc->push_back(bjet->JetFitter_pc());
-    v_jet_jf_pu->push_back(bjet->JetFitter_pu());
-    v_jet_jf_llr->push_back(bjet->JetFitter_loglikelihoodratio());
-    float jfm = -999;
-    bjet->taggerInfo(jfm, xAOD::JetFitter_mass);
-    v_jet_jf_m->push_back(jfm);
-    float jfefc = -999;
-    bjet->taggerInfo(jfefc, xAOD::JetFitter_energyFraction);
-    v_jet_jf_efc->push_back(jfefc);
-    float jfdeta = -999;
-    bjet->taggerInfo(jfdeta, xAOD::JetFitter_deltaeta);
-    v_jet_jf_deta->push_back(jfdeta);
-    float jfdphi = -999;
-    bjet->taggerInfo(jfdphi, xAOD::JetFitter_deltaphi);
-    v_jet_jf_dphi->push_back(jfdphi);
+    // JetFitter //VD: check the existence of the vertex and then fill the variables
+    // this mimic what's done in MV2
+    float jfm    = -99;
+    float jfefc  = -99;
+    float jfdeta = -99;
+    float jfdphi = -99;
     int jfntrkAtVx = -1;
-    bjet->taggerInfo(jfntrkAtVx, xAOD::JetFitter_nTracksAtVtx);
+    int jfnvtx     = -1;
+    float jfsig3d  = -99;
+    int jfnvtx1t   = -1;
+    int jfn2t      = -1;
+    std::vector<ElementLink<xAOD::BTagVertexContainer> > jfvertices =  bjet->auxdata<std::vector<ElementLink<xAOD::BTagVertexContainer> > >("JetFitter_JFvertices");
+    int tmpNvtx=0;
+    int tmpNvtx1t=0;
+    bjet->taggerInfo(tmpNvtx, xAOD::JetFitter_nVTX);
+    bjet->taggerInfo(tmpNvtx1t, xAOD::JetFitter_nSingleTracks);
+    if ( tmpNvtx>0 || tmpNvtx1t>0 ) {
+      bjet->taggerInfo(jfm, xAOD::JetFitter_mass);
+      bjet->taggerInfo(jfefc, xAOD::JetFitter_energyFraction);
+      bjet->taggerInfo(jfdeta, xAOD::JetFitter_deltaeta);
+      bjet->taggerInfo(jfdphi, xAOD::JetFitter_deltaphi);
+      bjet->taggerInfo(jfntrkAtVx, xAOD::JetFitter_nTracksAtVtx);
+      jfnvtx=tmpNvtx;
+      bjet->taggerInfo(jfsig3d, xAOD::JetFitter_significance3d);
+      jfnvtx1t=tmpNvtx1t;
+      bjet->taggerInfo(jfn2t, xAOD::JetFitter_N2Tpair);
+      v_jet_jf_pb->push_back(bjet->JetFitter_pb());
+      v_jet_jf_pc->push_back(bjet->JetFitter_pc());
+      v_jet_jf_pu->push_back(bjet->JetFitter_pu());
+      v_jet_jf_llr->push_back(bjet->JetFitter_loglikelihoodratio());
+    } else {
+      v_jet_jf_pb->push_back( -99 );
+      v_jet_jf_pc->push_back( -99 );
+      v_jet_jf_pu->push_back( -99 );
+      v_jet_jf_llr->push_back( -99 );
+    }
+    v_jet_jf_VTXsize->push_back( jfvertices.size() );
+
+    v_jet_jf_m->push_back(jfm);
+    v_jet_jf_efc->push_back(jfefc);
+    v_jet_jf_deta->push_back(jfdeta);
+    v_jet_jf_dphi->push_back(jfdphi);
     v_jet_jf_ntrkAtVx->push_back(jfntrkAtVx);
-    int jfnvtx = -1;
-    bjet->taggerInfo(jfnvtx, xAOD::JetFitter_nVTX);
     v_jet_jf_nvtx->push_back(jfnvtx);
-    float jfsig3d = -999;
-    bjet->taggerInfo(jfsig3d, xAOD::JetFitter_significance3d);
     v_jet_jf_sig3d->push_back(jfsig3d);
-    int jfnvtx1t = -1;
-    bjet->taggerInfo(jfnvtx1t, xAOD::JetFitter_nSingleTracks);
     v_jet_jf_nvtx1t->push_back(jfnvtx1t);
-    int jfn2t = -1;
-    bjet->taggerInfo(jfn2t, xAOD::JetFitter_N2Tpair);
     v_jet_jf_n2t->push_back(jfn2t);
     
-    // JetFitterCombNN
+    // JetFitterCombNN 
     v_jet_jfcombnn_pb->push_back(bjet->JetFitterCombNN_pb());
     v_jet_jfcombnn_pc->push_back(bjet->JetFitterCombNN_pc());
     v_jet_jfcombnn_pu->push_back(bjet->JetFitterCombNN_pu());
@@ -887,7 +970,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_msv_vtx_ndf->push_back(j_msv_ndf);
       
     } // end m_doMSV
-      
+    
     /// now the tracking part: prepare all the tmpVectors
     int j_btag_ntrk=0;
     int j_sv1_ntrk =0;
@@ -929,12 +1012,16 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> j_sv1_vtxx;
     std::vector<float> j_sv1_vtxy;
     std::vector<float> j_sv1_vtxz;
-    std::vector<float> j_jf_chi2;
-    std::vector<float> j_jf_ndf;
+    std::vector<float> j_jf_vtx_chi2; //mod Remco
+    std::vector<float> j_jf_vtx_ndf; //mod Remco
+    std::vector<int> j_jf_vtx_ntrk; //mod Remco
+    std::vector<float> j_jf_vtx_L3d; //mod Remco
+    std::vector<float> j_jf_vtx_sig3d; //mod Remco
+    std::vector<int> j_jf_vtx_nvtx; //mod Remco
     std::vector<float> j_trk_ip2d_llr;
     std::vector<float> j_trk_ip3d_llr;
-
-    if (m_reduceInfo) continue;
+    std::vector<int> j_trk_jf_Vertex; //mod Remco
+    //if (m_reduceInfo) continue;
 
     bool is8TeV= true;
     if ( bjet->isAvailable<std::vector<ElementLink<xAOD::BTagVertexContainer> > >("JetFitter_JFvertices") ) is8TeV=false;
@@ -943,24 +1030,16 @@ StatusCode btagIBLAnalysisAlg::execute() {
       bjet->auxdata<std::vector<ElementLink<xAOD::TrackParticleContainer> > >("BTagTrackToJetAssociator");
     std::vector< ElementLink< xAOD::TrackParticleContainer > > SV0Tracks ;
     std::vector< ElementLink< xAOD::TrackParticleContainer > > SV1Tracks ;
-    std::vector< ElementLink< xAOD::TrackParticleContainer > > IP2DTracks;
-    std::vector< ElementLink< xAOD::TrackParticleContainer > > IP3DTracks;
     std::vector< ElementLink< xAOD::TrackParticleContainer > > JFTracks;
     
     if (!is8TeV) {
-      IP2DTracks= bjet->auxdata<std::vector<ElementLink< xAOD::TrackParticleContainer> > >("IP2D_TrackParticleLinks");
-      IP3DTracks= bjet->auxdata<std::vector<ElementLink< xAOD::TrackParticleContainer> > >("IP3D_TrackParticleLinks");
+      //IP2DTracks= bjet->auxdata<std::vector<ElementLink< xAOD::TrackParticleContainer> > >("IP2D_TrackParticleLinks");
+      //IP3DTracks= bjet->auxdata<std::vector<ElementLink< xAOD::TrackParticleContainer> > >("IP3D_TrackParticleLinks");
       SV0Tracks = bjet->SV0_TrackParticleLinks();
       SV1Tracks = bjet->SV1_TrackParticleLinks();
     }  //bjet->IP3D_TrackParticleLinks();
 
-    const std::vector<ElementLink<xAOD::VertexContainer > >  SV0vertices = bjet->auxdata<std::vector<ElementLink<xAOD::VertexContainer > > >("SV0_vertices");
-    const std::vector<ElementLink<xAOD::VertexContainer > >  SV1vertices = bjet->auxdata<std::vector<ElementLink<xAOD::VertexContainer > > >("SV1_vertices");
-    std::vector<ElementLink<xAOD::BTagVertexContainer> > jfvertices =  bjet->auxdata<std::vector<ElementLink<xAOD::BTagVertexContainer> > >("JetFitter_JFvertices");
-    //std::cout << "Number of vertices for SV0 = " << SV0vertices.size() << ", for SV1 = " << SV1vertices.size() << ", for JetFitter =  " << jfvertices.size() << std::endl;
     v_jet_sv0_Nvtx->push_back(SV0vertices.size());
-    v_jet_sv1_Nvtx->push_back(SV1vertices.size());
-
     for (unsigned int sv0V=0; sv0V< SV0vertices.size(); sv0V++) {
       const xAOD::Vertex*  tmpVertex=*(SV0vertices.at(sv0V));
       j_sv0_vtxx.push_back(tmpVertex->x());
@@ -970,8 +1049,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sv0_vtxx->push_back(j_sv0_vtxx);
     v_jet_sv0_vtxy->push_back(j_sv0_vtxy);
     v_jet_sv0_vtxz->push_back(j_sv0_vtxz);
-
-    for (unsigned int sv1V=0; sv1V< SV1vertices.size(); sv1V++) {
+    
+    v_jet_sv1_Nvtx->push_back(SV1vertices.size());
+    for (int sv1V=0; sv1V< SV1vertices.size(); sv1V++) {
       const xAOD::Vertex*  tmpVertex=*(SV1vertices.at(sv1V));
       j_sv1_vtxx.push_back(tmpVertex->x());
       j_sv1_vtxy.push_back(tmpVertex->y());
@@ -981,19 +1061,57 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sv1_vtxy->push_back(j_sv1_vtxy);
     v_jet_sv1_vtxz->push_back(j_sv1_vtxz);
 
+    std::vector<float> fittedPosition = bjet->auxdata<std::vector<float> >("JetFitter_fittedPosition"); // mod Remco
+    std::vector<float> fittedCov = bjet->auxdata<std::vector<float> >("JetFitter_fittedCov"); // mod Remco
+    //std::cout << " - jet: " <<  v_jet_sv1_vtxx->size() << " with " << jfvertices.size() << "vtx and " << fittedPosition.size() << " entries:: ";
+    //for (unsigned int iR=0; iR<fittedPosition.size(); iR++) {
+      //std::cout << fittedPosition[iR] << " , ";
+    //}
+    //std::cout << std::endl;
+
+    //if (PV_jf_x != fittedPosition[0]) {std::cout << "PV_jf_x is set for the first time (this may happen only once!)" << std::endl;} //mod Remco
+    //if (PV_jf_y != fittedPosition[0]) {std::cout << "PV_jf_y is set for the first time (this may happen only once!)" << std::endl;} //mod Remco
+    //if (PV_jf_z != fittedPosition[0]) {std::cout << "PV_jf_z is set for the first time (this may happen only once!)" << std::endl;} //mod Remco
+    if (fittedPosition.size()>0) {
+      PV_jf_x = fittedPosition[0]; //mod Remco
+      PV_jf_y = fittedPosition[1]; //mod Remco 
+      PV_jf_z = fittedPosition[2]; //mod Remco
+      v_jet_jf_phi->push_back(fittedPosition[3]); //mod Remco
+      v_jet_jf_theta->push_back(fittedPosition[4]); //mod Remco
+    } else {
+      v_jet_jf_phi->push_back(-999); //mod Remco
+      v_jet_jf_theta->push_back(-999); //mod Remco
+    }
+
+    std::cout << " VALERIO: " << jfvertices.size() << " , " << jfnvtx << " , " << jfnvtx1t << " ..... and: " << fittedPosition.size() << std::endl;
     for (unsigned int jfv=0; jfv< jfvertices.size(); jfv++) {
       const xAOD::BTagVertex*  tmpVertex=*(jfvertices.at(jfv)); 
-      j_jf_chi2.push_back(tmpVertex->chi2());
-      j_jf_ndf.push_back(tmpVertex->NDF());
+      const std::vector< ElementLink<xAOD::TrackParticleContainer> > tmpVect = tmpVertex->track_links(); //mod Remco
+      JFTracks.insert(JFTracks.end(), tmpVect.begin(), tmpVect.end()); //mod Remco
+      
+      j_jf_vtx_chi2.push_back(tmpVertex->chi2()); //mod Remco
+      j_jf_vtx_ndf.push_back(tmpVertex->NDF()); //mod Remco
+      j_jf_vtx_ntrk.push_back(tmpVect.size()); //mod Remco
+      if (jfv<3) {
+	j_jf_vtx_L3d.push_back(fittedPosition[jfv+5]); // mod Remco
+	j_jf_vtx_sig3d.push_back(sqrt(fittedCov[jfv+5])); // mod Remco
+      } else {
+	j_jf_vtx_L3d.push_back(-999); // mod Remco
+	j_jf_vtx_sig3d.push_back(-999); // mod Remco
+      }
+      //j_jf_vtx_nvtx.push_back(jfvertices.size()); //mod Remco
     }
-    v_jet_jf_chi2->push_back(j_jf_chi2);
-    v_jet_jf_ndf->push_back(j_jf_ndf);
-
-    // =  bjet->auxdata<std::vector<ElementLink<xAOD::TrackParticleContainer> > >("JetFitter_tracksAtPVlinks");
-
+    v_jet_jf_vtx_chi2->push_back(j_jf_vtx_chi2); //mod Remco
+    v_jet_jf_vtx_ndf->push_back(j_jf_vtx_ndf); //mod Remco
+    v_jet_jf_vtx_ntrk->push_back(j_jf_vtx_ntrk); //mod Remco
+    v_jet_jf_vtx_L3d->push_back(j_jf_vtx_L3d); //mod Remco
+    v_jet_jf_vtx_sig3d->push_back(j_jf_vtx_sig3d); //mod Remco
+    //v_jet_jf_vtx_nvtx->push_back(j_jf_vtx_nvtx); //mod Remco
+    std::cout <<  " .... final size: " << j_jf_vtx_L3d.size() << std::endl;
+    
     j_btag_ntrk=0;//assocTracks.size();
     j_sv1_ntrk = SV1Tracks.size();
-    //j_ip3d_ntrk= IP3DTracks.size();
+    j_ip3d_ntrk= IP3DTracks.size();
     j_jf_ntrk  = JFTracks.size();
     
     std::vector<int> tmpGrading= bjet->auxdata<std::vector<int> >("IP3D_gradeOfTracks");
@@ -1014,6 +1132,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     
     //std::cout << "TOT tracks: " << j_btag_ntrk << " IP3D: " << j_ip3d_ntrk << " ... grade: " << tmpGrading.size() << std::endl;
 
+    if (m_reduceInfo) continue;
     if (is8TeV) continue;
     
     /// track loop
@@ -1070,8 +1189,16 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
       if (particleInCollection( tmpTrk, SV0Tracks))  trackAlgo+=1<<SV0;
       if (particleInCollection( tmpTrk, SV1Tracks))  trackAlgo+=1<<SV1;
-
+      if (particleInCollection( tmpTrk, JFTracks))   trackAlgo+=1<<JF; //mod Remco	   
       j_trk_algo.push_back(trackAlgo);
+      
+      int myVtx=-1; //mod Remco
+      for (unsigned int jfv=0; jfv< jfvertices.size(); jfv++) { //mod Remco
+	const xAOD::BTagVertex*  tmpVertex=*(jfvertices.at(jfv)); //mod Remco
+        const std::vector< ElementLink<xAOD::TrackParticleContainer> > tmpVect = tmpVertex->track_links(); //mod Remco
+        if (particleInCollection( tmpTrk, tmpVect)) myVtx=jfv;//mod Remco
+      } //mod Remco
+      j_trk_jf_Vertex.push_back(myVtx); // mod Remco
       
       //origin
       int origin=PUFAKE;
@@ -1147,9 +1274,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
       // spatial coordinates
       j_trk_d0.push_back( tmpTrk->d0() );
       j_trk_z0.push_back( tmpTrk->z0() );
-      /// CAREFULL!!!!
-      //      always fill in dummy values when the info is not there.
-      ///     The size of these vectors should always match the number of tracks.
       if ( origin==PUFAKE ) {
 	j_trk_d0_truth.push_back( -999 );
 	j_trk_z0_truth.push_back( -999 );
@@ -1157,7 +1281,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	if (!m_rel20){
 	  j_trk_d0_truth.push_back( truth->auxdata< float >( "d0" ) );
 	  j_trk_z0_truth.push_back( truth->auxdata< float >( "z0" ) );
-	}else{
+	} else {
 	  j_trk_d0_truth.push_back( -999 );
 	  j_trk_z0_truth.push_back( -999 );
 	}
@@ -1199,7 +1323,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     v_jet_trk_IP2D_llr->push_back(j_trk_ip3d_llr);
     v_jet_trk_IP3D_llr->push_back(j_trk_ip2d_llr);
-  
+    
+    v_jet_trk_jf_Vertex->push_back(j_trk_jf_Vertex); //mod Remco
   } // jet loop
 
   for (unsigned int j=0; j<selJets.size(); j++) {
@@ -1277,6 +1402,10 @@ void btagIBLAnalysisAlg :: GetParentTracks(const xAOD::TruthParticle* part,
 }
 
 void btagIBLAnalysisAlg :: clearvectors(){
+  PV_jf_x=-999;
+  PV_jf_y=-999;
+  PV_jf_z=-999; 
+
   v_jet_pt->clear();
   v_jet_eta->clear();
   v_jet_phi->clear();
@@ -1325,6 +1454,7 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_sv1_pc->clear();
   v_jet_sv1_pu->clear();
   v_jet_sv1_llr->clear();
+  v_jet_sv1_sig3d->clear();
   v_jet_sv1_vtxx->clear();
   v_jet_sv1_vtxy->clear();
   v_jet_sv1_vtxz->clear();
@@ -1342,8 +1472,15 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_jf_sig3d->clear();
   v_jet_jf_nvtx1t->clear();
   v_jet_jf_n2t->clear();
-  v_jet_jf_chi2->clear();
-  v_jet_jf_ndf->clear();
+  v_jet_jf_VTXsize->clear();
+  v_jet_jf_vtx_chi2->clear(); //mod Remco
+  v_jet_jf_vtx_ndf->clear(); //mod Remco
+  v_jet_jf_vtx_ntrk->clear(); //mod Remco
+  v_jet_jf_vtx_L3d->clear(); // mod Remco
+  v_jet_jf_vtx_sig3d->clear(); // mod Remco
+  v_jet_jf_vtx_nvtx->clear(); //mod Remco
+  v_jet_jf_phi->clear(); //mod Remco
+  v_jet_jf_theta->clear(); //mod Remco
 
   v_jet_jfcombnn_pb->clear();
   v_jet_jfcombnn_pc->clear();
@@ -1423,7 +1560,9 @@ void btagIBLAnalysisAlg :: clearvectors(){
 
   v_jet_trk_IP2D_llr->clear();
   v_jet_trk_IP3D_llr->clear();
-
+  
+  v_jet_trk_jf_Vertex->clear(); // mod Remco
+      
   v_jet_sv1_ntrk->clear();
   v_jet_ip3d_ntrk->clear();
   v_jet_jf_ntrk->clear();  
