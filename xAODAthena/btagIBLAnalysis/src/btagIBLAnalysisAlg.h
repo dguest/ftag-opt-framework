@@ -209,7 +209,9 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<std::vector<float> > *v_jet_trk_vtx_X;
   std::vector<std::vector<float> > *v_jet_trk_vtx_Y;
   
-  std::vector<std::vector<int> > *v_jet_trk_nBLHits;
+  std::vector<std::vector<int> > *v_jet_trk_nNextToInnHits;
+  std::vector<std::vector<int> > *v_jet_trk_nInnHits;
+  std::vector<std::vector<int> > *v_jet_trk_nBLHits; // soo this will be deprecated
   std::vector<std::vector<int> > *v_jet_trk_nsharedBLHits;
   std::vector<std::vector<int> > *v_jet_trk_nsplitBLHits;
   std::vector<std::vector<int> > *v_jet_trk_nPixHits;
