@@ -112,11 +112,16 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_jet_sv1_pu;
   std::vector<float> *v_jet_sv1_llr;
   std::vector<int>   *v_jet_sv1_Nvtx;
+  std::vector<float> *v_jet_sv1_sig3d;
   std::vector<std::vector<float> > *v_jet_sv1_vtxx;
   std::vector<std::vector<float> > *v_jet_sv1_vtxy;
   std::vector<std::vector<float> > *v_jet_sv1_vtxz;
 
   // JetFitter
+  float PV_jf_x; //mod Remco
+  float PV_jf_y; //mod Remco
+  float PV_jf_z; //mod Remco
+  
   std::vector<float> *v_jet_jf_pb;
   std::vector<float> *v_jet_jf_pc;
   std::vector<float> *v_jet_jf_pu;
@@ -130,8 +135,16 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<int> *v_jet_jf_sig3d;
   std::vector<int> *v_jet_jf_nvtx1t;
   std::vector<int> *v_jet_jf_n2t;
-  std::vector<std::vector<float> > *v_jet_jf_chi2;
-  std::vector<std::vector<float> > *v_jet_jf_ndf;
+  std::vector<int> *v_jet_jf_VTXsize;
+  std::vector<std::vector<float> > *v_jet_jf_vtx_chi2; //mod Remco
+  std::vector<std::vector<float> > *v_jet_jf_vtx_ndf; //mod Remco
+  std::vector<std::vector<int> > *v_jet_jf_vtx_ntrk; //mod Remco
+  std::vector<std::vector<float> > *v_jet_jf_vtx_L3d; //mod Remco
+  std::vector<std::vector<float> > *v_jet_jf_vtx_sig3d; //mod Remco
+  std::vector<std::vector<int> > *v_jet_jf_vtx_nvtx; //mod Remco
+  std::vector<float> *v_jet_jf_phi; //mod Remco
+  std::vector<float> *v_jet_jf_theta; //mod Remco
+
 
   // JetFitterCombNN
   std::vector<float> *v_jet_jfcombnn_pb;
@@ -215,9 +228,10 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<std::vector<float> > *v_jet_trk_IP3D_z0;
   std::vector<std::vector<float> > *v_jet_trk_IP3D_d0sig;
   std::vector<std::vector<float> > *v_jet_trk_IP3D_z0sig;
-
   std::vector<std::vector<float> >   *v_jet_trk_IP2D_llr;
   std::vector<std::vector<float> >   *v_jet_trk_IP3D_llr;
+
+  std::vector<std::vector<int> > *v_jet_trk_jf_Vertex; //mod Remco
 
   // those are just quick accessors
   std::vector<int>   *v_jet_sv1_ntrk;
