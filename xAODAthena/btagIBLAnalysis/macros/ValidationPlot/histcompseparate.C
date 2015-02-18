@@ -13,6 +13,8 @@ void histcompseparate() {
   outfile = TFile::Open("$HOME/www/private/r5591_r5625Validationr5895_r5853/data.root","RECREATE");
   TList* hList = new TList();
 
+// Chose the functions created using make_TChain_Local.sh here to the ones of interest
+
 //  myT_1 = NTUPTest();
   myT_1 = mc14_8TeV();
   myT_2 = xAOD();
@@ -21,6 +23,8 @@ const int npar = 9; //Set equal to number of plotting variables
 int nvar = 0;
 
 string parr17[npar]; string parr19[npar]; double nbin[npar]; double xmin[npar]; double xmax[npar];
+
+//Pick which parameters need ploting
 
 //parr19[nvar] = "truthflav"; 	 parr17[nvar] = "trueFlav"; 	  xmin[nvar] = -0.5; xmax[nvar] = 16.5; nbin[nvar]= 17; nvar += 1;
 //parr19[nvar] = "truthMatch"; 	 parr17[nvar] = "truthmatched";	  xmin[nvar] = 0.;   xmax[nvar] = 2;    nbin[nvar]= 10; nvar += 1;
