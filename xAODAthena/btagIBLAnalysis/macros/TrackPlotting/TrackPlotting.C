@@ -42,18 +42,22 @@ bool HistoSet::FillHistos(int jIndex, int tIndex, TrackPlotting* baseTree) {
   (m_1Dhist.at(TRK_NIBL))->Fill( (baseTree->jet_trk_nBLHits->at(jIndex)).at(tIndex) );
   (m_1Dhist.at(TRK_NPIX))->Fill( (baseTree->jet_trk_nPixHits->at(jIndex)).at(tIndex) );
   (m_1Dhist.at(TRK_NSI))->Fill( (baseTree->jet_trk_nPixHits->at(jIndex)).at(tIndex)+(baseTree->jet_trk_nSCTHits->at(jIndex)).at(tIndex) );
-  (m_1Dhist.at(TRK_D0))->Fill( (baseTree->jet_trk_d0->at(jIndex)).at(tIndex) );
-  (m_1Dhist.at(TRK_Z0))->Fill( (baseTree->jet_trk_z0->at(jIndex)).at(tIndex)-baseTree->PVz-7.3  );
-  (m_1Dhist.at(TRK_Z0ST))->Fill( (baseTree->jet_trk_z0->at(jIndex)).at(tIndex)*sin((baseTree->jet_trk_theta->at(jIndex)).at(tIndex))-baseTree->PVz-7.3 );
+  //cout << " ... jIndex: " << jIndex << "  tIndex: " << tIndex << " .. all: " << baseTree->jet_btag_ntrk->at(jIndex) << endl;
+  //(m_1Dhist.at(TRK_D0))->Fill( (baseTree->jet_trk_d0->at(jIndex)).at(tIndex) );
+  //(m_1Dhist.at(TRK_Z0))->Fill( (baseTree->jet_trk_z0->at(jIndex)).at(tIndex)-baseTree->PVz-7.3  );
+  //(m_1Dhist.at(TRK_Z0ST))->Fill( (baseTree->jet_trk_z0->at(jIndex)).at(tIndex)*sin((baseTree->jet_trk_theta->at(jIndex)).at(tIndex))-baseTree->PVz-7.3 );
   
-  (m_1Dhist.at(TRK_IP3D_D0))->Fill( (baseTree->jet_trk_ip3d_d0->at(jIndex)).at(tIndex) );
-  (m_1Dhist.at(TRK_IP3D_Z0))->Fill( (baseTree->jet_trk_ip3d_z0->at(jIndex)).at(tIndex) );
+  //(m_1Dhist.at(TRK_IP3D_D0))->Fill( (baseTree->jet_trk_ip3d_d0->at(jIndex)).at(tIndex) );
+  //(m_1Dhist.at(TRK_IP3D_Z0))->Fill( (baseTree->jet_trk_ip3d_z0->at(jIndex)).at(tIndex) );
   (m_1Dhist.at(TRK_IP3D_Z0ST))->Fill( (baseTree->jet_trk_ip3d_z0->at(jIndex)).at(tIndex)*sin((baseTree->jet_trk_theta->at(jIndex)).at(tIndex)) );
   (m_1Dhist.at(TRK_IP3D_GRADE))->Fill( (baseTree->jet_trk_ip3d_grade->at(jIndex)).at(tIndex) );
 
-  (m_2Dhist.at(TRK_PT_JPT_R))->Fill( baseTree->jet_pt->at(jIndex)/1e3,
-				     (baseTree->jet_trk_pt->at(jIndex)).at(tIndex)/1e3); 
-    
+  (m_2Dhist.at(TRK_PT_JPT))->Fill( baseTree->jet_pt->at(jIndex)/1e3,
+				   (baseTree->jet_trk_pt->at(jIndex)).at(tIndex)/1e3); 
+  
+  (m_2Dhist.at(IP3D_GRADE_JPT))->Fill( baseTree->jet_pt->at(jIndex)/1e3,
+					 (baseTree->jet_trk_ip3d_grade->at(jIndex)).at(tIndex) ); 
+  
   return true;
 }
 
@@ -108,6 +112,7 @@ void HistoSet::Initialize() {
   m_2Dhist.push_back( new TH2D("n_trk_jpt" , "n_trk_jpt" , 100,0, 1000,30,0,30) );
   m_2Dhist.push_back( new TH2D("n_trk_blxy", "n_trk_blxy", 100,0, 100 ,30,0,30) );
   m_2Dhist.push_back( new TH2D("jet_pt_VS_trk_pt","jet_pt_VS_trk_pt"  ,100,0,1000,500,0,50) );
+  m_2Dhist.push_back( new TH2D("jet_pt_VS_ip3d_grade","jet_pt_VS_ip3d_grade"  ,100,0,1000,8,-1.5,6.5) );
 
   for (unsigned int i=0; i<m_1Dhist.size(); i++) m_1Dhist.at(i)->Sumw2();
   for (unsigned int i=0; i<m_2Dhist.size(); i++) m_2Dhist.at(i)->Sumw2();

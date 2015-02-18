@@ -46,6 +46,7 @@ class HistoSet {
     N_TRK_JPT,
     N_TRK_BLXY,
     TRK_PT_JPT,
+    IP3D_GRADE_JPT,
     LAST2D,
   };
   
