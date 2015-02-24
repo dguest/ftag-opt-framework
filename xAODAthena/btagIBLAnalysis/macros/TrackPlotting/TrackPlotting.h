@@ -47,6 +47,9 @@ class HistoSet {
     N_TRK_BLXY,
     TRK_PT_JPT,
     IP3D_GRADE_JPT,
+    IP3D_GRADE_BLXY,
+    TRK_ORIG_GRADE_JPT,
+    TRK_ORIG_GRADE_BLXY,
     LAST2D,
   };
   
@@ -554,7 +557,7 @@ void TrackPlotting::Init(TTree *tree)
    fChain->SetBranchAddress("jet_nBHadr", &jet_nBHadr, &b_jet_nBHadr);
    //fChain->SetBranchAddress("jet_GhostL_q", &jet_GhostL_q, &b_jet_GhostL_q);
    //fChain->SetBranchAddress("jet_GhostL_HadI", &jet_GhostL_HadI, &b_jet_GhostL_HadI);
-   //fChain->SetBranchAddress("jet_GhostL_HadF", &jet_GhostL_HadF, &b_jet_GhostL_HadF);
+   fChain->SetBranchAddress("jet_GhostL_HadF", &jet_GhostL_HadF, &b_jet_GhostL_HadF);
    fChain->SetBranchAddress("jet_aliveAfterOR", &jet_aliveAfterOR, &b_jet_aliveAfterOR);
    fChain->SetBranchAddress("jet_truthMatch", &jet_truthMatch, &b_jet_truthMatch);
    fChain->SetBranchAddress("jet_truthPt", &jet_truthPt, &b_jet_truthPt);

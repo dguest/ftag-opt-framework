@@ -57,6 +57,13 @@ bool HistoSet::FillHistos(int jIndex, int tIndex, TrackPlotting* baseTree) {
   
   (m_2Dhist.at(IP3D_GRADE_JPT))->Fill( baseTree->jet_pt->at(jIndex)/1e3,
 					 (baseTree->jet_trk_ip3d_grade->at(jIndex)).at(tIndex) ); 
+  (m_2Dhist.at(IP3D_GRADE_BLXY))->Fill( baseTree->bH_Lxy->at(jIndex),
+					(baseTree->jet_trk_ip3d_grade->at(jIndex)).at(tIndex) ); 
+  
+  (m_2Dhist.at(TRK_ORIG_GRADE_JPT))->Fill( baseTree->jet_pt->at(jIndex)/1e3,
+					   (baseTree->jet_trk_orig->at(jIndex)).at(tIndex) ); 
+  (m_2Dhist.at(TRK_ORIG_GRADE_BLXY))->Fill( baseTree->bH_Lxy->at(jIndex),
+					   (baseTree->jet_trk_orig->at(jIndex)).at(tIndex) ); 
   
   return true;
 }
@@ -96,7 +103,7 @@ void HistoSet::Initialize() {
   m_1Dhist.push_back( new TH1D("trk_pt"  ,"trk_pt"  ,500, 0,50) );
   m_1Dhist.push_back( new TH1D("trk_pt_jpt"  ,"trk_pt_jpt"  ,1000, 0,0.3) );
   m_1Dhist.push_back( new TH1D("trk_eta" ,"trk_eta" ,100, -2.5, 2.5) );
-  m_1Dhist.push_back( new TH1D("trk_orig","trk_orig",  5, -1.5, 3.5) );
+  m_1Dhist.push_back( new TH1D("trk_orig","trk_orig", 5, -1.5, 3.5) );
   m_1Dhist.push_back( new TH1D("trk_algo","trk_algo", 60, -0.5, 59.5) );
   m_1Dhist.push_back( new TH1D("trk_nIBL","trk_nIBL", 3 , -0.5, 2.5) );
   m_1Dhist.push_back( new TH1D("trk_nPix","trk_nPix", 10, -0.5, 9.5) );
@@ -107,12 +114,16 @@ void HistoSet::Initialize() {
   m_1Dhist.push_back( new TH1D("trk_ip3d_d0" ,"trk_ip3d_d0"   , 200, -6,6) );
   m_1Dhist.push_back( new TH1D("trk_ip3d_z0" ,"trk_ip3d_z0"   , 200, -6,6) );
   m_1Dhist.push_back( new TH1D("trk_ip3d_z0st","trk_ip3d_z0st"   , 200, -6,6) );
-  m_1Dhist.push_back( new TH1D("trk_ip3D_grade" ,"trk_ip3d_grade"   , 8, -1.5, 6.5) );
+  m_1Dhist.push_back( new TH1D("trk_ip3D_grade" ,"trk_ip3d_grade"   ,  15, -1.5, 13.5) );//8, -1.5, 6.5) );
 
   m_2Dhist.push_back( new TH2D("n_trk_jpt" , "n_trk_jpt" , 100,0, 1000,30,0,30) );
   m_2Dhist.push_back( new TH2D("n_trk_blxy", "n_trk_blxy", 100,0, 100 ,30,0,30) );
   m_2Dhist.push_back( new TH2D("jet_pt_VS_trk_pt","jet_pt_VS_trk_pt"  ,100,0,1000,500,0,50) );
-  m_2Dhist.push_back( new TH2D("jet_pt_VS_ip3d_grade","jet_pt_VS_ip3d_grade"  ,100,0,1000,8,-1.5,6.5) );
+  m_2Dhist.push_back( new TH2D("jet_pt_VS_ip3d_grade","jet_pt_VS_ip3d_grade"  ,100,0,1000,  15, -1.5, 13.5) );//8, -1.5, 6.5) );
+  m_2Dhist.push_back( new TH2D("blxy_VS_ip3d_grade","blxy_VS_ip3d_grade"  ,50,0,100,  15, -1.5, 13.5) );//8, -1.5, 6.5) );
+  m_2Dhist.push_back( new TH2D("jet_pt_VS_trk_orig","jet_pt_VS_trk_orig"  ,100,0,1000, 5, -1.5, 3.5) );
+  m_2Dhist.push_back( new TH2D("blxy_VS_trk_orig","blxy_VS_trk_orig"  ,50,0,100, 5, -1.5, 3.5) );
+
 
   for (unsigned int i=0; i<m_1Dhist.size(); i++) m_1Dhist.at(i)->Sumw2();
   for (unsigned int i=0; i<m_2Dhist.size(); i++) m_2Dhist.at(i)->Sumw2();
@@ -157,6 +168,7 @@ void TrackPlotting::Loop()
   
   Long64_t nentries = fChain->GetEntries();
   vector<HistoSet*> histos;
+  
   HistoSet* AllTracks   =new HistoSet("AllTracks");    histos.push_back(AllTracks);
   HistoSet* AllTracks_B =new HistoSet("AllTracksB");   histos.push_back(AllTracks_B);
   HistoSet* AllTracks_B_fromB =new HistoSet("AllTracksB_fromB");   histos.push_back(AllTracks_B_fromB);
@@ -167,13 +179,39 @@ void TrackPlotting::Loop()
   HistoSet* AllTracks_L =new HistoSet("AllTracksL");   histos.push_back(AllTracks_L);
   HistoSet* IP3DTracks  =new HistoSet("IP3DTracks");   histos.push_back(IP3DTracks);
   HistoSet* IP3DTracks_B=new HistoSet("IP3DTracksB");  histos.push_back(IP3DTracks_B);
+  HistoSet* IP3DTracks_Bspe=new HistoSet("IP3DTracksBspe");  histos.push_back(IP3DTracks_Bspe);
+  HistoSet* IP3DTracks_Bs=new HistoSet("IP3DTracksBs");  histos.push_back(IP3DTracks_Bs);
+  HistoSet* IP3DTracks_Bb=new HistoSet("IP3DTracksBb");  histos.push_back(IP3DTracks_Bb);
+  HistoSet* IP3DTracks_Bf=new HistoSet("IP3DTracksBf");  histos.push_back(IP3DTracks_Bf);
   HistoSet* IP3DTracks_C=new HistoSet("IP3DTracksC");  histos.push_back(IP3DTracks_C);
   HistoSet* IP3DTracks_L=new HistoSet("IP3DTracksL");  histos.push_back(IP3DTracks_L);
+  HistoSet* IP3DTracks_Lspe=new HistoSet("IP3DTracksLspe");  histos.push_back(IP3DTracks_Lspe);
+  HistoSet* IP3DTracks_Ls=new HistoSet("IP3DTracksLs");  histos.push_back(IP3DTracks_Ls);
+  HistoSet* IP3DTracks_Lf=new HistoSet("IP3DTracksLf");  histos.push_back(IP3DTracks_Lf);
+
+  HistoSet* IP2DTracks  =new HistoSet("IP2DTracks");   histos.push_back(IP2DTracks);
+  HistoSet* IP2DTracks_B=new HistoSet("IP2DTracksB");  histos.push_back(IP2DTracks_B);
+  HistoSet* IP2DTracks_Bs=new HistoSet("IP2DTracksBs");  histos.push_back(IP2DTracks_Bs);
+  HistoSet* IP2DTracks_Bb=new HistoSet("IP2DTracksBb");  histos.push_back(IP2DTracks_Bb);
+  HistoSet* IP2DTracks_Bf=new HistoSet("IP2DTracksBf");  histos.push_back(IP2DTracks_Bf);
+  HistoSet* IP2DTracks_C=new HistoSet("IP2DTracksC");  histos.push_back(IP2DTracks_C);
+  HistoSet* IP2DTracks_L=new HistoSet("IP2DTracksL");  histos.push_back(IP2DTracks_L);
+  HistoSet* IP2DTracks_Ls=new HistoSet("IP2DTracksLs");  histos.push_back(IP2DTracks_Ls);
+  HistoSet* IP2DTracks_Lf=new HistoSet("IP2DTracksLf");  histos.push_back(IP2DTracks_Lf);
+   
+
   HistoSet* SV1Tracks  =new HistoSet("SV1Tracks");   histos.push_back(SV1Tracks);
   HistoSet* SV1Tracks_B=new HistoSet("SV1TracksB");  histos.push_back(SV1Tracks_B);
   HistoSet* SV1Tracks_C=new HistoSet("SV1TracksC");  histos.push_back(SV1Tracks_C);
   HistoSet* SV1Tracks_L=new HistoSet("SV1TracksL");  histos.push_back(SV1Tracks_L);
+ 
   
+  HistoSet* JFTracks  =new HistoSet("JFTracks");   histos.push_back(JFTracks);
+  HistoSet* JFTracks_B=new HistoSet("JFTracksB");  histos.push_back(JFTracks_B);
+  HistoSet* JFTracks_C=new HistoSet("JFTracksC");  histos.push_back(JFTracks_C);
+  HistoSet* JFTracks_L=new HistoSet("JFTracksL");  histos.push_back(JFTracks_L);
+
+
   for (unsigned int i=0; i<histos.size(); i++) {
     histos[i]->Initialize();
   }
@@ -194,29 +232,64 @@ void TrackPlotting::Loop()
       
       int nTracks=jet_btag_ntrk->at(j);
       for (int t=0; t<nTracks; t++) {
+	int orig=(jet_trk_orig->at(j)).at(t);
 	AllTracks->FillHistos(j, t, this);
-	if (jet_truthflav->at(j)==5) {
+	//if (jet_truthflav->at(j)==5) {
+	if (jet_GhostL_HadF->at(j)==5) {
 	  AllTracks_B->FillHistos(j, t, this);
-	  int orig=(jet_trk_orig->at(j)).at(t);
 	  if (orig==0 || orig==1) AllTracks_B_fromB->FillHistos(j, t, this);
 	  else if (orig==2)       AllTracks_B_fromF->FillHistos(j, t, this);
 	  else                    AllTracks_B_other->FillHistos(j, t, this);
 	}
-	if (jet_truthflav->at(j)==4) AllTracks_C->FillHistos(j, t, this);
-	if (jet_truthflav->at(j)==0) AllTracks_L->FillHistos(j, t, this);
+	if (jet_GhostL_HadF->at(j)==4) AllTracks_C->FillHistos(j, t, this);
+	if (jet_GhostL_HadF->at(j)==0) AllTracks_L->FillHistos(j, t, this);
 	
 	int algo=(jet_trk_algo->at(j)).at(t);
 	if ( (algo&(1<<1))!=0 ) {
 	  IP3DTracks->FillHistos(j, t, this);
-	  if (jet_truthflav->at(j)==5) IP3DTracks_B->FillHistos(j, t, this);
-	  if (jet_truthflav->at(j)==4) IP3DTracks_C->FillHistos(j, t, this);
-	  if (jet_truthflav->at(j)==0) IP3DTracks_L->FillHistos(j, t, this);
+	  if (jet_GhostL_HadF->at(j)==5) {
+	    IP3DTracks_B->FillHistos(j, t, this);
+	    if (orig==0 || orig==1) IP3DTracks_Bb->FillHistos(j, t, this);
+	    else if (orig==2)       IP3DTracks_Bf->FillHistos(j, t, this);
+	    else                    IP3DTracks_Bs->FillHistos(j, t, this);
+	    if ( (jet_trk_pt->at(j)).at(t)>(1+2/100e3*jet_pt->at(j))*1e3 )  IP3DTracks_Bspe->FillHistos(j, t, this);
+	  }
+	  if (jet_GhostL_HadF->at(j)==4) IP3DTracks_C->FillHistos(j, t, this);
+	  if (jet_GhostL_HadF->at(j)==0) {
+	    IP3DTracks_L->FillHistos(j, t, this);
+	    if (orig==2) IP3DTracks_Bf->FillHistos(j, t, this);
+	    else         IP3DTracks_Bs->FillHistos(j, t, this);
+	    if ( (jet_trk_pt->at(j)).at(t)>(1+2/100e3*jet_pt->at(j))*1e3 ) IP3DTracks_Lspe->FillHistos(j, t, this);
+	  }
 	}
+
+	if ( (algo&(1<<0))!=0 ) {
+	  IP2DTracks->FillHistos(j, t, this);
+	  if (jet_GhostL_HadF->at(j)==5) {
+	    IP2DTracks_B->FillHistos(j, t, this);
+	    if (orig==0 || orig==1) IP2DTracks_Bb->FillHistos(j, t, this);
+	    else if (orig==2)       IP2DTracks_Bf->FillHistos(j, t, this);
+	    else                    IP2DTracks_Bs->FillHistos(j, t, this);
+	  }
+	  if (jet_GhostL_HadF->at(j)==4) IP2DTracks_C->FillHistos(j, t, this);
+	  if (jet_GhostL_HadF->at(j)==0) {
+	    IP2DTracks_L->FillHistos(j, t, this);
+	    if (orig==2) IP2DTracks_Bf->FillHistos(j, t, this);
+	    else         IP2DTracks_Bs->FillHistos(j, t, this);
+	  }
+	}
+
 	if ( (algo&(1<<3))!=0 ) {
 	  SV1Tracks->FillHistos(j, t, this);
-	  if (jet_truthflav->at(j)==5) SV1Tracks_B->FillHistos(j, t, this);
-	  if (jet_truthflav->at(j)==4) SV1Tracks_C->FillHistos(j, t, this);
-	  if (jet_truthflav->at(j)==0) SV1Tracks_L->FillHistos(j, t, this);
+	  if (jet_GhostL_HadF->at(j)==5) SV1Tracks_B->FillHistos(j, t, this);
+	  if (jet_GhostL_HadF->at(j)==4) SV1Tracks_C->FillHistos(j, t, this);
+	  if (jet_GhostL_HadF->at(j)==0) SV1Tracks_L->FillHistos(j, t, this);
+	}
+	if ( (algo&(1<<4))!=0 ) {
+	  JFTracks->FillHistos(j, t, this);
+	  if (jet_GhostL_HadF->at(j)==5) JFTracks_B->FillHistos(j, t, this);
+	  if (jet_GhostL_HadF->at(j)==4) JFTracks_C->FillHistos(j, t, this);
+	  if (jet_GhostL_HadF->at(j)==0) JFTracks_L->FillHistos(j, t, this);
 	}
       }
 
