@@ -95,6 +95,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_truthMatch =new std::vector<int>();
   v_jet_truthPt =new std::vector<float>();
   v_jet_dRiso   =new std::vector<float>();
+  v_jet_JVT     =new std::vector<float>();
+  v_jet_JVF     =new std::vector<float>();
 
   v_jet_ip2d_pb   =new std::vector<float>();
   v_jet_ip2d_pc   =new std::vector<float>();
@@ -165,6 +167,10 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_mv2c00=new std::vector<double>();
   v_jet_mv2c10=new std::vector<double>();
   v_jet_mv2c20=new std::vector<double>();
+  v_jet_mv2c100=new std::vector<double>();
+  v_jet_mv2m_pu=new std::vector<double>();
+  v_jet_mv2m_pc=new std::vector<double>();
+  v_jet_mv2m_pb=new std::vector<double>();
   v_jet_mvb=new std::vector<double>();
 
   v_jet_multisvbb1 = new std::vector<double>();
@@ -275,6 +281,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_truthMatch" ,&v_jet_truthMatch);
   tree->Branch("jet_truthPt" ,&v_jet_truthPt);
   tree->Branch("jet_dRiso" ,&v_jet_dRiso);
+  tree->Branch("jet_JVT" ,&v_jet_JVT);
+  tree->Branch("jet_JVF" ,&v_jet_JVF);
 
   tree->Branch("jet_ip2d_pb",&v_jet_ip2d_pb);
   tree->Branch("jet_ip2d_pc",&v_jet_ip2d_pc);
@@ -353,6 +361,10 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_mv2c00",&v_jet_mv2c00);
   tree->Branch("jet_mv2c10",&v_jet_mv2c10);
   tree->Branch("jet_mv2c20",&v_jet_mv2c20);
+  tree->Branch("jet_mv2c100",&v_jet_mv2c100);
+  tree->Branch("jet_mv2m_pu",&v_jet_mv2m_pu);
+  tree->Branch("jet_mv2m_pc",&v_jet_mv2m_pc);
+  tree->Branch("jet_mv2m_pb",&v_jet_mv2m_pb);
   tree->Branch("jet_mvb",&v_jet_mvb);
 
   tree->Branch("jet_multisvbb1",&v_jet_multisvbb1);
@@ -479,12 +491,16 @@ StatusCode btagIBLAnalysisAlg::execute() {
   CHECK( evtStore()->retrieve(vertices,"PrimaryVertices") );
 
   int eventNPV = 0;
+  int m_indexPV=-1;
   xAOD::VertexContainer::const_iterator vtx_itr = vertices->begin();
-  xAOD::VertexContainer::const_iterator vtx_end = vertices->end(); 
+  xAOD::VertexContainer::const_iterator vtx_end = vertices->end();
+  int count=-1;
   for ( ; vtx_itr != vtx_end; ++vtx_itr ){
+    count++;
     if ( (*vtx_itr)->nTrackParticles() >= 2 ){
       ++eventNPV;
       if( (*vtx_itr)->vertexType() == 1 ){
+	m_indexPV=count;
 	PV_x =  (*vtx_itr)->x();
 	PV_y =  (*vtx_itr)->y();
 	PV_z =  (*vtx_itr)->z();
@@ -645,11 +661,19 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_truthPt   ->push_back(0);
     }
 
-    //std::vector<float> testjvf = jet->auxdata<std::vector<float> >("JVF"); //todo: pick the right vertex
+    std::vector<float> testjvf = jet->auxdata<std::vector<float> >("JVF"); 
+    //todo: pick the right vertex
+    float jvfV=0;
+    if (testjvf.size()>m_indexPV) jvfV=testjvf.at(m_indexPV);
+    //std::cout << " indexPV: " << m_indexPV << " .... JVF: " <<  jvfV << std::endl;
+
+    v_jet_JVF->push_back( jvfV );
+    float jvtV= jet->auxdata<float>("Jvt");  
+    v_jet_JVT->push_back( jvtV );
     
     // Get flavour truth label
     int thisJetTruthLabel=-1;
-    if (m_rel20) jetFlavourLabel(jet, xAOD::ConeFinalParton);
+    if (m_rel20) thisJetTruthLabel=jetFlavourLabel(jet, xAOD::ConeFinalParton);
     else         jet->getAttribute("TruthLabelID",thisJetTruthLabel);
     
     v_jet_truthflav->push_back(thisJetTruthLabel);
@@ -866,16 +890,23 @@ StatusCode btagIBLAnalysisAlg::execute() {
     // Other
     v_jet_sv1ip3d->push_back(bjet->SV1plusIP3D_discriminant());
     v_jet_mv1    ->push_back(bjet->MV1_discriminant());
-    try{
+    try{ 
       v_jet_mv1c   ->push_back(bjet->auxdata<double>("MV1c_discriminant"));
+    } catch(...){ }
+
+    try {
       v_jet_mv2c00 ->push_back(bjet->auxdata<double>("MV2c00_discriminant"));
       v_jet_mv2c10 ->push_back(bjet->auxdata<double>("MV2c10_discriminant"));
       v_jet_mv2c20 ->push_back(bjet->auxdata<double>("MV2c20_discriminant"));
+      v_jet_mv2c100 ->push_back(bjet->auxdata<double>("MV2c100_discriminant"));
+    } catch(...) { }
+
+    try {
+      v_jet_mv2m_pu ->push_back(bjet->auxdata<double>("MV2m_pu"));
+      v_jet_mv2m_pc ->push_back(bjet->auxdata<double>("MV2m_pc"));
+      v_jet_mv2m_pb ->push_back(bjet->auxdata<double>("MV2m_pb"));
       v_jet_mvb    ->push_back(bjet->auxdata<double>("MVb_discriminant"));
-    }
-    catch(...){
-      //todo: write out some warning here but don't want to clog logfiles for now
-    }
+    } catch(...) { }
 
     if(m_doMSV){
       // MSV
@@ -1027,7 +1058,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> j_trk_ip2d_llr;
     std::vector<float> j_trk_ip3d_llr;
     std::vector<int> j_trk_jf_Vertex; //mod Remco
-    //if (m_reduceInfo) continue;
+    if (m_reduceInfo) continue;
 
     bool is8TeV= true;
     if ( bjet->isAvailable<std::vector<ElementLink<xAOD::BTagVertexContainer> > >("JetFitter_JFvertices") ) is8TeV=false;
@@ -1142,7 +1173,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     j_ip3d_ntrk=tmpGrading.size();
     
-    //std::cout << "TOT tracks: " << j_btag_ntrk << " IP3D: " << j_ip3d_ntrk << " ... grade: " << tmpGrading.size() << std::endl;
+    //std::cout << "TOT tracks: " << assocTracks.size() << " IP3D: " << j_ip3d_ntrk << " ... grade: " << tmpGrading.size() << std::endl;
 
     if (m_reduceInfo) continue;
     if (is8TeV) continue;
@@ -1156,6 +1187,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       int nSi=getInt;
       tmpTrk->summaryValue( getInt, xAOD::numberOfSCTHits );
       nSi+=getInt;
+      //std::cout << " ..... pass: " << iT << std::endl;
       if (nSi<2) continue;
       
       j_btag_ntrk++;
@@ -1177,6 +1209,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	  break;
 	}
       }
+      //std::cout << " ... index is: " << index << " .. and: " << tmpIP3DBwgt.size() << " , " << std::endl;
       if (index!=-1) {
 	j_trk_ip3d_grade.push_back(tmpGrading.at(index));
 	j_trk_ip3d_d0.push_back(tmpD0.at(index));
@@ -1184,7 +1217,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	j_trk_ip3d_d0sig.push_back(tmpD0sig.at(index));
 	j_trk_ip3d_z0sig.push_back(tmpZ0sig.at(index));
 	if (tmpIP3DUwgt.at(index)!=0) ip3d_llr = log(tmpIP3DBwgt.at(index)/tmpIP3DUwgt.at(index));
-	if (tmpIP2DUwgt.at(index)!=0) ip2d_llr = log(tmpIP2DBwgt.at(index)/tmpIP2DUwgt.at(index));
+	//	if (tmpIP2DUwgt.at(index)!=0) ip2d_llr = log(tmpIP2DBwgt.at(index)/tmpIP2DUwgt.at(index));
 	j_trk_ip3d_llr.push_back(ip3d_llr);
 	j_trk_ip2d_llr.push_back(ip2d_llr);
       } else {
@@ -1196,14 +1229,16 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	j_trk_ip3d_llr.push_back(-999);
 	j_trk_ip2d_llr.push_back(-999);
       }
-      
+      //std::cout << " ..... before algos" << std::endl;
       if (particleInCollection( tmpTrk, IP2DTracks))  trackAlgo+=1<<IP2D;
 
       if (particleInCollection( tmpTrk, SV0Tracks))  trackAlgo+=1<<SV0;
       if (particleInCollection( tmpTrk, SV1Tracks))  trackAlgo+=1<<SV1;
       if (particleInCollection( tmpTrk, JFTracks))   trackAlgo+=1<<JF; //mod Remco	   
       j_trk_algo.push_back(trackAlgo);
-      
+
+      //std::cout << " ..... after algo" << std::endl;
+
       int myVtx=-1; //mod Remco
       for (unsigned int jfv=0; jfv< jfvertices.size(); jfv++) { //mod Remco
 	const xAOD::BTagVertex*  tmpVertex=*(jfvertices.at(jfv)); //mod Remco
@@ -1211,7 +1246,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
         if (particleInCollection( tmpTrk, tmpVect)) myVtx=jfv;//mod Remco
       } //mod Remco
       j_trk_jf_Vertex.push_back(myVtx); // mod Remco
-      
+      //std::cout << " ..... after Remco" << std::endl;
+
       //origin
       int origin=PUFAKE;
       const xAOD::TruthParticle* truth = truthParticle( tmpTrk );
@@ -1250,7 +1286,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	j_trk_vtx_Y.push_back(-999);
       }
       j_trk_orig.push_back(origin);
-      
+      //std::cout << " ..... after origin" << std::endl;
+
       //hit content
       //Blayer
       tmpTrk->summaryValue( getInt, xAOD::numberOfInnermostPixelLayerHits );
@@ -1289,8 +1326,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
       getInt=0;
       
       // spatial coordinates
-      //j_trk_d0.push_back( tmpTrk->d0() );
-      //j_trk_z0.push_back( tmpTrk->z0() );
+      j_trk_d0.push_back( tmpTrk->d0() );
+      j_trk_z0.push_back( tmpTrk->z0() );
       if ( origin==PUFAKE ) {
 	j_trk_d0_truth.push_back( -999 );
 	j_trk_z0_truth.push_back( -999 );
@@ -1441,7 +1478,9 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_aliveAfterOR->clear();
   v_jet_truthMatch->clear();
   v_jet_truthPt->clear();
-  v_jet_dRiso->clear();;
+  v_jet_dRiso->clear();
+  v_jet_JVT->clear();
+  v_jet_JVF->clear();
 
   v_jet_ip2d_pb->clear();
   v_jet_ip2d_pc->clear();
@@ -1515,6 +1554,10 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_mv2c00->clear();
   v_jet_mv2c10->clear();
   v_jet_mv2c20->clear();
+  v_jet_mv2c100->clear();
+  v_jet_mv2m_pu->clear();
+  v_jet_mv2m_pb->clear();
+  v_jet_mv2m_pc->clear();
   v_jet_mvb->clear();
 
   v_jet_multisvbb1->clear();

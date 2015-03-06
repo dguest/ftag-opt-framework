@@ -72,8 +72,8 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<int> *v_jet_truthMatch;
   std::vector<float> *v_jet_truthPt;
   std::vector<float> *v_jet_dRiso;
-  // to add: jvf
-
+  std::vector<float> *v_jet_JVT;
+  std::vector<float> *v_jet_JVF;
 
   // IP2D
   std::vector<float> *v_jet_ip2d_pb;
@@ -159,7 +159,13 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<double> *v_jet_mv2c00;
   std::vector<double> *v_jet_mv2c10;
   std::vector<double> *v_jet_mv2c20;
+  std::vector<double> *v_jet_mv2c100;
+  std::vector<double> *v_jet_mv2m_pb;
+  std::vector<double> *v_jet_mv2m_pc;
+  std::vector<double> *v_jet_mv2m_pu;
   std::vector<double> *v_jet_mvb;
+  
+
   //MSV
   std::vector<double> *v_jet_multisvbb1;
   std::vector<double> *v_jet_multisvbb2;
