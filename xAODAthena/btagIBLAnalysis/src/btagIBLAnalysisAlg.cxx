@@ -143,7 +143,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_jf_dphi=new std::vector<float>();
   v_jet_jf_ntrkAtVx=new std::vector<float>();
   v_jet_jf_nvtx=new std::vector<int>();
-  v_jet_jf_sig3d=new std::vector<int>();
+  v_jet_jf_sig3d=new std::vector<float>();
   v_jet_jf_nvtx1t=new std::vector<int>();
   v_jet_jf_n2t=new std::vector<int>();
   v_jet_jf_VTXsize=new std::vector<int>();
