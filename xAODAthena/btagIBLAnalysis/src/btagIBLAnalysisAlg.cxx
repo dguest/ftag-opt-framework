@@ -84,6 +84,11 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_pt =new std::vector<float>(); v_jet_pt->reserve(15);
   v_jet_eta=new std::vector<float>(); v_jet_eta->reserve(15);
   v_jet_phi=new std::vector<float>(); v_jet_phi->reserve(15);
+  v_jet_pt_orig =new std::vector<float>(); 
+  v_jet_eta_orig=new std::vector<float>(); 
+  v_jet_sumtrk_pt  =new std::vector<float>(); 
+  v_jet_sumtrkV_pt =new std::vector<float>(); 
+  v_jet_sumtrkV_eta=new std::vector<float>(); 
   v_jet_E  =new std::vector<float>(); v_jet_E->reserve(15);
   v_jet_m  =new std::vector<float>(); v_jet_m->reserve(15);
   v_jet_truthflav  =new std::vector<int>();
@@ -270,6 +275,11 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_pt",&v_jet_pt);
   tree->Branch("jet_eta",&v_jet_eta);
   tree->Branch("jet_phi",&v_jet_phi);
+  tree->Branch("jet_pt_orig",&v_jet_pt_orig);
+  tree->Branch("jet_eta_orig",&v_jet_eta_orig);
+  tree->Branch("jet_sumtrk_pt"  ,&v_jet_sumtrk_pt);
+  tree->Branch("jet_sumtrkV_pt" ,&v_jet_sumtrkV_pt);
+  tree->Branch("jet_sumtrkV_eta",&v_jet_sumtrkV_eta);
   tree->Branch("jet_E",&v_jet_E);
   tree->Branch("jet_m",&v_jet_m);
   tree->Branch("jet_truthflav"  ,&v_jet_truthflav);
@@ -465,7 +475,7 @@ StatusCode btagIBLAnalysisAlg::finalize() {
 
 ///////////////////////////////////////////////////////////////////////////////////
 StatusCode btagIBLAnalysisAlg::execute() {  
-  ATH_MSG_DEBUG ("Executing " << name() << "...");
+  ATH_MSG_INFO ("Executing " << name() << "...");
 
   clearvectors();
   //-------------------------
@@ -588,6 +598,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
       delete newjet;
       continue;
     }
+    v_jet_pt_orig->push_back( jet->pt() );
+    v_jet_eta_orig->push_back( jet->eta() );
     selJets.push_back(newjet);
   }
   if (badCleaning) {
@@ -600,7 +612,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
   njets = selJets.size();
   ATH_MSG_DEBUG( "Total number of jets is: "<< njets );
   uint8_t getInt(0);   // for accessing summary information
-  float   getFlt(0.0); // for accessing summary information
+  //float   getFlt(0.0); // for accessing summary information
   
   //std::cout << " ---------------------------------------------------------------------------------------------------------------- " << std::endl; 
   // Now run over the selected jets and do whatever else needs doing
@@ -668,7 +680,10 @@ StatusCode btagIBLAnalysisAlg::execute() {
     //std::cout << " indexPV: " << m_indexPV << " .... JVF: " <<  jvfV << std::endl;
 
     v_jet_JVF->push_back( jvfV );
-    float jvtV= jet->auxdata<float>("Jvt");  
+    float jvtV=0;
+    try {
+      jet->auxdata<float>("Jvt");  
+    } catch (...) {};
     v_jet_JVT->push_back( jvtV );
     
     // Get flavour truth label
@@ -678,7 +693,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     
     v_jet_truthflav->push_back(thisJetTruthLabel);
     if(thisJetTruthLabel == 5) nbjets++;
-    
+
     int tmpLabel=  GAFinalPartonFlavourLabel(jet);
     v_jet_GhostL_q->push_back(tmpLabel);
     if(tmpLabel == 5)  nbjets_q++;
@@ -734,6 +749,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_bH_nBtracks->push_back(tracksFromB.size()-tracksFromC.size());
     v_bH_nCtracks->push_back(tracksFromC.size());
 
+    
     // Get b-tag object
     const xAOD::BTagging* bjet = jet->btagging();
     
@@ -751,7 +767,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_ip2d_pu->push_back( -99 );
       v_jet_ip2d_llr->push_back( -99 );
     }
-        
+  
     // IP3D
     std::vector< ElementLink< xAOD::TrackParticleContainer > > IP3DTracks;
     IP3DTracks= bjet->auxdata<std::vector<ElementLink< xAOD::TrackParticleContainer> > >("IP3D_TrackParticleLinks");
@@ -766,7 +782,16 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_ip3d_pu->push_back( -99 );
       v_jet_ip3d_llr->push_back( -99 );
     }
-    
+    float tmpVal=0;
+    try {
+      bjet->variable<float>("IP3D", "trkSum_SPt", tmpVal);
+      v_jet_sumtrk_pt->push_back(tmpVal);
+      bjet->variable<float>("IP3D", "trkSum_VPt", tmpVal);
+      v_jet_sumtrkV_pt->push_back(tmpVal);
+      bjet->variable<float>("IP3D", "trkSum_VEta", tmpVal);
+      v_jet_sumtrkV_eta->push_back(tmpVal);
+    } catch (...) {};
+    //continue;
     // SV0 //VD: check the existence of the vertex and only then fill the variables
     // this mimic what's done in MV2
     int sv0ntrkj = -1;
@@ -794,7 +819,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sv0_m->push_back(sv0m);
     v_jet_sv0_efc->push_back(sv0efc);
     v_jet_sv0_normdist->push_back(sv0ndist);
-    
+   
     // SV1 //VD: check the existence of the vertex and only then fill the variables
     // this mimic what's done in MV2
     int sv1ntrkj = -1;
@@ -832,7 +857,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sv1_efc->push_back(sv1efc);
     v_jet_sv1_normdist->push_back(sv1ndist);
     v_jet_sv1_sig3d->push_back(sig3d);
-   
+  
     // JetFitter //VD: check the existence of the vertex and then fill the variables
     // this mimic what's done in MV2
     float jfm    = -99;
@@ -844,7 +869,10 @@ StatusCode btagIBLAnalysisAlg::execute() {
     float jfsig3d  = -99;
     int jfnvtx1t   = -1;
     int jfn2t      = -1;
-    std::vector<ElementLink<xAOD::BTagVertexContainer> > jfvertices =  bjet->auxdata<std::vector<ElementLink<xAOD::BTagVertexContainer> > >("JetFitter_JFvertices");
+    std::vector<ElementLink<xAOD::BTagVertexContainer> > jfvertices;
+    try {
+      jfvertices =  bjet->auxdata<std::vector<ElementLink<xAOD::BTagVertexContainer> > >("JetFitter_JFvertices");
+    } catch (...) {};
     int tmpNvtx=0;
     int tmpNvtx1t=0;
     bjet->taggerInfo(tmpNvtx, xAOD::JetFitter_nVTX);
@@ -870,7 +898,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_jf_llr->push_back( -99 );
     }
     v_jet_jf_VTXsize->push_back( jfvertices.size() );
-
+  
     v_jet_jf_m->push_back(jfm);
     v_jet_jf_efc->push_back(jfefc);
     v_jet_jf_deta->push_back(jfdeta);
@@ -894,20 +922,22 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_mv1c   ->push_back(bjet->auxdata<double>("MV1c_discriminant"));
     } catch(...){ }
 
+ 
     try {
       v_jet_mv2c00 ->push_back(bjet->auxdata<double>("MV2c00_discriminant"));
       v_jet_mv2c10 ->push_back(bjet->auxdata<double>("MV2c10_discriminant"));
       v_jet_mv2c20 ->push_back(bjet->auxdata<double>("MV2c20_discriminant"));
-      v_jet_mv2c100 ->push_back(bjet->auxdata<double>("MV2c100_discriminant"));
+      v_jet_mv2c100->push_back(bjet->auxdata<double>("MV2c100_discriminant"));
     } catch(...) { }
-
+    
     try {
       v_jet_mv2m_pu ->push_back(bjet->auxdata<double>("MV2m_pu"));
       v_jet_mv2m_pc ->push_back(bjet->auxdata<double>("MV2m_pc"));
       v_jet_mv2m_pb ->push_back(bjet->auxdata<double>("MV2m_pb"));
-      v_jet_mvb    ->push_back(bjet->auxdata<double>("MVb_discriminant"));
+      //v_jet_mvb    ->push_back(bjet->auxdata<double>("MVb_discriminant"));
     } catch(...) { }
-
+   
+    m_doMSV=false;
     if(m_doMSV){
       // MSV
       //need initial values if no msv vertex is find, fix in MSVvariablesFactory
@@ -1005,7 +1035,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_msv_vtx_ndf->push_back(j_msv_ndf);
       
     } // end m_doMSV
-    
+ 
     /// now the tracking part: prepare all the tmpVectors
     int j_btag_ntrk=0;
     int j_sv1_ntrk =0;
@@ -1058,7 +1088,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> j_trk_ip2d_llr;
     std::vector<float> j_trk_ip3d_llr;
     std::vector<int> j_trk_jf_Vertex; //mod Remco
-    if (m_reduceInfo) continue;
+    //if (m_reduceInfo) continue;
 
     bool is8TeV= true;
     if ( bjet->isAvailable<std::vector<ElementLink<xAOD::BTagVertexContainer> > >("JetFitter_JFvertices") ) is8TeV=false;
@@ -1091,7 +1121,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     
     v_jet_sv1_Nvtx->push_back(SV1vertices.size());
     //std::cout << "sv1: " << SV1vertices.size() << std::endl;
-    for (int sv1V=0; sv1V< SV1vertices.size(); sv1V++) {
+    for (unsigned int sv1V=0; sv1V< SV1vertices.size(); sv1V++) {
       //std::cout << "sv1 vertex: " << std::endl;
       const xAOD::Vertex*  tmpVertex=*(SV1vertices.at(sv1V));
       j_sv1_vtxx.push_back(tmpVertex->x());
@@ -1102,6 +1132,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sv1_vtxy->push_back(j_sv1_vtxy);
     v_jet_sv1_vtxz->push_back(j_sv1_vtxz);
     
+    if (m_reduceInfo) continue;
     //std::cout << "before Remco" << std::endl;
 
     std::vector<float> fittedPosition = bjet->auxdata<std::vector<float> >("JetFitter_fittedPosition"); // mod Remco
@@ -1468,6 +1499,11 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_pt->clear();
   v_jet_eta->clear();
   v_jet_phi->clear();
+  v_jet_pt_orig->clear();
+  v_jet_eta_orig->clear();
+  v_jet_sumtrk_pt->clear();
+  v_jet_sumtrkV_pt->clear();
+  v_jet_sumtrkV_eta->clear();
   v_jet_E->clear();
   v_jet_m->clear();
   v_jet_truthflav->clear();
