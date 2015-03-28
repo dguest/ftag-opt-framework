@@ -24,12 +24,14 @@ bool HistoSet::FillHistos(int jIndex, int tIndex, TrackPlotting* baseTree) {
     // finally put in previous value
     if (m_event!=0) {
       (m_1Dhist.at(N_TRK))->Fill( m_counter );
-      (m_2Dhist.at(N_TRK_JPT))->Fill( baseTree->jet_pt->at(jIndex)/1e3, m_counter );
-      if ( baseTree->bH_Lxy->at(jIndex)>0 ) (m_2Dhist.at(N_TRK_BLXY))->Fill( baseTree->bH_Lxy->at(jIndex), m_counter );
+      (m_2Dhist.at(N_TRK_JPT))->Fill( m_pt/1e3, m_counter );
+      if ( m_Lxy>0 ) (m_2Dhist.at(N_TRK_BLXY))->Fill( m_Lxy, m_counter );
     }
     m_jIndex =jIndex;
     m_event  =baseTree->eventnb;
     m_counter=0;
+    m_pt=baseTree->jet_pt->at(m_jIndex);
+    m_Lxy=baseTree->bH_Lxy->at(m_jIndex);
   } else {
     m_counter++;
   }
@@ -217,6 +219,7 @@ void TrackPlotting::Loop()
   }
 
   counter=0;
+  //nentries=40000;
   Long64_t nbytes = 0, nb = 0;
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
     counter++;

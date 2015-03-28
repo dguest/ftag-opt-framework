@@ -74,6 +74,8 @@ class HistoSet {
   int m_jIndex;
   int m_event;
   int m_counter;
+  float m_pt;
+  float m_Lxy;
 };
 
 class TrackPlotting {
