@@ -60,6 +60,11 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   int nbjets_HadF;
   std::vector<float> *v_jet_pt;
   std::vector<float> *v_jet_eta;
+  std::vector<float> *v_jet_pt_orig;
+  std::vector<float> *v_jet_eta_orig;
+  std::vector<float> *v_jet_sumtrk_pt;
+  std::vector<float> *v_jet_sumtrkV_pt;
+  std::vector<float> *v_jet_sumtrkV_eta;
   std::vector<float> *v_jet_phi;
   std::vector<float> *v_jet_E;
   std::vector<float> *v_jet_m;
