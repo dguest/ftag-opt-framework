@@ -1,11 +1,11 @@
-basedir=/afs/cern.ch/work/a/abell/testarea/19.1.4.2v2/Data/user.abell.mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r5895_r5853_BTAGNTUP_V1 #Directory name of interest
+basedir=/afs/cern.ch/work/l/lmcclymo/public/ #Directory name of interest
 
-funcname=xAOD # New function name for running over this directory
+funcname=xAODValerio # New function name for running over this directory
 
 dirs=`ls $basedir`
 
-outfile1=Chaining.C
-outfile2=Chaining.h
+outfile1=Chainingvalerio.C
+outfile2=Chainingvalerio.h
 
 #Test Function - just the first file
 

@@ -1,25 +1,85 @@
+#include "TFile.h"
+#include "TChain.h"
+#include "TCanvas.h"
+#include "TLegend.h"
+#include <sstream>
+
+#include <dirent.h>
+
 #include "AtlasStyle.C"
 #include "AtlasUtils.C"
-#include "Chaining.C"
+//#include "Chaining.C"
 //#include "parameters.C"
 
-using namespace.std
+using namespace std;
 
-void histcompseparate() {
+TChain* myT_1;
+TChain* myT_2;
+TFile* outfile;
+
+void histcompseparate(string file1, string file2, string output) {
 
   gStyle->SetOptStat(0);
   SetAtlasStyle();
 
-  outfile = TFile::Open("$HOME/www/private/r5591_r5625Validationr5895_r5853/data.root","RECREATE");
+  outfile = new TFile((output+"/data.root").c_str(),"RECREATE");
   TList* hList = new TList();
 
 // Chose the functions created using make_TChain_Local.sh here to the ones of interest
 
 //  myT_1 = NTUPTest();
-  myT_1 = mc14_8TeV();
-  myT_2 = xAOD();
 
-const int npar = 9; //Set equal to number of plotting variables
+  if (myT_1==0) {
+    myT_1=new TChain("bTag");
+    cout << " OPENING FILE: " << file1 << endl;
+    if ( file1.find("root")!=string::npos )  {
+      myT_1->Add( file1.c_str() );
+    } else {
+      cout << "Input is a directory: ging fancy: " << endl;
+      DIR*     dir;
+      dirent*  pdir;
+      dir = opendir( file1.c_str() );     // open current directory
+      while (pdir = readdir(dir))  {
+	string foldName=pdir->d_name;
+	cout << pdir->d_name << endl;
+	DIR*     dir2;
+	dirent*  pdir2;
+	dir2 = opendir( (file1+"/"+foldName).c_str() );     // open current directory
+	while (pdir2 = readdir(dir2))  {
+	  string fName=pdir2->d_name;
+	  if (fName.find("root")==string::npos) continue;
+	  myT_1->Add( (file1+"/"+foldName+"/"+fName).c_str() );
+	}
+      }
+    }
+  }
+
+  if (myT_2==0) {
+    myT_2=new TChain("bTag");
+    cout << " OPENING FILE: " << file2 << endl;
+    if ( file1.find("root")!=string::npos )  {
+      myT_2->Add( file2.c_str() );
+    } else {
+      cout << "Input is a directory: ging fancy: " << endl;
+      DIR*     dir;
+      dirent*  pdir;
+      dir = opendir( file2.c_str() );     // open current directory
+      while (pdir = readdir(dir))  {
+	string foldName=pdir->d_name;
+	cout << pdir->d_name << endl;
+	DIR*     dir2;
+	dirent*  pdir2;
+	dir2 = opendir( (file2+"/"+foldName).c_str() );     // open current directory
+	while (pdir2 = readdir(dir2))  {
+	  string fName=pdir2->d_name;
+	  if (fName.find("root")==string::npos) continue;
+	  myT_2->Add( (file2+"/"+foldName+"/"+fName).c_str() );
+	}
+      }
+     }
+   }
+
+const int npar = 2; //Set equal to number of plotting variables
 int nvar = 0;
 
 string parr17[npar]; string parr19[npar]; double nbin[npar]; double xmin[npar]; double xmax[npar];
@@ -30,12 +90,12 @@ string parr17[npar]; string parr19[npar]; double nbin[npar]; double xmin[npar]; 
 //parr19[nvar] = "truthMatch"; 	 parr17[nvar] = "truthmatched";	  xmin[nvar] = 0.;   xmax[nvar] = 2;    nbin[nvar]= 10; nvar += 1;
 //parr19[nvar] = "aliveAfterOR"; 	 parr17[nvar] = "aliveAfterOR";	  xmin[nvar] = 0.;   xmax[nvar] = 2;    nbin[nvar]= 10; nvar += 1;
 
-parr19[nvar] = "E"; 	  parr17[nvar] = "E"; 	  xmin[nvar] = 0.;   xmax[nvar] = 700000; nbin[nvar]= 50; nvar += 1;
-parr19[nvar] = "pt";	  parr17[nvar] = "pt"; 	  xmin[nvar] = 0.;   xmax[nvar] = 500000; nbin[nvar]= 40; nvar += 1;
-parr19[nvar] = "eta";	  parr17[nvar] = "eta";	  xmin[nvar] = -3.;  xmax[nvar] = 3.0;    nbin[nvar]= 40; nvar += 1;
+//parr19[nvar] = "E"; 	  parr17[nvar] = "E"; 	  xmin[nvar] = 0.;   xmax[nvar] = 700000; nbin[nvar]= 50; nvar += 1;
+parr19[nvar] = "pt";	  parr17[nvar] = "pt"; 	  xmin[nvar] = 0.;   xmax[nvar] = 500000; nbin[nvar]= 20; nvar += 1;
+parr19[nvar] = "eta";	  parr17[nvar] = "eta";	  xmin[nvar] = -3.;  xmax[nvar] = 3.0;    nbin[nvar]= 20; nvar += 1;
 //parr19[nvar] = "truthPt"; parr17[nvar] = "pt"; 	  xmin[nvar] = 0.;   xmax[nvar] = 500000; nbin[nvar]= 40; nvar += 1;
 
-//parr19[nvar]= "ip2d_pb"; parr17[nvar] = "ip2d";  xmin[nvar] = -15.; xmax[nvar] = 30;     nbin[nvar]= 50; nvar += 1;
+/*//parr19[nvar]= "ip2d_pb"; parr17[nvar] = "ip2d";  xmin[nvar] = -15.; xmax[nvar] = 30;     nbin[nvar]= 50; nvar += 1;
 //parr19[nvar]= "ip2d_pc"; parr17[nvar] = "ip2d";  xmin[nvar] = -15.; xmax[nvar] = 30;     nbin[nvar]= 50; nvar += 1;
 //parr19[nvar]= "ip2d_pu"; parr17[nvar] = "ip2d";  xmin[nvar] = -15.; xmax[nvar] = 30;     nbin[nvar]= 50; nvar += 1;
 //parr19[nvar]= "ip2d_llr"; parr17[nvar] = "ip2d"; xmin[nvar] = -15.; xmax[nvar] = 30;     nbin[nvar]= 50; nvar += 1;
@@ -61,7 +121,7 @@ parr19[nvar] = "sv1_n2t"; 	 parr17[nvar] = "sv1_n2t";   	  xmin[nvar] = 0.;   xm
 //parr19[nvar] = "sv1_normdist"; 	 parr17[nvar] = "sv1_"; 	  xmin[nvar] = 0.;   xmax[nvar] = 15; nbin[nvar]= 50; nvar += 1;
 //parr19[nvar] = "sv1_pb"; 	 parr17[nvar] = "sv1_"; 	  xmin[nvar] = 0.;   xmax[nvar] = 15; nbin[nvar]= 50; nvar += 1;
 //parr19[nvar] = "sv1_pc"; 	 parr17[nvar] = "sv1_"; 	  xmin[nvar] = 0.;   xmax[nvar] = 15; nbin[nvar]= 50; nvar += 1;
-//parr19[nvar] = "sv1_pu"; 	 parr17[nvar] = "sv1_"; 	  xmin[nvar] = 0.;   xmax[nvar] = 15; nbin[nvar]= 50; nvar += 1;*/
+//parr19[nvar] = "sv1_pu"; 	 parr17[nvar] = "sv1_"; 	  xmin[nvar] = 0.;   xmax[nvar] = 15; nbin[nvar]= 50; nvar += 1;
 parr19[nvar] = "sv1_llr"; 	 parr17[nvar] = "sv1"; 	 	  xmin[nvar] = 0.;   xmax[nvar] = 15; nbin[nvar]= 50; nvar += 1;
 //parr19[nvar] = "sv1_vtxx"; 	 parr17[nvar] = "sv1_"; 	  xmin[nvar] = 0.;   xmax[nvar] = 15; nbin[nvar]= 50; nvar += 1;
 //parr19[nvar] = "sv1_vtxy"; 	 parr17[nvar] = "sv1_"; 	  xmin[nvar] = 0.;   xmax[nvar] = 15; nbin[nvar]= 50; nvar += 1;
@@ -75,7 +135,7 @@ parr19[nvar] = "jf_efc"; 	parr17[nvar] = "jfit_efrc"; 	  xmin[nvar] = 0.;   xmax
 //parr19[nvar] = "jf_deta";  	parr17[nvar] = "jfit_";   	xmin[nvar] = 0.;   xmax[nvar] = 15;   nbin[nvar]= 50; nvar += 1;
 //parr19[nvar] = "jf_dphi";  	parr17[nvar] = "jfit_";  	xmin[nvar] = 0.;   xmax[nvar] = 15;   nbin[nvar]= 50; nvar += 1;
 parr19[nvar] = "jf_ntrkAtVx";  	parr17[nvar] = "jfit_ntrkAtVx";   	xmin[nvar] = -0.5;   xmax[nvar] = 15.5;   nbin[nvar]= xmax[nvar] - xmin[nvar]; nvar += 1;
-parr19[nvar] = "jf_nvtx";  	parr17[nvar] = "jfit_nvtx";   	xmin[nvar] = -0.5;   xmax[nvar] = 5.5;   nbin[nvar]= xmax[nvar] - xmin[nvar]; nvar += 1;*/
+parr19[nvar] = "jf_nvtx";  	parr17[nvar] = "jfit_nvtx";   	xmin[nvar] = -0.5;   xmax[nvar] = 5.5;   nbin[nvar]= xmax[nvar] - xmin[nvar]; nvar += 1;
 parr19[nvar] = "jf_sig3d";  	parr17[nvar] = "jfit_sig3d";   	xmin[nvar] = 0.;   xmax[nvar] = 100;   nbin[nvar]= 50; nvar += 1;
 /*parr19[nvar] = "jf_nvtx1t";  	parr17[nvar] = "jfit_nvtx1t";  	xmin[nvar] = -0.5;   xmax[nvar] = 15.5;   nbin[nvar]= xmax[nvar] - xmin[nvar]; nvar += 1;
 //parr19[nvar] = "jf_n2t";  	parr17[nvar] = "jfit_";   	xmin[nvar] = 0.;   xmax[nvar] = 15;   nbin[nvar]= 50; nvar += 1;
@@ -88,7 +148,7 @@ parr19[nvar] = "jf_sig3d";  	parr17[nvar] = "jfit_sig3d";   	xmin[nvar] = 0.;   
 //parr19[nvar] = "jf_jfcombnn_pu";	 parr17[nvar] = ""; 	  xmin[nvar] = 0.;   xmax[nvar] = 15;   nbin[nvar]= 50; nvar += 1;
 //parr19[nvar] = "jf_jfcombnn_llr"; 	 parr17[nvar] = "combNN"; 	  xmin[nvar] = 0.;   xmax[nvar] = 15;   nbin[nvar]= 50; nvar += 1;
 
-//parr19[nvar] = "sv1ip3d";parr17[nvar] = "";    xmin[nvar] = 0; xmax[nvar] = 1;    nbin[nvar]= 10; nvar += 1;*/
+//parr19[nvar] = "sv1ip3d";parr17[nvar] = "";    xmin[nvar] = 0; xmax[nvar] = 1;    nbin[nvar]= 10; nvar += 1;
 parr19[nvar] = "mv1";    parr17[nvar] = "mv1";    xmin[nvar] = 0; xmax[nvar] = 1;    nbin[nvar]= 10; nvar += 1;
 parr19[nvar] = "mv1c";   parr17[nvar] = "mv1c";   xmin[nvar] = 0; xmax[nvar] = 1;    nbin[nvar]= 10; nvar += 1;
 /*parr19[nvar] = "mv2c00"; parr17[nvar] = "mv2c00"; xmin[nvar] = 0; xmax[nvar] = 1;    nbin[nvar]= 10; nvar += 1;
@@ -100,7 +160,7 @@ parr19[nvar] = "mvb";    parr17[nvar] = "mvb";    xmin[nvar] = 0; xmax[nvar] = 1
 if(npar != nvar){
 
   cout << "Incorrect number of variables - check npar value." << endl;
-  exit();
+ gROOT->ProcessLine(".q");
 
 }
 
@@ -136,7 +196,7 @@ for(int i = 0; i < npar; i++){
     H_1r17->SetTitle( (parr19[i]).c_str() );
     H_1r17->GetYaxis()->SetTitle("Normalised Jet Fraction");
     H_1r17->GetXaxis()->SetTitle( (parr19[i]).c_str() );
-    leg->AddEntry(H_1r17,("IBL "+jettype+"-jets").c_str(),"L");
+    leg->AddEntry(H_1r17,("r20.1.0.3 "+jettype+"-jets").c_str(),"L");
 
     TH1D* H_1r19 = new TH1D(("histo_r19_"+jettype2).c_str(), "0", nbin[i], xmin[i], xmax[i]);
     H_1r19->Sumw2();
@@ -145,7 +205,7 @@ for(int i = 0; i < npar; i++){
     H_1r19->SetTitle( (parr19[i]).c_str() );
     H_1r19->GetYaxis()->SetTitle("Normalised Jet Fraction");
     H_1r19->GetXaxis()->SetTitle( (parr19[i]).c_str() );
-    leg->AddEntry(H_1r19,("No IBL "+jettype+"-jets").c_str(),"L");
+    leg->AddEntry(H_1r19,("r20.1.4.1 "+jettype+"-jets").c_str(),"L");
 
     if(xmax[i] - xmin[i] == nbin[i]){ H_1r17->SetMarkerSize(0);H_1r19->SetMarkerSize(0);}
     else{ H_1r17->SetMarkerSize(0.5); H_1r19->SetMarkerSize(0.5);}
@@ -157,8 +217,8 @@ for(int i = 0; i < npar; i++){
     convert << j;
     jstr = convert.str();
 
-    myT_1->Draw( ("jet_"+parr19[i]+">>histo_r17_"+jettype2).c_str(), ("jet_truthflav=="+jstr).c_str() "&& jet_pt>25000 && abs(jet_eta) < 2.5");
-    myT_2->Draw( ("jet_"+parr19[i]+">>histo_r19_"+jettype2).c_str(), ("jet_truthflav=="+jstr).c_str() "&& jet_pt>25000 && abs(jet_eta) < 2.5");
+    myT_1->Draw( ("jet_"+parr19[i]+">>histo_r17_"+jettype2).c_str(), ("jet_GhostL_HadF=="+jstr+"&& jet_pt>25000 && abs(jet_eta) < 2.5").c_str());
+    myT_2->Draw( ("jet_"+parr19[i]+">>histo_r19_"+jettype2).c_str(), ("jet_GhostL_HadF=="+jstr+"&& jet_pt>25000 && abs(jet_eta) < 2.5").c_str());
 
     H_1r17->Scale(1/normr17);
     H_1r19->Scale(1/normr19);
@@ -167,9 +227,9 @@ for(int i = 0; i < npar; i++){
     H_1r17->Draw("SAME");
     leg->Draw("SAME");
 
-    can->Print( ("$HOME/www/private/DC14IBL/"+jettype+"/"+parr19[i]+".eps").c_str() );
-    can->Print( ("$HOME/www/private/DC14IBL/"+jettype+"/"+parr19[i]+".png").c_str() );
-    can->Print( ("$HOME/www/private/DC14IBL/"+jettype+"/"+parr19[i]+".C").c_str() );
+    can->Print( (output+"/"+jettype+"/"+parr19[i]+".eps").c_str() );
+    can->Print( (output+"/"+jettype+"/"+parr19[i]+".png").c_str() );
+    can->Print( (output+"/"+jettype+"/"+parr19[i]+".C").c_str() );
 
     hList->Add(can);
     hList->Add(H_1r17);
