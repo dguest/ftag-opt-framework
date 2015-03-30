@@ -35,7 +35,7 @@ void histcompseparate(string file1, string file2, string output) {
     if ( file1.find("root")!=string::npos )  {
       myT_1->Add( file1.c_str() );
     } else {
-      cout << "Input is a directory: ging fancy: " << endl;
+      cout << "Input is a directory: going fancy: " << endl;
       DIR*     dir;
       dirent*  pdir;
       dir = opendir( file1.c_str() );     // open current directory
@@ -60,7 +60,7 @@ void histcompseparate(string file1, string file2, string output) {
     if ( file1.find("root")!=string::npos )  {
       myT_2->Add( file2.c_str() );
     } else {
-      cout << "Input is a directory: ging fancy: " << endl;
+      cout << "Input is a directory: going fancy: " << endl;
       DIR*     dir;
       dirent*  pdir;
       dir = opendir( file2.c_str() );     // open current directory
@@ -91,8 +91,12 @@ string parr17[npar]; string parr19[npar]; double nbin[npar]; double xmin[npar]; 
 //parr19[nvar] = "aliveAfterOR"; 	 parr17[nvar] = "aliveAfterOR";	  xmin[nvar] = 0.;   xmax[nvar] = 2;    nbin[nvar]= 10; nvar += 1;
 
 //parr19[nvar] = "E"; 	  parr17[nvar] = "E"; 	  xmin[nvar] = 0.;   xmax[nvar] = 700000; nbin[nvar]= 50; nvar += 1;
+
 parr19[nvar] = "pt";	  parr17[nvar] = "pt"; 	  xmin[nvar] = 0.;   xmax[nvar] = 500000; nbin[nvar]= 20; nvar += 1;
 parr19[nvar] = "eta";	  parr17[nvar] = "eta";	  xmin[nvar] = -3.;  xmax[nvar] = 3.0;    nbin[nvar]= 20; nvar += 1;
+//parr19[nvar] = "JVF";	  parr17[nvar] = "JVF";	  xmin[nvar] = 0.;   xmax[nvar] = 1; nbin[nvar]= 10; nvar += 1;
+//parr19[nvar] = "JVT";	  parr17[nvar] = "JVT";	  xmin[nvar] = 0.;  xmax[nvar] = 1;    nbin[nvar]= 10; nvar += 1;
+
 //parr19[nvar] = "truthPt"; parr17[nvar] = "pt"; 	  xmin[nvar] = 0.;   xmax[nvar] = 500000; nbin[nvar]= 40; nvar += 1;
 
 /*//parr19[nvar]= "ip2d_pb"; parr17[nvar] = "ip2d";  xmin[nvar] = -15.; xmax[nvar] = 30;     nbin[nvar]= 50; nvar += 1;
@@ -188,7 +192,22 @@ for(int i = 0; i < npar; i++){
     cout << jettype2 << endl;
 
     TCanvas* can = new TCanvas( (jettype2).c_str(), ( jettype2 ).c_str(),800,600);
+//    TLegend *leg = new TLegend(0.20,0.65,0.42,0.92,NULL,"brNDC");
     TLegend *leg = new TLegend(0.70,0.65,0.92,0.92,NULL,"brNDC");
+
+    TPad* pad_1=NULL;
+    TPad* pad_2=NULL;
+    pad_1 = new TPad("pad_1", "up", 0., 0.35, 1., 1.);
+    pad_1->SetBottomMargin(0);
+    pad_1->Draw();
+  
+    pad_2= new TPad("pad_2", "down", 0.0, 0.00, 1.0, 0.35);
+    pad_2->SetTopMargin(0);
+    pad_2->SetBottomMargin(0.25);
+    pad_2->SetGridx();
+    pad_2->SetGridy();
+    pad_2->Draw();
+    pad_1->cd();
 
     TH1D* H_1r17 = new TH1D(("histo_r17_"+jettype2).c_str(), "0", nbin[i], xmin[i], xmax[i]);
     H_1r17->Sumw2();
@@ -227,6 +246,23 @@ for(int i = 0; i < npar; i++){
     H_1r17->Draw("SAME");
     leg->Draw("SAME");
 
+    pad_2->cd();
+    TH1F* histdiv=new TH1F("histdiv","",nbin[i], xmin[i], xmax[i]);
+    histdiv->Divide(H_1r19,H_1r17);
+    histdiv->GetYaxis()->SetNdivisions(509);
+    histdiv->GetYaxis()->SetTitle("r20.1.4.1/r20.1.0.3");
+    histdiv->GetYaxis()->SetTitleOffset(0.45); //0.35
+    histdiv->GetYaxis()->SetTitleSize(0.11);
+    histdiv->GetYaxis()->SetLabelSize(0.10);   
+    histdiv->GetXaxis()->SetTitle((parr19[i]).c_str());
+    histdiv->GetXaxis()->SetTitleOffset(0.8);
+    histdiv->GetXaxis()->SetTitleSize(0.12);
+    histdiv->GetXaxis()->SetLabelSize(0.11);
+    histdiv->SetLineWidth(3);
+    histdiv->SetMarkerSize(1.2);
+    histdiv->Draw("E");    
+    histdiv->GetYaxis()->Draw();
+  
     can->Print( (output+"/"+jettype+"/"+parr19[i]+".eps").c_str() );
     can->Print( (output+"/"+jettype+"/"+parr19[i]+".png").c_str() );
     can->Print( (output+"/"+jettype+"/"+parr19[i]+".C").c_str() );
