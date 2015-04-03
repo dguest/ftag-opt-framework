@@ -582,7 +582,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     // jet cleaning - should be done after lepton overlap removal
     if(m_cleanJets) {
-      if( (!m_jetCleaningTool->keep( *jet )) && (jet->pt() > 20e3) ) {
+      if( (!m_jetCleaningTool->keep( *newjet )) && (newjet->pt() > 20e3) ) {
         delete newjet;
         badCleaning=true;
         //return StatusCode::SUCCESS;
