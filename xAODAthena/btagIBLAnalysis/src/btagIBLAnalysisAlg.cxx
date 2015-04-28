@@ -19,6 +19,7 @@
 
 #include "JetInterface/IJetSelector.h"
 #include "JetCalibTools/IJetCalibrationTool.h"
+#include "xAODEventShape/EventShape.h"
 
 // some tracking mumbo jumbo
 #include "TDatabasePDG.h"
@@ -38,8 +39,12 @@ bool particleInCollection( const xAOD::TrackParticle *trkPart,
 
 
 ///////////////////////////////////////////////////////////////////////////////////
-btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthHistogramAlgorithm( name, pSvcLocator )
-  ,  m_jetCalibrationTool("JetCalibrationTool/JetCalibrationTool",this) ,  m_jetCleaningTool("JetCleaningTool/JetCleaningTool",this) {
+btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pSvcLocator ) : 
+  AthHistogramAlgorithm( name, pSvcLocator ) ,  
+  m_jetCalibrationTool() , //"JetCalibrationTool/"+name()+"_JCalib",this) ,  
+  m_jetCleaningTool("JetCleaningTool/JetCleaningTool",this) {
+
+  
 
   declareProperty( "JetCleaningTool", m_jetCleaningTool );
   declareProperty( "JetCalibrationTool", m_jetCalibrationTool );
@@ -51,6 +56,8 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pS
   declareProperty( "JetPtCut", m_jetPtCut = 20.e3 );
   declareProperty( "CalibrateJets", m_calibrateJets = true );
   declareProperty( "CleanJets", m_cleanJets = true );
+ 
+  //m_jetCalibrationTool.setTypeAndName("JetCalibrationTool/BTagDumpAlg_"+m_jetCollectionName+"_JCalib");
 }
 
 
@@ -67,17 +74,20 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   // Register output tree
   ServiceHandle<ITHistSvc> histSvc("THistSvc",name());
   CHECK( histSvc.retrieve() );
-  /*
+  
+  
   tree = new TTree(("bTag_"+m_jetCollectionName).c_str(),("bTag"+m_jetCollectionName).c_str());
   CHECK( histSvc->regTree("/BTAGSTREAM/tree_"+m_jetCollectionName,tree) );
-  */
+  /*
   tree = new TTree("bTag","bTag");
   CHECK( histSvc->regTree("/BTAGSTREAM/tree",tree) );
+  */
 
   // Retrieve the jet cleaning tool
   CHECK( m_jetCleaningTool.retrieve() );
 
   // Retrieve the jet calibration tool
+  m_jetCalibrationTool.setTypeAndName("JetCalibrationTool/BTagDumpAlg_"+m_jetCollectionName+"_JCalib");
   CHECK( m_jetCalibrationTool.retrieve() );
 
   // Setup branches
@@ -96,8 +106,10 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_GhostL_q   =new std::vector<int>();
   v_jet_GhostL_HadI=new std::vector<int>();
   v_jet_GhostL_HadF=new std::vector<int>();
+  v_jet_LabDr_HadF =new std::vector<int>();
   v_jet_aliveAfterOR =new std::vector<int>();
   v_jet_truthMatch =new std::vector<int>();
+  v_jet_isPU       =new std::vector<int>();
   v_jet_truthPt =new std::vector<float>();
   v_jet_dRiso   =new std::vector<float>();
   v_jet_JVT     =new std::vector<float>();
@@ -287,8 +299,10 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_GhostL_q"   ,&v_jet_GhostL_q);
   tree->Branch("jet_GhostL_HadI",&v_jet_GhostL_HadI);
   tree->Branch("jet_GhostL_HadF",&v_jet_GhostL_HadF);
+  tree->Branch("jet_LabDr_HadF" ,&v_jet_LabDr_HadF);
   tree->Branch("jet_aliveAfterOR" ,&v_jet_aliveAfterOR);
   tree->Branch("jet_truthMatch" ,&v_jet_truthMatch);
+  tree->Branch("jet_isPU" ,&v_jet_isPU);
   tree->Branch("jet_truthPt" ,&v_jet_truthPt);
   tree->Branch("jet_dRiso" ,&v_jet_dRiso);
   tree->Branch("jet_JVT" ,&v_jet_JVT);
@@ -475,7 +489,7 @@ StatusCode btagIBLAnalysisAlg::finalize() {
 
 ///////////////////////////////////////////////////////////////////////////////////
 StatusCode btagIBLAnalysisAlg::execute() {  
-  ATH_MSG_INFO ("Executing " << name() << "...");
+  ATH_MSG_DEBUG ("Executing " << name() << "...");
 
   clearvectors();
   //-------------------------
@@ -655,7 +669,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     int matchedPt=0;
     float dRmatch=100;
     for ( const auto* tjet : *truthjets ) {
-      if(tjet->pt() < 7e3) continue;
+      if(tjet->pt() < 10e3) continue;
       float dr =deltaR(jet->eta(), tjet->eta(),
 		       jet->phi(), tjet->phi());
 
@@ -673,6 +687,19 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_truthPt   ->push_back(0);
     }
 
+    bool truthFree=true;
+    for ( const auto* tjet : *truthjets ) {
+      if(tjet->pt() < 4e3) continue;
+      float dr =deltaR(jet->eta(), tjet->eta(),
+		       jet->phi(), tjet->phi());
+
+      if(dr < 0.6) {
+	truthFree=false;
+	break;
+      }
+    }
+    v_jet_isPU->push_back(truthFree);
+
     std::vector<float> testjvf = jet->auxdata<std::vector<float> >("JVF"); 
     //todo: pick the right vertex
     float jvfV=0;
@@ -682,7 +709,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_JVF->push_back( jvfV );
     float jvtV=0;
     try {
-      jet->auxdata<float>("Jvt");  
+      jvtV=jet->auxdata<float>("Jvt");  
     } catch (...) {};
     v_jet_JVT->push_back( jvtV );
     
@@ -702,9 +729,15 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_GhostL_HadI->push_back(tmpLabel);
     if(tmpLabel == 5)  nbjets_HadI++;
     
-    tmpLabel=  GAFinalHadronFlavourLabel(jet);
+    tmpLabel=  DRFinalHadronFlavourLabel(jet);
     v_jet_GhostL_HadF->push_back(tmpLabel);
     if(tmpLabel == 5)  nbjets_HadF++;
+
+    tmpLabel=-1; // GAFinalHadronFlavourLabel(jet);
+    try {
+      jet->getAttribute("HadronConeExclTruthLabelID", tmpLabel);
+    } catch(...) {};
+    v_jet_LabDr_HadF->push_back(tmpLabel);
     
     // get B hadron quantities
     const xAOD::TruthParticle* matchedBH=NULL;
@@ -783,12 +816,24 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_ip3d_llr->push_back( -99 );
     }
     float tmpVal=0;
+    double tmpVal2=0;
+    const xAOD::EventShape * eventShape = 0;
     try {
-      bjet->variable<float>("IP3D", "trkSum_SPt", tmpVal);
-      v_jet_sumtrk_pt->push_back(tmpVal);
-      bjet->variable<float>("IP3D", "trkSum_VPt", tmpVal);
+      //bjet->variable<float>("IP3D", "trkSum_SPt", tmpVal);
+      //////////tmpVal=bjet->auxdata<float>("trkSum_SPt");
+      
+      std::string rhoKey = "Kt4EMTopoEventShape";
+      if (m_jetCollectionName.find("EM")==std::string::npos) rhoKey="Kt4LCTopoEventShape";
+      evtStore()->retrieve(eventShape, rhoKey);
+      eventShape->getDensity( xAOD::EventShape::Density, tmpVal2 );
+      //ATH_MSG_INFO("  Rho = " << 0.001*tmpVal2 << " GeV");
+
+      v_jet_sumtrk_pt->push_back(tmpVal2);
+      //bjet->variable<float>("IP3D", "trkSum_VPt", tmpVal);
+      tmpVal=bjet->auxdata<float>("trkSum_VPt");
       v_jet_sumtrkV_pt->push_back(tmpVal);
-      bjet->variable<float>("IP3D", "trkSum_VEta", tmpVal);
+      //bjet->variable<float>("IP3D", "trkSum_VEta", tmpVal);
+      tmpVal=bjet->auxdata<float>("trkSum_VEta");
       v_jet_sumtrkV_eta->push_back(tmpVal);
     } catch (...) {};
     //continue;
@@ -1073,6 +1118,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> j_trk_ip3d_z0;
     std::vector<float> j_trk_ip3d_d0sig;
     std::vector<float> j_trk_ip3d_z0sig;
+    std::vector<float> j_trk_ip2d_llr;
+    std::vector<float> j_trk_ip3d_llr;
+    
     std::vector<float> j_sv0_vtxx;
     std::vector<float> j_sv0_vtxy;
     std::vector<float> j_sv0_vtxz;
@@ -1085,8 +1133,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> j_jf_vtx_L3d; //mod Remco
     std::vector<float> j_jf_vtx_sig3d; //mod Remco
     std::vector<int> j_jf_vtx_nvtx; //mod Remco
-    std::vector<float> j_trk_ip2d_llr;
-    std::vector<float> j_trk_ip3d_llr;
     std::vector<int> j_trk_jf_Vertex; //mod Remco
     //if (m_reduceInfo) continue;
 
@@ -1411,8 +1457,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_trk_IP3D_d0sig->push_back(j_trk_ip3d_d0sig );
     v_jet_trk_IP3D_z0sig->push_back(j_trk_ip3d_z0sig );
 
-    v_jet_trk_IP2D_llr->push_back(j_trk_ip3d_llr);
-    v_jet_trk_IP3D_llr->push_back(j_trk_ip2d_llr);
+    v_jet_trk_IP2D_llr->push_back(j_trk_ip2d_llr);
+    v_jet_trk_IP3D_llr->push_back(j_trk_ip3d_llr);
     
     v_jet_trk_jf_Vertex->push_back(j_trk_jf_Vertex); //mod Remco
   } // jet loop
@@ -1511,8 +1557,10 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_GhostL_q->clear();
   v_jet_GhostL_HadI->clear();
   v_jet_GhostL_HadF->clear();
+  v_jet_LabDr_HadF->clear();
   v_jet_aliveAfterOR->clear();
   v_jet_truthMatch->clear();
+  v_jet_isPU->clear();
   v_jet_truthPt->clear();
   v_jet_dRiso->clear();
   v_jet_JVT->clear();
