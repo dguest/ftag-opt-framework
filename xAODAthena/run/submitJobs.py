@@ -4,22 +4,35 @@ import sys
 dsList=open("mc_samples.txt",'r')
 lines=dsList.readlines()
 
-suffix=".BTAGNTUP_v01"
+suffix=".BTAGNTUP_Retag20146"
+username="vdao"
 
-##suffix=".BTAGNTUP_V2" ### aborted due to huge mem leaks
+#suffix=".BTAGNTUP_Retag20143_v2"
+
+
+#suffix=".BTAGNTUP_RetagIPxDtrick"
+#suffix=".BTAGNTUP_Refs2"
+#suffix=".BTAGNTUP_Orig6"
+
+#suffix=".BTAGNTUP_v20MV2trainTrkPt"
+#suffix=".BTAGNTUP_DC14r20Retag"
+
+#suffix=".BTAGNTUP_v20MV2trainTrkPt"
+#suffix=".BTAGNTUP_v20MV2trainMoreMV2s"
+
 
 def submitJob(ds) :
-    #com = "pathena  jobOptions.py "
-    com = "pathena  jobOptions_Test.py "
+    com = "pathena  jobOptions_Tag.py "
+    #######com = "pathena  jobOptions_ReTag_DC14.py "
 
     ##com += "--express "
     com += " --skipScout "
-    com += " --official --voms atlas:/atlas/perf-flavtag/Role=production "
-
+    ##com += " --Debug "
+    ##com += " --official --voms atlas:/atlas/perf-flavtag/Role=production "
+    
     com += "--inDS " + ds + " "
-
-    ##oDS = "user.vdao."+ds.replace("/","")+suffix
-    oDS="group.perf-flavtag."+ds.replace("/","")+suffix
+    oDS = "user."+username+"."+ds.replace("/","")+suffix
+    ##oDS="group.perf-flavtag."+ds.replace("/","")+suffix
 
     print oDS+"  has length: "+str(len(oDS))
     while len(oDS) > 115 :
@@ -28,21 +41,27 @@ def submitJob(ds) :
         splODS.pop(2)
         oDS="_".join(splODS)
         pass
-    #oDS=oDS.replace("_AUET2B_MSTW2008LO_","")
-    #oDS=oDS.replace("ProtosPythia","PP")
-    #oDS=oDS.replace("group.perf-idtracking","perf-id")
     print "final: "+oDS+"  has length: "+str(len(oDS))
     com += "--outDS "+ oDS + " "
   
-    com += "--nFilesPerJob 2 "
-    #com += "--extFile mycool.db,BTagCalibALL-k0001.root "
-    #com += "--addPoolFC ,BTagCalibALL-k0001.root "
+    com += "--nFilesPerJob 5 "
+
+#    com += "--extFile mycool.db,BTagCalibRUN1-08-03.root "
+#    com += "--addPoolFC ,BTagCalibRUN1-08-03.root "
+
     #com += "--destSE UNI-FREIBURG_SCRATCHDISK "
+    com += "--excludedSite=ANALY_CPPM,ANALY_IN2P3-CC "
+
     return com
 
+
+############################################################################################################################################
+############################################################################################################################################
+############################################################################################################################################
+############################################################################################################################################
 for ds in lines :
     if "#" in ds : continue
-    if "mc" not in ds: continue
+    if "mc" not in ds and "valid" not in ds and "group" not in ds: continue
 
     print " "
     print "///////////////////////////////////////////////////////////////////////////////////////"

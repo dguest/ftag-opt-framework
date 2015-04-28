@@ -1,20 +1,18 @@
 # ====================================================================
 # MAIN SWITCHES
 # ====================================================================
-ReduceInfo   =False ##write minimal amount of info on the output file
-DoMSV        =False ##include variables for MSV tagger
-Rel20        =True  ##switch between rel19 and rel20 .... this is a bit dangerous at this point. Setitng to false will not revert jet calibration for instance
+ReduceInfo   =True ##write minimal amount of info on the output file
+DoMSV        =True ##include variables for MSV tagger
+Rel20        =True ##switch between rel19 and rel20
 #(only option that will work on original DC14 xAOD)
-
-doRetag      =True   ## perform retagging
+doRetag      =True ## perform retagging
+doRecomputePV=True  ## need to be true when re-tagging to recover JetFitter performance
 doComputeReference=False
-JetCollections = [ 'AntiKt4LCTopoJets', 'AntiKt4EMTopoJets' ]
 
 # ===================================================================
 # ===================================================================
 # ===================================================================
 # ===================================================================
-doRecomputePV=False  ## do not touch unless you know what you are doing
 if doComputeReference:
   ReduceInfo=True
   doRetag   =True
@@ -26,8 +24,7 @@ jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1)
 
 ## main test file: TTbar xAOD r19 mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad
 #jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/v/vdao//xAODs/Rel20/mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.merge.AOD.e2928_s1982_s2008_r6114_r6104_tid04859517_00/AOD.04859517._000001.pool.root.1"]
-#jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/v/vdao//public/AOD.01587947._004222.pool.root.1"]
-jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/v/vdao//xAODs/mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.merge.AOD.e2928_s1982_s2008_r6205_r6223_tid05192995_00/AOD.05192995._000032.pool.root.1" ]
+jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/v/vdao//public/AOD.01587947._004222.pool.root.1"]
 # ====================================================================
 # Define output ntuple file name
 # ====================================================================
@@ -74,19 +71,43 @@ print "geoFlags.isIBL() = "+str(  geoFlags.isIBL() )
 
 from BTagging.BTaggingFlags import BTaggingFlags
 ## chainging to other official calib file
-BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-05'
-#BTaggingFlags.CalibrationFromLocalReplica = True
-#BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
-#BTaggingFlags.CalibrationTag = 'Run2DC14' ## '0801C' ##'k0002'
+#BTaggingFlags.CalibrationTag = 'BTagCalibALL-08-02'
+BTaggingFlags.CalibrationFromLocalReplica = True
+BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
+BTaggingFlags.CalibrationTag = 'Run2DC14' ## '0801C' ##'k0002'
+
+#from AthenaCommon.Constants import VERBOSE
+BTaggingFlags.OutputLevel=INFO
+BTaggingFlags.SV2 = False
+BTaggingFlags.GbbNNTag = False
+BTaggingFlags.JetFitterCharm = False
+BTaggingFlags.MVb = False
+BTaggingFlags.MultiSVbb1 = False
+BTaggingFlags.MultiSVbb2 = False
+
+BTaggingFlags.SV1  = True
+BTaggingFlags.IP3D = True
+BTaggingFlags.IP2D = True
+BTaggingFlags.SV0  = True
+BTaggingFlags.BasicJetFitter=True
+BTaggingFlags.JetFitterTag = True
+BTaggingFlags.JetFitterNN  = True
+BTaggingFlags.MV1 = True
+BTaggingFlags.MV2 = True
+BTaggingFlags.MV1c = True
+BTaggingFlags.MV2c00 = True
+BTaggingFlags.MV2c10 = True
+BTaggingFlags.MV2c20 = True
+BTaggingFlags.MV2c100 = True
+BTaggingFlags.MV2m = True
 
 if  doComputeReference:
   BTaggingFlags.Runmodus = "reference"
   BTaggingFlags.SV0 = False
   BTaggingFlags.SV2 = False
   BTaggingFlags.GbbNNTag = False
-  BTaggingFlags.JetFitterTag  =False
-  BTaggingFlags.JetFitterNN   =False
-  BTaggingFlags.JetFitterCharm=False
+  BTaggingFlags.JetFitterTag = False
+  BTaggingFlags.JetFitterNN = False
   BTaggingFlags.MVb = False
   BTaggingFlags.MV1 = False
   BTaggingFlags.MV2 = False
@@ -94,8 +115,6 @@ if  doComputeReference:
   BTaggingFlags.MV2c00 = False
   BTaggingFlags.MV2c10 = False
   BTaggingFlags.MV2c20 = False
-  BTaggingFlags.MV2c100= False
-  BTaggingFlags.MV2m   = False
   BTaggingFlags.MultiSVbb1 = False
   BTaggingFlags.MultiSVbb2 = False
   pass
@@ -104,6 +123,8 @@ if doRecomputePV:
   BTaggingFlags.PrimaryVertexCollectionName='PrimaryVerticesValerio'
 
 # Demonstrate to run on 2 jet collections at the same time
+JetCollections = ['AntiKt4LCTopoJets' ]
+
 if doRetag:
   JetCollectionList = [ (JetCollection,
                          JetCollection.replace('ZTrack', 'Track').replace('PV0Track', 'Track'))
@@ -182,6 +203,27 @@ if doRetag:
   BTaggingFlags.btaggingESDList += [ BaseNameJFSecVtx + author + tmpJFVxname for author in AuthorSubString]
   BTaggingFlags.btaggingESDList += [ BaseAuxNameJFSecVtx + author + tmpJFVxname + 'Aux.' for author in AuthorSubString]
 
+
+  ## had hoc modification for rel19
+  svTool=BTagConf.getTool("InDetVKalVxInJetTool", "BTagTrackToJetAssociator","AntiKt4LCTopo")
+  svTool.useVertexCleaning=False
+  print "VALERIO"
+  print svTool
+
+  grades=[ "Good", "BlaShared", "PixShared", "SctShared", "0HitBLayer" ]
+  ip3dGrade=BTagConf.getTool("IP3DTag", "BTagTrackToJetAssociator","AntiKt4LCTopo")
+  ip2dGrade=BTagConf.getTool("IP3DTag", "BTagTrackToJetAssociator","AntiKt4LCTopo")
+  ip3dGrade.trackGradePartitions=grades
+  ip2dGrade.trackGradePartitions=grades
+
+  ip3dGrade=BTagConf.getTool("IP3DDetailedTrackGradeFactory", "BTagTrackToJetAssociator")
+  ip2dGrade=BTagConf.getTool("IP3DDetailedTrackGradeFactory", "BTagTrackToJetAssociator")
+  ip3dGrade.useRun2TrackGrading   =False
+  ip3dGrade.useInnerLayers0HitInfo=False
+  ip3dGrade.useDetailSplitHitInfo =False
+  ip2dGrade.useRun2TrackGrading   =False
+  ip2dGrade.useInnerLayers0HitInfo=False
+  ip2dGrade.useDetailSplitHitInfo =False
   
 ####################################################################################
 ####################################################################################
@@ -191,7 +233,7 @@ if doRetag:
 # Add own algorithm and tools
 # ====================================================================
 for JetCollection in JetCollections:
-  alg = CfgMgr.btagIBLAnalysisAlg("BTagDumpAlg_"+JetCollection, OutputLevel=INFO) #DEBUG
+  alg = CfgMgr.btagIBLAnalysisAlg("BTagDumperAlg_"+JetCollection, OutputLevel=INFO) #DEBUG
   alg.JetCollectionName = JetCollection
   if "Track" in JetCollection:
     alg.JetPtCut = 5.e3
@@ -204,19 +246,10 @@ for JetCollection in JetCollections:
   alg.Rel20=Rel20
   alg.JetCleaningTool.CutLevel = "LooseBad" # options: "VeryLooseBad","LooseBad",
   if not doComputeReference: algSeq += alg
-  
-  ###print JetCollection
-  calibfile = "JES_Prerecommendation2015_Feb2015.config"
-  collectionForTool="AntiKt4LCTopo"
-  calSeg           ="JetArea_Residual_EtaJES"
-  if "EM" in JetCollection: 
-    collectionForTool="AntiKt4TopoEM"
-    calibfile        ="JES_Prerecommendation2015_Feb2015_Internal.config"
-    calSeg           ="JetArea_Residual_EtaJES_GSC"
-  print collectionForTool
-  ToolSvc += CfgMgr.JetCalibrationTool("BTagDumpAlg_"+JetCollection+"_JCalib",#"JCalib_"+JetCollection,
-                                       IsData=False,
-                                       ConfigFile=calibfile,
-                                       CalibSequence=calSeg,
-                                       JetCollection=collectionForTool) 
-
+calibfile = "JetCalibTools/data/CalibrationConfigs/JES_Full2012dataset_Preliminary_MC14.config"
+if Rel20: calibfile = "JES_Full2012dataset_Preliminary_MC14.config"
+ToolSvc += CfgMgr.JetCalibrationTool("JetCalibrationTool",
+                                     IsData=False,
+                                     ConfigFile=calibfile,
+                                     CalibSequence="EtaJES",
+                                     JetCollection="AntiKt4LCTopo")
