@@ -15,4 +15,6 @@ namespace xAOD {
   int GAFinalHadronFlavourLabel (const xAOD::Jet* jet);
   int GAInitialHadronFlavourLabel (const xAOD::Jet* jet);
   int GAFinalPartonFlavourLabel (const xAOD::Jet* jet);
+  
+  //int DRFinalHadronFlavourLabel (const xAOD::Jet* jet);
 }

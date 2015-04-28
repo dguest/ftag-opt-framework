@@ -729,7 +729,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_GhostL_HadI->push_back(tmpLabel);
     if(tmpLabel == 5)  nbjets_HadI++;
     
-    tmpLabel=  DRFinalHadronFlavourLabel(jet);
+    tmpLabel=  GAFinalHadronFlavourLabel(jet);
     v_jet_GhostL_HadF->push_back(tmpLabel);
     if(tmpLabel == 5)  nbjets_HadF++;
 
