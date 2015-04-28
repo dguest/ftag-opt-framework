@@ -73,8 +73,10 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<int> *v_jet_GhostL_q;
   std::vector<int> *v_jet_GhostL_HadI;
   std::vector<int> *v_jet_GhostL_HadF;
+  std::vector<int> *v_jet_LabDr_HadF;
   std::vector<int> *v_jet_aliveAfterOR;
   std::vector<int> *v_jet_truthMatch;
+  std::vector<int> *v_jet_isPU;
   std::vector<float> *v_jet_truthPt;
   std::vector<float> *v_jet_dRiso;
   std::vector<float> *v_jet_JVT;
