@@ -1,20 +1,54 @@
-Below is outdated, please refer to https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/Run2BtagOptimisationFramework
+2014-04-28:  Valerio Dao
 
-============
+Updating instructions: THIS MAINLY AIM AT RUNNING THE OPTIMISATION FRAMEWOTK OVER REL20 SAMPLES.
+- when no re-tagging options are chose the current setup should run over multiple file version
+- when re-tagging there can be issue with backward compatibility. For the sake of not confusing user, I keep only the instructions valid for the latest setup. If something else is attempted please contact me (valerio.dao@cern.ch)
+
+
+===========================================
 To compile:
-============
-asetup AthAnalysisBase,2.0.14
-cd btagIBLAnalysis/cmt
+===========================================
+asetup 20.1.4.6,AtlasProduction,gcc48,here  (I haven't tried more recent release, but you need AtlasProduction or AtlasDerivarion if you want to retag since you need MagField info)
+pkgco.py JetCalibTools-00-04-35   (needed for the latest jet calibration)
+
+svn co svn+ssh://svn.cern.ch/reps/atlasperf/CombPerf/FlavorTag/FlavourTagPerformanceFramework/trunk/xAODAthena xAODAthena
+cd xAODAthena/btagIBLAnalysis/cmt
 cmt config
+source ./setup.sh
 cmt make
 
-============
+=====================================================================
 To run:
-============
+=====================================================================
 cd ../../run
 athena jobOptions.py
 
-============
+(follow the instructions inside to decide whether to tag or not, which jet collections to use, etc)
+
+=====================================================================
+To submit samples on the grid:
+=====================================================================
+- edit " mc_samples.txt " with the samples you want to run
+- edit " submitJobs.py " with your grid usedName, production suffix
+
+
+======================================================================
 Result: job should have created an ntuple file with several branches
-[can also create a histos.root file (with basic plots) and a xAOD.pool.root file (which is a new xAOD file with only a few containers written out) but this is commented out for now]
-============
+======================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Below is outdated, please refer to https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/Run2BtagOptimisationFramework
