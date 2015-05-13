@@ -16,6 +16,7 @@ tmpVale=sys.argv
 def Helper():
     print " "
     print " Usage: python PrintROC.py <outFolder>  <fileName> or <folderName>"
+    print "  ... outFolder MUST containt LC or EM "
     print " "
     sys.exit(1)
 
@@ -65,6 +66,10 @@ if len(fileList)==0:
     print " ..... no files selected .... please check"
     sys.exit(1)
 
+if "EM" not in odir and "LC" not in odir:
+    Helper()
+    sys.exit(1)
+
 gROOT.SetBatch(True) 
 ########################################################################################
 
@@ -85,16 +90,20 @@ if is8TeV and isXAOD:
         ]
 elif isXAOD:
     taggers=[
-        ["MV1"     , "mv1"     ,   0.0 ,  0.9945 , 30000, 1 ],   #20000
-#        ["MV1c"    , "mv1c"    ,   0   ,  1      ,  3000, 3 ],
-        ["MV2c00"  , "mv2c00"  ,  -0.5 ,  0.5    ,  3000, 2 ],
+#        ["MV1"     , "mv1"     ,   0.0 ,  0.9945 , 30000, 1 ],   #20000
+##        ["MV1c"    , "mv1c"    ,   0   ,  1      ,  3000, 3 ],
+#        ["MV2c00"  , "mv2c00"  ,  -0.5 ,  0.5    ,  3000, 2 ],
 #        ["MV2c10"  , "mv2c10"  ,  -0.5 ,  0.5    ,  3000, 4 ],
-        ["MV2c20"  , "mv2c20"  ,  -0.5 ,  0.5    ,  3000, 7 ],
-        ["IP3D"    , "ip3d_llr", -12.  ,   30    ,  3000, 8 ],
-        ["SV1"     , "sv1_llr" ,  -4.  ,   13    ,  3000, 6 ],
-        ["IP3D+SV1", "sv1ip3d" , -10.  ,   35    ,  3000, 797 ],
-        ["MVb"     , "mvb"     ,  -1.05,  0.8    ,  3000, 920 ],
-        ["JetFitter"     , "jf_llr"     ,  -15,  10    ,  3000, 40 ]
+#        ["MV2c20"  , "mv2c20"  ,  -0.5 ,  0.5    ,  3000, 7 ],
+        ["MV2c00"  , "mv2c00"  ,  -1.01 ,  1.01    ,  1000, 2 ],
+        ["MV2c10"  , "mv2c10"  ,  -1.01 ,  1.01    ,  1000, 4 ],
+        ["MV2c20"  , "mv2c20"  ,  -1.01 ,  1.01    ,  1000, 7 ],
+        ["IP3D"    , "ip3d_llr", -12.  ,   30    ,  1000, 8 ],
+        ["IP2D"    , "ip2d_llr", -12.  ,   30    ,  1000, 10 ],
+        ["SV1"     , "sv1_llr" ,  -4.  ,   13    ,  1000, 6 ],
+#        ["IP3D+SV1", "sv1ip3d" , -10.  ,   35    ,  3000, 797 ],
+##        ["MVb"     , "mvb"     ,  -1.05,  0.8    ,  3000, 920 ],
+        ["JetFitter"     , "jf_llr"     ,  -15,  10    ,  1000, 40 ]
         ]
 else:
     taggers=[ ["MV1"     , "mv1"     ,   0.0  ,  0.9945  , 20000, 1 ],   #20000
@@ -106,7 +115,7 @@ else:
               ["SV1"     , "sv1"     ,  -4.   ,   13,  2000, 6 ],
               ["MVb"   , "mvb"       ,  -1.05 ,  0.8,  2000, 920 ],
               ]
-effThreshold=0.7
+effThreshold=0.70
 
 
 def GetHisto(tag, intree, val):
@@ -114,9 +123,17 @@ def GetHisto(tag, intree, val):
     tmpH.Sumw2()
     var="jet_"+tag[1]+">>"+tmpH.GetName()
     cut=""
-    if not is8TeV: cut="jet_truthflav=="+str(val)+" && jet_pt>25e3  && jet_truthMatch==1 "
-    else:          cut="jet_trueFlav=="+str(val)+" && jet_pt>25e3 && jet_truthmatched==1 "
-    intree.Draw( var, cut,"goof",1000000)
+  
+    if "EM" in odir: cut=" abs(jet_eta)<2.5 && jet_pt>100e3 &&  (jet_JVT>0.2 || jet_pt>50e3 || abs(jet_eta)>2.4) && jet_truthMatch==1 && jet_truthflav=="+str(val)
+    #else           : cut=" abs(jet_eta)<2.5 && jet_pt>25e3 &&  (jet_JVT>0.2 || jet_pt>50e3 || abs(jet_eta)>2.4) && jet_LabDr_HadF=="+str(val)
+    else           : cut=" abs(jet_eta)<2.5 && jet_pt>25e3 &&  (jet_JVT>0.2 || jet_pt>50e3 || abs(jet_eta)>2.4) && jet_truthflav=="+str(val)
+
+    ##if not is8T: cut="jet_truthflav=="+str(val)+" && jet_pt>25e3  &&  (jet_JVT>0.2 || jet_pt>50e3 || abs(jet_eta)>2.4) "
+    ##             cut="jet_LabDr_HadF=="+str(val)+" && jet_pt>25e3  &&  (jet_JVT>0.2 || jet_pt>50e3 || abs(jet_eta)>2.4) "
+    ##             cut="jet_GhostL_HadF=="+str(val)+" && jet_pt>25e3  && jet_truthMatch==1 "
+    ##             cut="jet_GhostL_HadF=="+str(val)+" && jet_pt>25e3  && jet_truthMatch==1 && jet_ip3d_ntrk>=2 "
+    ##             cut="jet_trueFlav=="+str(val)+" && jet_pt>25e3 && jet_truthmatched==1 "
+    intree.Draw( var, cut,"goof",50000000)
     tmpH.SetBinContent(1,tmpH.GetBinContent(1)+tmpH.GetBinContent(0))
     tmpH.SetBinError(1,sqrt(pow(tmpH.GetBinError(1),2)+pow(tmpH.GetBinError(0),2)))
     tmpH.SetBinContent(0,0.0)
@@ -132,28 +149,31 @@ def GetHisto(tag, intree, val):
         c.Update()
         c.Print(odir+"/test.eps")
         time.sleep(0.5)
+    tmpInt=tmpH.Integral(-10,tmpH.GetNbinsX()+10)
     if tmpH.Integral():
         tmpH.Scale(1./tmpH.Integral(-10,tmpH.GetNbinsX()+10))
     else: print tmpH.Integral(-10,tmpH.GetNbinsX()+10)
-    return tmpH
+    return tmpH,tmpInt
 
     
 def GetROC(tag,intree, bVSlight):
-    hsig=GetHisto(tag, intree,5)
+    intSig=-1
+    intBkgd=-1
+    hsig,intSig=GetHisto(tag, intree,5)
     hbkgd=None
-    if not bVSlight: hbkgd=GetHisto(tag, intree,4)
-    else           : hbkgd=GetHisto(tag, intree,0)
+    if not bVSlight: hbkgd,intBkgd=GetHisto(tag, intree,4)
+    else           : hbkgd,intBkgd=GetHisto(tag, intree,0)
 
     if bVSlight:
         found=False
         for bin in xrange(1,hsig.GetNbinsX()+2):
             partInt=hsig.Integral(bin,hsig.GetNbinsX()+10)
-            #print str(bin)+"    "+str(partInt)
+            ##print str(bin)+"    "+str(partInt)
             if partInt<effThreshold and not found:
                 print " CUT= "+str(hsig.GetBinCenter(bin))+" has eff: "+str(partInt)
                 found=True
                 
-    myROC=TGraph();##hsig.GetNbinsX()-2 );
+    myROC=TGraphErrors();##hsig.GetNbinsX()-2 );
     maxRej=1
     count=-1
     for bin in xrange(2,hsig.GetNbinsX()):
@@ -161,17 +181,22 @@ def GetROC(tag,intree, bVSlight):
         bkgdEff=hbkgd.Integral(bin,hsig.GetNbinsX()+10)
         ##if bVSlight: print str(bkgdEff)+"   "+str(sigEff)+" CUT: "+str(hsig.GetBinCenter(bin))
         if bkgdEff!=0 and sigEff!=0 and sigEff<0.99:
+            ex=sqrt( sigEff*(1-sigEff)/intSig )
+            ey=sqrt( bkgdEff*(1-bkgdEff)/intBkgd )
             ##if bVSlight: print str(bkgdEff)+"   "+str(sigEff)
             count+=1
             myROC.SetPoint(count,sigEff,1/bkgdEff);
+            myROC.SetPointError(count, ex, ey/(bkgdEff*bkgdEff) )
             if 1/bkgdEff>maxRej: maxRej=1/bkgdEff
     myROC.SetLineWidth(3)
     return myROC,maxRej
-   
+  
 #########################################################################################
 gSystem.Exec("mkdir -p "+odir)
 
-intree=TChain("bTag")
+intree=None
+if "EM" in odir: intree=TChain("bTag_AntiKt4EMTopoJets")
+else           : intree=TChain("bTag_AntiKt4LCTopoJets")
 for file in fileList:
     intree.Add(file)
 
