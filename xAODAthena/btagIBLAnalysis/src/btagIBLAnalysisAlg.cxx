@@ -114,6 +114,9 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_dRiso   =new std::vector<float>();
   v_jet_JVT     =new std::vector<float>();
   v_jet_JVF     =new std::vector<float>();
+  v_jet_dRminToB=new std::vector<float>();
+  v_jet_dRminToC=new std::vector<float>();
+  v_jet_dRminToT=new std::vector<float>();
 
   v_jet_ip2d_pb   =new std::vector<float>();
   v_jet_ip2d_pc   =new std::vector<float>();
@@ -307,6 +310,9 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_dRiso" ,&v_jet_dRiso);
   tree->Branch("jet_JVT" ,&v_jet_JVT);
   tree->Branch("jet_JVF" ,&v_jet_JVF);
+  tree->Branch("jet_dRminToB" ,&v_jet_dRminToB);
+  tree->Branch("jet_dRminToC" ,&v_jet_dRminToC);
+  tree->Branch("jet_dRminToT" ,&v_jet_dRminToT);
 
   tree->Branch("jet_ip2d_pb",&v_jet_ip2d_pb);
   tree->Branch("jet_ip2d_pc",&v_jet_ip2d_pc);
@@ -542,11 +548,22 @@ StatusCode btagIBLAnalysisAlg::execute() {
   if (m_rel20) truthevt = "TruthEvents";
   CHECK( evtStore()->retrieve( xTruthEventContainer, truthevt) );
   
+  std::vector<const xAOD::TruthParticle* > m_partonB;
+  std::vector<const xAOD::TruthParticle* > m_partonC;
+  std::vector<const xAOD::TruthParticle* > m_partonT;
+  
   // select truth electrons for electron-jet overlap removal
   std::vector<TLorentzVector> truth_electrons;
   for ( const auto* truth : *xTruthEventContainer ) {
     for(unsigned int i = 0; i < truth->nTruthParticles(); i++){
       const xAOD::TruthParticle* particle = truth->truthParticle(i);
+
+      if (particle->pt() > 3e3) {
+	if ( fabs(particle->pdgId())==15 ) m_partonT.push_back(particle);
+	if ( fabs(particle->pdgId())==4  ) m_partonC.push_back(particle);
+	if ( fabs(particle->pdgId())==5  ) m_partonB.push_back(particle);
+      }
+
       if (particle->pt() < 15e3) continue;
       if (particle->status() != 1) continue;
       if (particle->barcode() > 2e5) continue;
@@ -608,7 +625,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       delete newjet;
       continue;
     }
-    if ( fabs( newjet->eta() ) > 2.5) {
+    if ( fabs( newjet->eta() ) > 3.0 ) { //2.5) {
       delete newjet;
       continue;
     }
@@ -738,7 +755,33 @@ StatusCode btagIBLAnalysisAlg::execute() {
       jet->getAttribute("HadronConeExclTruthLabelID", tmpLabel);
     } catch(...) {};
     v_jet_LabDr_HadF->push_back(tmpLabel);
+
+    // requested by P.Berta
+    float mindRtoB=10;
+    float mindRtoC=10;
+    float mindRtoT=10;
     
+    for (unsigned int ip=0; ip<m_partonB.size(); ip++) {
+      float dr=deltaR(jet->eta(), (m_partonB.at(ip))->eta(),
+		      jet->phi(), (m_partonB.at(ip))->phi() );
+      if (dr<mindRtoB)  mindRtoB=dr;
+    }
+    for (unsigned int ip=0; ip<m_partonC.size(); ip++) {
+      float dr=deltaR(jet->eta(), (m_partonC.at(ip))->eta(),
+		      jet->phi(), (m_partonC.at(ip))->phi() );
+      if (dr<mindRtoC)  mindRtoC=dr;
+    }
+    for (unsigned int ip=0; ip<m_partonT.size(); ip++) {
+      float dr=deltaR(jet->eta(), (m_partonT.at(ip))->eta(),
+		      jet->phi(), (m_partonT.at(ip))->phi() );
+      if (dr<mindRtoT)  mindRtoT=dr;
+    }
+    
+    v_jet_dRminToB->push_back(mindRtoB);
+    v_jet_dRminToC->push_back(mindRtoC);
+    v_jet_dRminToT->push_back(mindRtoT);
+    
+
     // get B hadron quantities
     const xAOD::TruthParticle* matchedBH=NULL;
     const std::string labelB = "GhostBHadronsFinal";
@@ -1565,7 +1608,10 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_dRiso->clear();
   v_jet_JVT->clear();
   v_jet_JVF->clear();
-
+  v_jet_dRminToB->clear();
+  v_jet_dRminToC->clear();
+  v_jet_dRminToT->clear();
+  
   v_jet_ip2d_pb->clear();
   v_jet_ip2d_pc->clear();
   v_jet_ip2d_pu->clear();
