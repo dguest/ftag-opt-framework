@@ -23,7 +23,7 @@ cmt bro cmt make
 To run:
 =====================================================================
 cd ../../xAODAthena/run
-athena jobOptions.py
+athena jobOptions_Tag.py
 
 (follow the instructions inside to decide whether to tag or not, which jet collections to use, etc)
 
