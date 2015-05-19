@@ -12,15 +12,17 @@ asetup 20.1.4.6,AtlasProduction,gcc48,here  (I haven't tried more recent release
 pkgco.py JetCalibTools-00-04-35   (needed for the latest jet calibration)
 
 svn co svn+ssh://svn.cern.ch/reps/atlasperf/CombPerf/FlavorTag/FlavourTagPerformanceFramework/trunk/xAODAthena xAODAthena
-cd xAODAthena/btagIBLAnalysis/cmt
-cmt config
-source ./setup.sh
-cmt make
+cd TestArea
+setupWorkArea.py
+cd WorkArea/cmt
+cmt bro cmt config
+cmt bro cmt make
+
 
 =====================================================================
 To run:
 =====================================================================
-cd ../../run
+cd ../../xAODAthena/run
 athena jobOptions.py
 
 (follow the instructions inside to decide whether to tag or not, which jet collections to use, etc)
