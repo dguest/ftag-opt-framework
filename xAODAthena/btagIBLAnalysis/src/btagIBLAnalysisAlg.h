@@ -13,9 +13,16 @@
 #include "xAODTruth/TruthParticle.h"
 #endif // not __MAKECINT__
 
+#include "TrigDecisionTool/TrigDecisionTool.h"
+
 // forward declarations
 class IJetSelector;
 class IJetCalibrationTool;
+namespace InDet { class IInDetTrackSelectionTool; }
+namespace CP { class ITrackVertexAssociationTool;}
+namespace Reco { class ITrackToVertex; }
+namespace Trk  { class ITrackToVertexIPEstimator; }
+//namespace Trig { class TrigDecisionTool };
 
 enum TAGGERALGO{ IP2D=0,
 		 IP3D,
@@ -46,11 +53,21 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   int eventnumber;
   int mcchannel;
   double mcweight;
+  int lbn;
+  int coreFlag;
+  int larError;
+  int tileError;
   int npv;
   double mu;
   double PV_x;
   double PV_y;
   double PV_z;
+  double truth_PV_x;
+  double truth_PV_y;
+  double truth_PV_z;
+
+  bool* v_L1trigger;
+  std::vector<std::string> v_L1triggerNames;
 
   // jet info
   int njets;
@@ -62,9 +79,12 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_jet_eta;
   std::vector<float> *v_jet_pt_orig;
   std::vector<float> *v_jet_eta_orig;
-  std::vector<float> *v_jet_sumtrk_pt;
+  std::vector<float> *v_jet_phi_orig;
+  std::vector<float> *v_jet_E_orig;
+  std::vector<float> *v_jet_sumtrkS_pt;
   std::vector<float> *v_jet_sumtrkV_pt;
   std::vector<float> *v_jet_sumtrkV_eta;
+  std::vector<int>   *v_jet_sumtrk_ntrk;
   std::vector<float> *v_jet_phi;
   std::vector<float> *v_jet_E;
   std::vector<float> *v_jet_m;
@@ -77,6 +97,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<int> *v_jet_aliveAfterOR;
   std::vector<int> *v_jet_truthMatch;
   std::vector<int> *v_jet_isPU;
+  std::vector<int> *v_jet_isBadMedium;
   std::vector<float> *v_jet_truthPt;
   std::vector<float> *v_jet_dRiso;
   std::vector<float> *v_jet_JVT;
@@ -209,6 +230,17 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<int>   *v_bH_nBtracks;
   std::vector<int>   *v_bH_nCtracks;
 
+  // C hadron
+  std::vector<float> *v_cH_pt;
+  std::vector<float> *v_cH_eta;
+  std::vector<float> *v_cH_phi;
+  std::vector<float> *v_cH_Lxy;
+  std::vector<float> *v_cH_x;
+  std::vector<float> *v_cH_y;
+  std::vector<float> *v_cH_z;
+  std::vector<float> *v_cH_dRjet;
+  std::vector<int>   *v_cH_nCtracks;
+
   // track info
   std::vector<int>   *v_jet_btag_ntrk;
   
@@ -290,6 +322,20 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 
   /// tool handle for jet calibration tool
   ToolHandle< IJetCalibrationTool > m_jetCalibrationTool;
+
+  /** InDetTrackSelectorTool (temporary: to be moved to a separate Tool) */
+  ToolHandle< InDet::IInDetTrackSelectionTool > m_InDetTrackSelectorTool;
+  
+  /** TrackVertex associator (temporary: to be moved to a separate Tool) */
+  ToolHandle< CP::ITrackVertexAssociationTool > m_TightTrackVertexAssociationTool;
+
+  /** TrackToVertex tool */
+  //ToolHandle< Reco::ITrackToVertex > m_trackToVertexTool;
+
+  /** GP: Tool for the estimation of the IPs to the Vertex */
+  ToolHandle< Trk::ITrackToVertexIPEstimator > m_trackToVertexIPEstimator;  
+
+  ToolHandle< Trig::TrigDecisionTool > m_tdt;
 
   // determine whether particle is B hadron or not
   bool isBHadron(int pdgid);
