@@ -1,27 +1,3 @@
-###### 13 TeV ######
-
-#mc14_13TeV.110903.Pythia8_AU2MSTW2008LO_zprime1000_tt.merge.AOD.e2743_s1982_s2008_r5787_r5853/
-
-#mc14_13TeV.110910.Pythia8_AU2MSTW2008LO_zprime3000_tt.merge.AOD.e3238_s1982_s2008_r5787_r5853/
-
-#mc14_13TeV.110900.Pythia8_AU2MSTW2008LO_zprime5000_tt.merge.AOD.e3238_s1982_s2008_r5787_r5853/
-
-#valid1.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e3099_s1982_s1964_r6006/
-#valid1.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e3099_s1982_s1964_r6008/
-#valid1.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e3099_s1982_s1964_r6024/
-#valid1.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e3099_s1982_s1964_r6037/
-
-#group.det-indet.110401.PowhegPythia_P2012_ttbar_nonallhad.merge.HITS.e2928_s1982_s2008.r5995.r20003_EXT2/
-#group.det-indet.110401.PowhegPythia_P2012_ttbar_nonallhad.merge.HITS.e2928_s1982_s2008.r5995.r20003_TIDEOFF_EXT2/
-#user.guirriec.mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e2928_s1982_s2008_r5956_v114
-#user.vdao.mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e2928_s1982_s2008_r5956_v114_VALExAOD
-#########################################################################
-
-#user.guirriec.mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e2928_s1982_s2008_r5956_v114_test2
-#user.guirriec.mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e2928_s1982_s2008_r5956_v114_test1
-#valid1.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e3099_s1982_s1964_r6066/
-#user.guirriec.mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e2928_s1982_s2008_r5956_v114
-
 
 ######################################################################################################################
 ######################################################################################################################
@@ -33,7 +9,42 @@
 
 #valid2.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e3099_s1982_s1964_r6179/
 
-mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.merge.AOD.e2928_s1982_s2008_r6205_r6223/
+###mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.merge.AOD.e2928_s1982_s2008_r6205_r6223/
+###mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.recon.AOD.e1727_s1933_s1911_r6265/
+#############mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r6269_r6260/
+###mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r6269_r6260_tid05387577_00
+
+
+#### mc15a samples
+#mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264/
+#mc15_13TeV.410006.PowhegPythia8EvtGen_A14_ttbar_hdamp172p5_nonallhad.merge.AOD.e3836_a766_a767_r6264/
+#mc15_13TeV.410004.PowhegHerwigppEvtGen_UEEE5_ttbar_hdamp172p5_nonallhad.merge.AOD.e3836_a766_a767_r6264/
+#mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_a766_a767_r6264/
+
+
+#####  8TeV rel20 re-reco
+##mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r6269_r6260/
+
+
+#####  first collisions
+data15_comm.periodD2.physics_Main.PhysCont.AOD.t0pro17_v01/
+
+
+#mc15_13TeV.361020.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ0W.merge.AOD.e3569_s2576_s2132_r6633_r6264/
+mc15_13TeV.361021.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ1W.merge.AOD.e3569_s2576_s2132_r6633_r6264/
+mc15_13TeV.361022.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ2W.merge.AOD.e3668_s2576_s2132_r6633_r6264/
+mc15_13TeV.361023.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ3W.merge.AOD.e3668_s2576_s2132_r6633_r6264/
+mc15_13TeV.361024.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ4W.merge.AOD.e3668_s2576_s2132_r6633_r6264/
+mc15_13TeV.361025.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ5W.merge.AOD.e3668_s2576_s2132_r6633_r6264/
+mc15_13TeV.361026.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ6W.merge.AOD.e3569_s2608_s2183_r6633_r6264/
+mc15_13TeV.361027.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ7W.merge.AOD.e3668_s2608_s2183_r6633_r6264/
+#mc15_13TeV.361028.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ8W.merge.AOD.e3569_s2576_s2132_r6633_r6264/
+#mc15_13TeV.361029.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ9W.merge.AOD.e3569_s2576_s2132_r6633_r6264/
+#mc15_13TeV.361030.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ10W.merge.AOD.e3569_s2576_s2132_r6633_r6264/
+#mc15_13TeV.361031.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ11W.merge.AOD.e3569_s2576_s2132_r6633_r6264/
+#mc15_13TeV.361032.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ12W.merge.AOD.e3668_s2608_s2183_r6633_r6264/
+
+
 
 #mc15_13TeV.361002.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ2.recon.AOD.e3569_s2576_s2132_r6235/
 #mc15_13TeV.361008.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ8.recon.AOD.e3569_s2576_s2132_r6235/
@@ -62,5 +73,4 @@ mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.merge.AOD.e2928_s1982_s2008
 #mc14_13TeV.191347.Pythia8_AU2MSTW2008LO_Zprimebb3000.merge.AOD.e3677_s1982_s2008_r6243_r6223/
 #mc14_13TeV.191348.Pythia8_AU2MSTW2008LO_Zprimebb4000.merge.AOD.e3677_s1982_s2008_r6243_r6223/
 #mc14_13TeV.191349.Pythia8_AU2MSTW2008LO_Zprimebb5000.merge.AOD.e3677_s1982_s2008_r6243_r6223/
-
 

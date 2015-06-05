@@ -25,15 +25,18 @@ if doComputeReference:
 
 import glob
 from AthenaCommon.AthenaCommonFlags import jobproperties as jp
-jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1) #10) #-1
+jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1)
 
 ## main test file: TTbar xAOD r19 mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad
 #jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/v/vdao//xAODs/Rel20/mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.merge.AOD.e2928_s1982_s2008_r6114_r6104_tid04859517_00/AOD.04859517._000001.pool.root.1"]
 #jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/v/vdao//public/AOD.01587947._004222.pool.root.1"]
 #jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/v/vdao//xAODs/mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.merge.AOD.e2928_s1982_s2008_r6205_r6223_tid05192995_00/AOD.05192995._000032.pool.root.1" ]
+jp.AthenaCommonFlags.FilesInput = [
+  #"/afs/cern.ch/work/v/vdao//xAODs/data15_comm/data15_comm.00265545.physics_Main.merge.AOD.f581_m1423._lb0018-lb0025._0001.1" 
+  "/afs/cern.ch/work/v/vdao/xAODs/data15_comm/data15_comm/data15_comm.00265573.physics_Main.merge.AOD.f581_m1423._lb0084-lb0088._0001.1" 
+  ]
 
-jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/user/g/ggonella/ggonella/public/ForValerio/mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264_tid05419191_00/AOD.05419191._000184.pool.root.1" ]
-###jp.AthenaCommonFlags.FilesInput = [ "/tmp/vdao/mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.DAOD_FTAG1.e3698_s2608_s2183_r6630_r6264_p2352_tid05526173_00/DAOD_FTAG1.05526173._000032.pool.root.1" ]
+
 
 # ====================================================================
 # Define output ntuple file name
@@ -50,7 +53,14 @@ if doRecomputePV:
   from InDetRecExample.InDetKeys import InDetKeys
   InDetKeys.xAODVertexContainer.StoredValue='PrimaryVerticesValerio'
 
+#from AthenaCommon.GlobalFlags import globalflags
+#globalflags.DataSource.set_Value_and_Lock("data")
+#globalflags.ConditionsTag.set_Value_and_Lock('OFLCOND-RUN12-SDR-30')
+##globalflags.DatabaseInstance.set_Value_and_Lock('CONDBR2')
+
 ## from Anthony: needed to compute truth quantities of tracks
+########import MagFieldServices.SetupField
+# --- disable error protection of RecExCommon
 from AthenaCommon.DetFlags import DetFlags
 DetFlags.BField_setOn()
 DetFlags.ID_setOn()
@@ -65,15 +75,16 @@ from TriggerJobOpts.TriggerFlags import TriggerFlags
 TriggerFlags.doTriggerConfigOnly.set_Value_and_Lock(True)
 
 from RecExConfig.RecFlags import rec
-rec.doESD.set_Value_and_Lock        (False)###
-rec.doWriteESD.set_Value_and_Lock   (False)###
+rec.doESD.set_Value_and_Lock        (False)
+rec.doWriteESD.set_Value_and_Lock   (False)
 rec.doAOD.set_Value_and_Lock        (False)
 rec.doWriteAOD.set_Value_and_Lock   (False)
 rec.doWriteTAG.set_Value_and_Lock   (False)
 rec.doDPD.set_Value_and_Lock        (False)
+rec.doWritexAOD.set_Value_and_Lock  (False)
 rec.doTruth.set_Value_and_Lock      (False)
 
-###rec.doApplyAODFix.set_Value_and_Lock(False)
+###rec.doApplyAODFix.set_Value_and_Lock(True)
 
 include ("RecExCommon/RecExCommon_topOptions.py")
 
@@ -90,11 +101,10 @@ print "geoFlags.isIBL() = "+str(  geoFlags.isIBL() )
 
 from BTagging.BTaggingFlags import BTaggingFlags
 ## chainging to other official calib file
-######BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-05'
+##BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-05'
 #BTaggingFlags.CalibrationFromLocalReplica = True
 #BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
 #BTaggingFlags.CalibrationTag = 'Run2DC14' ## '0801C' ##'k0002'
-#####if doRetag: BTaggingFlags.MV1 = True
 
 if  doComputeReference:
   BTaggingFlags.Runmodus = "reference"
@@ -223,9 +233,6 @@ ToolSvc += Trig__TrigDecisionTool( "TrigDecisionTool" )
 from TrigEDMConfig.TriggerEDM import EDMLibraries
 ToolSvc.TrigDecisionTool.Navigation.Dlls = EDMLibraries
 
-###ToolSvc += CfgMgr.TrigConf__xAODConfigTool( "xAODConfigTool" )
-###ToolSvc += CfgMgr.Trig__TrigDecisionTool( "TrigDecisionTool", ConfigTool = ToolSvc.xAODConfigTool, TrigDecisionKey = "xTrigDecision", OutputLevel = DEBUG )
-
 #########################################################################################################################
 for JetCollection in JetCollections:
   alg = CfgMgr.btagIBLAnalysisAlg("BTagDumpAlg_"+JetCollection, 
@@ -244,7 +251,7 @@ for JetCollection in JetCollections:
   alg.ReduceInfo=ReduceInfo
   alg.DoMSV=DoMSV
   alg.Rel20=Rel20
-  alg.JetCleaningTool.CutLevel = "MediumBad" # options: "VeryLooseBad","LooseBad",
+  alg.JetCleaningTool.CutLevel = "MediumBad"; ###LooseBad" # options: "VeryLooseBad","LooseBad",
   if not doComputeReference: algSeq += alg
   
   ###print JetCollection
@@ -252,14 +259,16 @@ for JetCollection in JetCollections:
   collectionForTool="AntiKt4LCTopo"
   calSeg           ="JetArea_Residual_EtaJES"
   if "EM" in JetCollection: 
-    collectionForTool="AntiKt4EMTopo"
+    #collectionForTool="AntiKt4TopoEM"
     #calibfile        ="JES_Prerecommendation2015_Feb2015_Internal.config"
     #calSeg           ="JetArea_Residual_EtaJES_GSC"
+    collectionForTool="AntiKt4EMTopo"
     calibfile  ="JES_MC15Prerecommendation_April2015.config"
-    calSeg     ="JetArea_Residual_Origin_EtaJES_GSC"
+    calSeg     ="JetArea_Residual_Origin_EtaJES_GSC_Insitu"
+    
   print collectionForTool
-  ToolSvc += CfgMgr.JetCalibrationTool("BTagDumpAlg_"+JetCollection+"_JCalib",#"JCalib_"+JetCollection,
-                                       IsData=False,
+  ToolSvc += CfgMgr.JetCalibrationTool("BTagDumpAlg_"+JetCollection+"_JCalib",
+                                       IsData=True,
                                        ConfigFile=calibfile,
                                        CalibSequence=calSeg,
                                        JetCollection=collectionForTool) 
