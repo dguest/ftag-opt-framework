@@ -28,6 +28,14 @@ use  xAODBTagging       xAODBTagging-*          Event/xAOD
 use  AtlasROOT 		AtlasROOT-* 		External
 use  JetInterface       JetInterface-*		Reconstruction/Jet
 use  JetCalibTools      JetCalibTools-*		Reconstruction/Jet
+use  xAODTrigger        xAODTrigger-*      	Event/xAOD
+
+use  TrigDecisionTool   TrigDecisionTool-*      Trigger/TrigAnalysis
+
+use TrkVertexFitterInterfaces  TrkVertexFitterInterfaces-*     Tracking/TrkVertexFitter
+use ITrackToVertex      ITrackToVertex-*         Reconstruction/RecoTools
+use InDetTrackSelectionTool InDetTrackSelectionTool-* InnerDetector/InDetRecTools
+use TrackVertexAssociationTool TrackVertexAssociationTool-* InnerDetector/InDetRecTools
 
 ## default is to make component library
 library btagIBLAnalysis *.cxx components/*.cxx
