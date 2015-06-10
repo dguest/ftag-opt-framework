@@ -1,4 +1,47 @@
-2014-04-28:  Valerio Dao
+2015-06-04:  Valerio Dao
+
+UPDATED INSTRUCTIONS ONLY WORKING FOR MC15 SAMPLES!!!!!
+(in particular this is used to run over FULL xAOD applying AODfix needed for Jet calibration)
+
+asetup asetup 20.1.5.3,AtlasProduction,gcc48,here 
+pkgco.py AODFix-00-02-02
+pkgco.py JetCalibTools-00-04-41
+pkgco.py JetMomentTools-00-03-11-03
+pkgco.py JetRec-03-00-40-04
+
+svn co svn+ssh://svn.cern.ch/reps/atlasperf/CombPerf/FlavorTag/FlavourTagPerformanceFramework/trunk/xAODAthena xAODAthena
+cd TestArea
+setupWorkArea.py
+cd WorkArea/cmt
+cmt bro cmt config
+cmt bro cmt make
+
+=====================================================================
+To run:
+=====================================================================
+cd ../../xAODAthena/run
+athena jobOptions_Tag.py
+(also jobOptions_Tag_data.py: with data settings ... a bit overkilling)
+
+(follow the instructions inside to decide whether to tag or not, which jet collections to use, etc)
+
+=====================================================================
+To submit samples on the grid:
+=====================================================================
+- edit " mc_samples.txt " with the samples you want to run
+- edit " submitJobs.py " with your grid usedName, production suffix
+
+
+
+
+==========================================================================================================================================================================
+==========================================================================================================================================================================
+==========================================================================================================================================================================
+==========================================================================================================================================================================
+==========================================================================================================================================================================
+
+WARNING: these instructions only works for tag: FlavourTagPerformanceFramework-00-00-02
+2015-04-28:  Valerio Dao
 
 Updating instructions: THIS MAINLY AIM AT RUNNING THE OPTIMISATION FRAMEWOTK OVER REL20 SAMPLES.
 - when no re-tagging options are chose the current setup should run over multiple file version
@@ -17,40 +60,3 @@ setupWorkArea.py
 cd WorkArea/cmt
 cmt bro cmt config
 cmt bro cmt make
-
-
-=====================================================================
-To run:
-=====================================================================
-cd ../../xAODAthena/run
-athena jobOptions_Tag.py
-
-(follow the instructions inside to decide whether to tag or not, which jet collections to use, etc)
-
-=====================================================================
-To submit samples on the grid:
-=====================================================================
-- edit " mc_samples.txt " with the samples you want to run
-- edit " submitJobs.py " with your grid usedName, production suffix
-
-
-======================================================================
-Result: job should have created an ntuple file with several branches
-======================================================================
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Below is outdated, please refer to https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/Run2BtagOptimisationFramework
