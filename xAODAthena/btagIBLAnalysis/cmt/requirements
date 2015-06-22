@@ -29,7 +29,7 @@ use  AtlasROOT 		AtlasROOT-* 		External
 use  JetInterface       JetInterface-*		Reconstruction/Jet
 use  JetCalibTools      JetCalibTools-*		Reconstruction/Jet
 use  xAODTrigger        xAODTrigger-*      	Event/xAOD
-
+use  GoodRunsLists      GoodRunsLists-*         DataQuality
 use  TrigDecisionTool   TrigDecisionTool-*      Trigger/TrigAnalysis
 
 use TrkVertexFitterInterfaces  TrkVertexFitterInterfaces-*     Tracking/TrkVertexFitter
