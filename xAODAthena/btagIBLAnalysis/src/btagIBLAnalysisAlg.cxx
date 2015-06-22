@@ -29,6 +29,8 @@
 #include "xAODTrigger/JetRoIContainer.h"
 #include "xAODTrigger/MuonRoIContainer.h"
 #include "TrigDecisionTool/TrigDecisionTool.h"
+#include "GoodRunsLists/IGoodRunsListSelectionTool.h"
+#include "JetInterface/IJetUpdateJvt.h"
 
 // some tracking mumbo jumbo
 #include "TDatabasePDG.h"
@@ -57,7 +59,9 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pS
   m_jetCleaningTool("JetCleaningTool/JetCleaningTool",this),
   m_InDetTrackSelectorTool(""),
   m_TightTrackVertexAssociationTool(""),
-  m_tdt("Trig::TrigDecisionTool/TrigDecisionTool")
+  m_tdt("Trig::TrigDecisionTool/TrigDecisionTool"),
+  m_GRLSelectionTool("GoodRunsListSelectionTool/GoodRunsListSelectionTool", this),
+  m_jvt("")
 {
 
   declareProperty( "JetCleaningTool", m_jetCleaningTool );
@@ -66,6 +70,11 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pS
   declareProperty("InDetTrackSelectionTool"   , m_InDetTrackSelectorTool);
   declareProperty("TrackVertexAssociationTool", m_TightTrackVertexAssociationTool);
   declareProperty("TrackToVertexIPEstimator",m_trackToVertexIPEstimator);
+  declareProperty("JVTtool",m_jvt);
+  
+  
+  
+  declareProperty( "GRLname", m_GRLname="" );
 
   declareProperty( "ReduceInfo", m_reduceInfo=false );
   declareProperty( "DoMSV", m_doMSV=false );
@@ -94,6 +103,10 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   CHECK( histSvc.retrieve() );
   
   
+  if (m_GRLname!="") {
+    // Retrieve the GRL selection tool
+    ATH_CHECK(m_GRLSelectionTool.retrieve());
+  }
   tree = new TTree(("bTag_"+m_jetCollectionName).c_str(),("bTag"+m_jetCollectionName).c_str());
   CHECK( histSvc->regTree("/BTAGSTREAM/tree_"+m_jetCollectionName,tree) );
   /*
@@ -103,6 +116,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
 
   // Retrieve the jet cleaning tool
   CHECK( m_jetCleaningTool.retrieve() );
+  CHECK( m_jvt.retrieve() );
 
   // Retrieve the jet calibration tool
   m_jetCalibrationTool.setTypeAndName("JetCalibrationTool/BTagDumpAlg_"+m_jetCollectionName+"_JCalib");
@@ -235,6 +249,12 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_mv2m_pb=new std::vector<double>();
   v_jet_mvb=new std::vector<double>();
 
+  v_jet_ip2dNT_llr =new std::vector<double>();
+  v_jet_ip3dNT_llr =new std::vector<double>();
+  v_jet_sv1flip_llr=new std::vector<double>();
+  v_jet_jfflip_llr =new std::vector<double>();
+  v_jet_mv2c20flip =new std::vector<double>();
+
   v_jet_multisvbb1 = new std::vector<double>();
   v_jet_multisvbb2 = new std::vector<double>();
   v_jet_msv_N2Tpair = new std::vector<int>();
@@ -340,6 +360,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("truth_PVx",&truth_PV_x);
   tree->Branch("truth_PVy",&truth_PV_y);
   tree->Branch("truth_PVz",&truth_PV_z);
+  tree->Branch("truth_LeadJet_pt",&truth_LeadJet_pt);
 
   tree->Branch("njets",&njets);
   tree->Branch("nbjets"     ,&nbjets);
@@ -460,6 +481,14 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_mv2m_pb",&v_jet_mv2m_pb);
   tree->Branch("jet_mvb",&v_jet_mvb);
 
+  /*
+  tree->Branch("jet_ip2dNT_llr" ,&v_jet_ip2dNT_llr);
+  tree->Branch("jet_ip3dNT_llr" ,&v_jet_ip3dNT_llr);
+  tree->Branch("jet_sv1Flip_llr",&v_jet_sv1flip_llr);
+  tree->Branch("jet_jfFlip_llr" ,&v_jet_jfflip_llr);
+  tree->Branch("jet_mv2c20Flip" ,&v_jet_mv2c20flip);
+  */
+
   tree->Branch("jet_multisvbb1",&v_jet_multisvbb1);
   tree->Branch("jet_multisvbb2",&v_jet_multisvbb2);
   tree->Branch("jet_msv_N2Tpair",&v_jet_msv_N2Tpair);
@@ -572,7 +601,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
   if (v_L1triggerNames.size()==0 && m_tdt!=0) {
     ATH_MSG_INFO ("Setting up trigger informations " << name() << "...");
-    auto chainGroup = m_tdt->getChainGroup("L1_J[0-9]+|L1_MU[0-9]+|L1_MU[0-9]+_J[0-9]+|L1_MBTS_1_1");
+    auto chainGroup = m_tdt->getChainGroup("L1_J[0-9]+|L1_MU[0-9]+|L1_MU[0-9]+_J[0-9]+|L1_MBTS_1_1|L1_RD0_FILLED");
     v_L1trigger=new bool[chainGroup->getListOfTriggers().size()];
     int count=-1;
     for (auto & trig : chainGroup->getListOfTriggers() ) {
@@ -582,8 +611,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_L1triggerNames.push_back(trig);
       tree->Branch( trig.c_str(), &(v_L1trigger[count]) );
     }
-    //v_L1triggerNames.push_back("L1_MBTS_1_1");
-    //tree->Branch("L1_MBTS_1_1", &(v_L1trigger[count]) );
   }
 
   clearvectors();
@@ -602,6 +629,14 @@ StatusCode btagIBLAnalysisAlg::execute() {
     return StatusCode::SUCCESS;
   }
   */
+
+  if (m_GRLname!="") {
+    bool eventPasses = m_GRLSelectionTool->passRunLB(*eventInfo);
+    if (!eventPasses) {
+      //ATH_MSG_WARNING( " .... Event not passing GRL!!!");
+      return StatusCode::SUCCESS;
+    }
+  }
 
   runnumber   = eventInfo->runNumber();
   eventnumber = eventInfo->eventNumber();
@@ -628,8 +663,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
       if( (*vtx_itr)->vertexType() == 1 ){
 	if (PV_x!=-999) ATH_MSG_WARNING( ".... second PV in the events ...!!!!!!");
 	m_indexPV=count;
-	PV_x =  (*vtx_itr)->x();
-	PV_y =  (*vtx_itr)->y();
+	PV_x =  (*vtx_itr)->x(); //VALERIO !!!!!!!!
+ 	PV_y =  (*vtx_itr)->y(); //VALERIO !!!!!!!!
 	PV_z =  (*vtx_itr)->z();
       }
     }
@@ -638,7 +673,16 @@ StatusCode btagIBLAnalysisAlg::execute() {
     ATH_MSG_WARNING( ".... rejecting the event due to missing PV!!!!");
     return StatusCode::SUCCESS;
   }
-  
+  const xAOD::Vertex* myVertex=vertices->at(m_indexPV);
+
+  const xAOD::TrackParticleContainer* trackParticles = 0;
+  CHECK( evtStore()->retrieve(trackParticles,"InDetTrackParticles") );
+  int n_putracks = 0;
+  for (const auto* trk : *trackParticles) {
+    if ( m_InDetTrackSelectorTool->accept(*trk,myVertex) && trk->vertex() && trk->vertex()!=myVertex && trk->pt()<30e3) n_putracks++;
+  }
+  if (!n_putracks) n_putracks++;
+
   if (!isData) {
     const xAOD::TruthVertexContainer* truthVertices = 0;
     CHECK( evtStore()->retrieve(truthVertices,"TruthVertices") );
@@ -665,7 +709,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
   
   if (!isData) {
     // select truth electrons for electron-jet overlap removal
-    /////////////std::cout << " .... number of truth vertices is: " << xTruthEventContainer->size() << std::endl;
     for ( const auto* truth : *xTruthEventContainer ) {  
       const xAOD::TruthVertex* newTruthVertex=truth->signalProcessVertex();
       if (newTruthVertex!=0) {
@@ -678,6 +721,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       for(unsigned int i = 0; i < truth->nTruthParticles(); i++){
 	const xAOD::TruthParticle* particle = truth->truthParticle(i);
 	
+	//VALERIO !!!!!!!!
 	if (particle->pt() > 3e3) {
 	  if ( fabs(particle->pdgId())==15 ) m_partonT.push_back(particle);
 	  //if ( fabs(particle->pdgId())==4  ) m_partonC.push_back(particle);
@@ -711,22 +755,26 @@ StatusCode btagIBLAnalysisAlg::execute() {
   //////////ATH_MSG_INFO("L1_J.* is passed: " << m_tdt->isPassed("L1_J100"));
   //auto chainGroup = m_tdt->getChainGroup("L1_J[0-9]+|L1_MU[0-9]+|L1_MU[0-9]+_J[0-9]+");
   if ( m_tdt!=0 ) {
-    //for (auto & trig : chainGroup->getListOfTriggers() ) {
-    //  std::cout << trig << std::endl;
-    // }
+    bool passTrigger=false;
     for (unsigned int it=0; it<v_L1triggerNames.size(); it++) {
       v_L1trigger[it]=m_tdt->isPassed(v_L1triggerNames[it]);
-      
-      auto cg = m_tdt->getChainGroup(v_L1triggerNames[it]);
-      auto fc = cg->features();
+      if ( v_L1trigger[it] ) passTrigger=true;
+
+      //auto cg = m_tdt->getChainGroup(v_L1triggerNames[it]);
+      //auto fc = cg->features();
       //auto L1jetFeatureContainers = fc.containerFeature<xAOD::JetRoIContainer>();
       //for(auto jLV1 : *L1jetFeatureContainers.cptr() ) {
       //  std::cout << " L1ROI: " << jLV1->pt()/1e3 << " : " << jLV1->pt() << std::endl;
       //}
     }
+    
+    if (isData) {
+      if (!passTrigger) {
+	//ATH_MSG_WARNING( " .... Event not passing any of the selected triggers!");
+	return StatusCode::SUCCESS;
+      }
+    }
   }
-
-
 
 
   //---------------------------
@@ -735,7 +783,10 @@ StatusCode btagIBLAnalysisAlg::execute() {
   const xAOD::JetContainer* jets = 0;
   CHECK( evtStore()->retrieve( jets, m_jetCollectionName) ); 
   const xAOD::JetContainer* truthjets = 0;
-  if (!isData) CHECK( evtStore()->retrieve( truthjets, "AntiKt4TruthJets") );
+  if (!isData) {
+    CHECK( evtStore()->retrieve( truthjets, "AntiKt4TruthJets") );
+    truth_LeadJet_pt=(truthjets->at(0))->pt();
+  }
   else  truthjets=new xAOD::JetContainer(); 
   njets=0;
   nbjets=0;
@@ -904,9 +955,12 @@ StatusCode btagIBLAnalysisAlg::execute() {
     float jvtV=0;
     try {
       jvtV=jet->auxdata<float>("Jvt");  
+      float tmpJVT=jvtV;
+      jvtV = m_jvt->updateJvt(*jet);
+      //if (tmpJVT!=jvtV) std::cout << "  initial: " << tmpJVT << "  |  final: " << jvtV << std::endl;
     } catch (...) {};
     v_jet_JVT->push_back( jvtV );
-  
+     
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // all the possible labelling
@@ -958,6 +1012,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_dRminToC->push_back(mindRtoC);
     v_jet_dRminToT->push_back(mindRtoT);
     
+    ///continue;  //VALERIO !!!!!!!!
+
     /////////////////////////////////////////////////////////////////////////////// ///////////////////////////////////////////////////////////////////////////////
     // B/C hadron quantities
     const xAOD::TruthParticle* matchedBH=NULL;
@@ -1071,18 +1127,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_ip3d_pu->push_back( -99 );
       v_jet_ip3d_llr->push_back( -99 );
     }
-    ///float tmpVal=0;
-    ///double tmpVal2=0;
+
     /*
-    const xAOD::EventShape * eventShape = 0;
-    try {
-      //bjet->variable<float>("IP3D", "trkSum_SPt", tmpVal);
-      //////////tmpVal=bjet->auxdata<float>("trkSum_SPt");
-      std::string rhoKey = "Kt4EMTopoEventShape";
-      if (m_jetCollectionName.find("EM")==std::string::npos) rhoKey="Kt4LCTopoEventShape";
-      evtStore()->retrieve(eventShape, rhoKey);
-      eventShape->getDensity( xAOD::EventShape::Density, tmpVal2 );
-     
+    try {     
       v_jet_sumtrk_pt->push_back(tmpVal2);
       //bjet->variable<float>("IP3D", "trkSum_VPt", tmpVal);
       tmpVal=bjet->auxdata<float>("trkSum_VPt");
@@ -1096,21 +1143,21 @@ StatusCode btagIBLAnalysisAlg::execute() {
     float tmp_trkSum_VPt=0;
     float tmp_trkSum_VEta=0;
     int   tmp_trkSum_nTrk=0;
+
+    
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // getting manual distribution on the number of tracks per jet with the selection
     std::vector< ElementLink< xAOD::TrackParticleContainer > > assocTracks =
       bjet->auxdata<std::vector<ElementLink<xAOD::TrackParticleContainer> > >("BTagTrackToJetAssociator");
-    const xAOD::Vertex* myVertex=vertices->at(m_indexPV);
+
     // temporary track loop
     TLorentzVector pseudoTrackJet(0,0,0,0);
     for (unsigned int iT=0; iT<assocTracks.size(); iT++) {
       if (!assocTracks.at(iT).isValid()) continue;
       const xAOD::TrackParticle* tmpTrk= *(assocTracks.at(iT));
       
-      
       if ( m_InDetTrackSelectorTool->accept(*tmpTrk, myVertex) && m_TightTrackVertexAssociationTool->isCompatible(*tmpTrk, *myVertex) ) {
-	//std::cout << " .... track passed: " << std::endl;
 	TLorentzVector tmpTrack(0,0,0,0);
 	tmpTrack.SetPtEtaPhiM( tmpTrk->pt(), tmpTrk->eta(), tmpTrk->phi(),0);
 	pseudoTrackJet+=tmpTrack; 	
@@ -1127,7 +1174,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sumtrkV_eta->push_back(tmp_trkSum_VEta);
     v_jet_sumtrk_ntrk->push_back(tmp_trkSum_nTrk);
 
-    
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //continue;
     // SV0 //VD: check the existence of the vertex and only then fill the variables
@@ -1267,7 +1313,28 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_mv2c20 ->push_back(bjet->auxdata<double>("MV2c20_discriminant"));
       v_jet_mv2c100->push_back(bjet->auxdata<double>("MV2c100_discriminant"));
     } catch(...) { }
+
     
+    /*
+    std::vector< ElementLink< xAOD::TrackParticleContainer > > IP3DNTTracks;
+    std::cout << std::endl;
+    IP3DNTTracks= bjet->auxdata<std::vector<ElementLink< xAOD::TrackParticleContainer> > >("IP3DNeg_TrackParticleLinks");
+      std::cout << " number of associated tracks: " <<  IP3DNTTracks.size() << " | " <<   IP3DTracks.size() << std::endl;
+    
+    try {
+      double tmpLLR=-99;
+      bjet->loglikelihoodratio("IP3DNeg", tmpLLR);
+      v_jet_ip3dNT_llr ->push_back( tmpLLR );
+      bjet->loglikelihoodratio("IP2DNeg", tmpLLR);
+      v_jet_ip2dNT_llr ->push_back( tmpLLR );
+      bjet->loglikelihoodratio("SV1Flip", tmpLLR);
+      v_jet_sv1flip_llr ->push_back( tmpLLR );
+      bjet->loglikelihoodratio("JetFitterFlip", tmpLLR);
+      v_jet_jfflip_llr ->push_back( tmpLLR );
+      v_jet_mv2c20flip ->push_back(bjet->auxdata<double>("MV2c20Flip_discriminant"));
+    } catch(...) { }
+    */
+
     try {
       v_jet_mv2m_pu ->push_back(bjet->auxdata<double>("MV2m_pu"));
       v_jet_mv2m_pc ->push_back(bjet->auxdata<double>("MV2m_pc"));
@@ -1446,9 +1513,11 @@ StatusCode btagIBLAnalysisAlg::execute() {
     }  //bjet->IP3D_TrackParticleLinks();
 
     v_jet_sv0_Nvtx->push_back(SV0vertices.size());
-    //std::cout << "sv0: " << SV0vertices.size() << std::endl;
     for (unsigned int sv0V=0; sv0V< SV0vertices.size(); sv0V++) {
-      //std::cout << "sv0 vertex: " << std::endl;
+      if (!SV0vertices.at(sv0V).isValid()) {
+	//std::cout << "INVALID sv0 vertex: " << std::endl;
+	continue;
+      }
       const xAOD::Vertex*  tmpVertex=*(SV0vertices.at(sv0V));
       j_sv0_vtxx.push_back(tmpVertex->x());
       j_sv0_vtxy.push_back(tmpVertex->y());
@@ -1459,9 +1528,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sv0_vtxz->push_back(j_sv0_vtxz);
     
     v_jet_sv1_Nvtx->push_back(SV1vertices.size());
-    //std::cout << "sv1: " << SV1vertices.size() << std::endl;
     for (unsigned int sv1V=0; sv1V< SV1vertices.size(); sv1V++) {
-      //std::cout << "sv1 vertex: " << std::endl;
+      if (!SV1vertices.at(sv1V).isValid()) continue;
       const xAOD::Vertex*  tmpVertex=*(SV1vertices.at(sv1V));
       j_sv1_vtxx.push_back(tmpVertex->x());
       j_sv1_vtxy.push_back(tmpVertex->y());
@@ -1472,16 +1540,10 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sv1_vtxz->push_back(j_sv1_vtxz);
     
     if (m_reduceInfo) continue;
-    //std::cout << "before Remco" << std::endl;
-
+    
     std::vector<float> fittedPosition = bjet->auxdata<std::vector<float> >("JetFitter_fittedPosition"); // mod Remco
     std::vector<float> fittedCov = bjet->auxdata<std::vector<float> >("JetFitter_fittedCov"); // mod Remco
-    //std::cout << " - jet: " <<  v_jet_sv1_vtxx->size() << " with " << jfvertices.size() << "vtx and " << fittedPosition.size() << " entries:: ";
-    //for (unsigned int iR=0; iR<fittedPosition.size(); iR++) {
-      //std::cout << fittedPosition[iR] << " , ";
-    //}
-    //std::cout << std::endl;
-
+    
     //if (PV_jf_x != fittedPosition[0]) {std::cout << "PV_jf_x is set for the first time (this may happen only once!)" << std::endl;} //mod Remco
     //if (PV_jf_y != fittedPosition[0]) {std::cout << "PV_jf_y is set for the first time (this may happen only once!)" << std::endl;} //mod Remco
     //if (PV_jf_z != fittedPosition[0]) {std::cout << "PV_jf_z is set for the first time (this may happen only once!)" << std::endl;} //mod Remco
@@ -1498,6 +1560,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     //std::cout << " VALERIO: " << jfvertices.size() << " , " << jfnvtx << " , " << jfnvtx1t << " ..... and: " << fittedPosition.size() << std::endl;
     for (unsigned int jfv=0; jfv< jfvertices.size(); jfv++) {
+      if (!jfvertices.at(jfv).isValid()) continue;
       const xAOD::BTagVertex*  tmpVertex=*(jfvertices.at(jfv)); 
       const std::vector< ElementLink<xAOD::TrackParticleContainer> > tmpVect = tmpVertex->track_links(); //mod Remco
       JFTracks.insert(JFTracks.end(), tmpVect.begin(), tmpVect.end()); //mod Remco
@@ -1520,7 +1583,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_jf_vtx_L3d->push_back(j_jf_vtx_L3d); //mod Remco
     v_jet_jf_vtx_sig3d->push_back(j_jf_vtx_sig3d); //mod Remco
     //v_jet_jf_vtx_nvtx->push_back(j_jf_vtx_nvtx); //mod Remco
-    
     
     j_btag_ntrk=0;//assocTracks.size();
     j_sv1_ntrk = SV1Tracks.size();
@@ -1563,7 +1625,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     ////////////////////////////////////////////////////////////////////////////////
     /// MAIN TRACK LOOP
     for (unsigned int iT=0; iT<assocTracks.size(); iT++) {
-      /////std::cout << " .... trk link: " << iT << std::endl;
+      //std::cout << " .... trk link: " << iT << std::endl;
       if (!assocTracks.at(iT).isValid()) continue;
       const xAOD::TrackParticle* tmpTrk= *(assocTracks.at(iT));
       tmpTrk->summaryValue( getInt, xAOD::numberOfPixelHits );
@@ -1623,6 +1685,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
       int myVtx=-1; //mod Remco
       for (unsigned int jfv=0; jfv< jfvertices.size(); jfv++) { //mod Remco
+	if (!jfvertices.at(jfv).isValid()) continue;
 	const xAOD::BTagVertex*  tmpVertex=*(jfvertices.at(jfv)); //mod Remco
         const std::vector< ElementLink<xAOD::TrackParticleContainer> > tmpVect = tmpVertex->track_links(); //mod Remco
         if (particleInCollection( tmpTrk, tmpVect)) myVtx=jfv;//mod Remco
@@ -1811,7 +1874,12 @@ StatusCode btagIBLAnalysisAlg::execute() {
     delete selJets.at(j);
   }
  
-  tree->Fill();
+  if (!isData) tree->Fill();
+  else {
+    if ( njets==0 )             return StatusCode::SUCCESS;
+    if ( v_jet_pt->at(0)<30e3 ) return StatusCode::SUCCESS;
+    tree->Fill();
+  }
 
   // clear all the things that need clearing
   truth_electrons.clear();
@@ -1888,6 +1956,7 @@ void btagIBLAnalysisAlg :: clearvectors(){
   truth_PV_x=-999;
   truth_PV_y=-999;
   truth_PV_z=-999; 
+  truth_LeadJet_pt=0; 
 
   PV_jf_x=-999;
   PV_jf_y=-999;
@@ -2001,6 +2070,12 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_mv2m_pb->clear();
   v_jet_mv2m_pc->clear();
   v_jet_mvb->clear();
+
+  v_jet_ip2dNT_llr->clear();
+  v_jet_ip3dNT_llr->clear();
+  v_jet_sv1flip_llr->clear();
+  v_jet_jfflip_llr->clear();
+  v_jet_mv2c20flip->clear();
 
   v_jet_multisvbb1->clear();
   v_jet_multisvbb2->clear();
