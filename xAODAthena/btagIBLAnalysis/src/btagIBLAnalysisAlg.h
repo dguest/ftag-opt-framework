@@ -23,6 +23,8 @@ namespace CP { class ITrackVertexAssociationTool;}
 namespace Reco { class ITrackToVertex; }
 namespace Trk  { class ITrackToVertexIPEstimator; }
 //namespace Trig { class TrigDecisionTool };
+class IGoodRunsListSelectionTool;
+class IJetUpdateJvt;
 
 enum TAGGERALGO{ IP2D=0,
 		 IP3D,
@@ -65,6 +67,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   double truth_PV_x;
   double truth_PV_y;
   double truth_PV_z;
+  float  truth_LeadJet_pt;
 
   bool* v_L1trigger;
   std::vector<std::string> v_L1triggerNames;
@@ -196,7 +199,12 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<double> *v_jet_mv2m_pc;
   std::vector<double> *v_jet_mv2m_pu;
   std::vector<double> *v_jet_mvb;
-  
+
+  std::vector<double> *v_jet_ip2dNT_llr;
+  std::vector<double> *v_jet_ip3dNT_llr;
+  std::vector<double> *v_jet_sv1flip_llr;
+  std::vector<double> *v_jet_jfflip_llr;
+  std::vector<double> *v_jet_mv2c20flip;
 
   //MSV
   std::vector<double> *v_jet_multisvbb1;
@@ -336,6 +344,11 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   ToolHandle< Trk::ITrackToVertexIPEstimator > m_trackToVertexIPEstimator;  
 
   ToolHandle< Trig::TrigDecisionTool > m_tdt;
+
+  std::string m_GRLname;
+  ToolHandle<IGoodRunsListSelectionTool> m_GRLSelectionTool;
+
+  ToolHandle<IJetUpdateJvt> m_jvt;
 
   // determine whether particle is B hadron or not
   bool isBHadron(int pdgid);
