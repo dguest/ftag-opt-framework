@@ -1,16 +1,10 @@
-2015-06-04:  Valerio Dao
+General instructions (see below for suggested release and additional packages)
 
-UPDATED INSTRUCTIONS ONLY WORKING FOR MC15 SAMPLES!!!!!
-(in particular this is used to run over FULL xAOD applying AODfix needed for Jet calibration)
-
-asetup asetup 20.1.5.3,AtlasProduction,gcc48,here 
-pkgco.py AODFix-00-02-02
-pkgco.py JetCalibTools-00-04-41
-pkgco.py JetMomentTools-00-03-11-03
-pkgco.py JetRec-03-00-40-04
+- setup release:  see below
+- checkout additional packages: see below
 
 svn co svn+ssh://svn.cern.ch/reps/atlasperf/CombPerf/FlavorTag/FlavourTagPerformanceFramework/trunk/xAODAthena xAODAthena
-cd TestArea
+####cd $TestArea
 setupWorkArea.py
 cd WorkArea/cmt
 cmt bro cmt config
@@ -32,7 +26,27 @@ To submit samples on the grid:
 - edit " submitJobs.py " with your grid usedName, production suffix
 
 
+List of packages/release
+______________________________________________________________________________________________________
+2015-06-22:  Valerio Dao
+asetup 20.1.5.3,AtlasProduction,gcc48,here 
+pkgco.py AODFix-00-02-02
+pkgco.py JetInterface-00-00-43
+pkgco.py JetCalibTools-00-04-41
+pkgco.py JetRec-03-00-50
+pkgco.py JetMomentTools-00-03-20
+pkgco.py JetSelectorTools-00-05-01
 
+______________________________________________________________________________________________________
+2015-06-04:  Valerio Dao
+UPDATED INSTRUCTIONS ONLY WORKING FOR MC15 SAMPLES!!!!!
+(in particular this is used to run over FULL xAOD applying AODfix needed for Jet calibration)
+
+asetup 20.1.5.3,AtlasProduction,gcc48,here 
+pkgco.py AODFix-00-02-02
+pkgco.py JetCalibTools-00-04-41
+pkgco.py JetMomentTools-00-03-11-03
+pkgco.py JetRec-03-00-40-04
 
 ==========================================================================================================================================================================
 ==========================================================================================================================================================================
