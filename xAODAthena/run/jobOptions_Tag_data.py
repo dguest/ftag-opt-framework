@@ -8,7 +8,7 @@ Rel20        =True  ##switch between rel19 and rel20 .... this is a bit dangerou
 
 doRetag      =False   ## perform retagging
 doComputeReference=False
-JetCollections = [ ########'AntiKt4LCTopoJets', 
+JetCollections = [  
   'AntiKt4EMTopoJets', 
   'AntiKt3PV0TrackJets'
   ]
@@ -25,7 +25,7 @@ if doComputeReference:
 
 import glob
 from AthenaCommon.AthenaCommonFlags import jobproperties as jp
-jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1)
+jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1) #-1)
 
 ## main test file: TTbar xAOD r19 mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad
 #jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/v/vdao//xAODs/Rel20/mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.merge.AOD.e2928_s1982_s2008_r6114_r6104_tid04859517_00/AOD.04859517._000001.pool.root.1"]
@@ -33,8 +33,12 @@ jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1)
 #jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/v/vdao//xAODs/mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.merge.AOD.e2928_s1982_s2008_r6205_r6223_tid05192995_00/AOD.05192995._000032.pool.root.1" ]
 jp.AthenaCommonFlags.FilesInput = [
   #"/afs/cern.ch/work/v/vdao//xAODs/data15_comm/data15_comm.00265545.physics_Main.merge.AOD.f581_m1423._lb0018-lb0025._0001.1" 
-  "/afs/cern.ch/work/v/vdao/xAODs/data15_comm/data15_comm/data15_comm.00265573.physics_Main.merge.AOD.f581_m1423._lb0084-lb0088._0001.1" 
+  "/afs/cern.ch/work/v/vdao/xAODs/data15_comm/data15_comm/data15_comm.00265573.physics_Main.merge.AOD.f581_m1423._lb0084-lb0088._0001.1",
+  #"/afs/cern.ch/work/v/vdao//xAODs/data15_13TeV.00266904.physics_Main.merge.DAOD_FTAG1.f594_m1435_p2361_tid05608863_00/DAOD_FTAG1.05608863._000007.pool.root.1"
+  #"~guirriec/public/AOD_with_Empty_Container.pool.root"
+  
   ]
+
 
 
 
@@ -233,13 +237,19 @@ ToolSvc += Trig__TrigDecisionTool( "TrigDecisionTool" )
 from TrigEDMConfig.TriggerEDM import EDMLibraries
 ToolSvc.TrigDecisionTool.Navigation.Dlls = EDMLibraries
 
+jvt = CfgMgr.JetVertexTaggerTool('JVT')
+ToolSvc += jvt
+
+
 #########################################################################################################################
 for JetCollection in JetCollections:
   alg = CfgMgr.btagIBLAnalysisAlg("BTagDumpAlg_"+JetCollection, 
                                   OutputLevel=INFO,
                                   InDetTrackSelectionTool   =ToolSvc.InDetTrackSelTool,
                                   TrackVertexAssociationTool=ToolSvc.TightVertexAssocTool,
-                                  TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator
+                                  TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator,
+                                  JVTtool=ToolSvc.JVT,
+                                  GRLname = "grl.xml"
                                   ) #DEBUG
   alg.JetCollectionName = JetCollection
   if "Track" in JetCollection:
@@ -251,7 +261,8 @@ for JetCollection in JetCollections:
   alg.ReduceInfo=ReduceInfo
   alg.DoMSV=DoMSV
   alg.Rel20=Rel20
-  alg.JetCleaningTool.CutLevel = "MediumBad"; ###LooseBad" # options: "VeryLooseBad","LooseBad",
+  alg.JetCleaningTool.CutLevel= "LooseBad" ## was"MediumBad"
+  alg.JetCleaningTool.DoUgly  = True
   if not doComputeReference: algSeq += alg
   
   ###print JetCollection

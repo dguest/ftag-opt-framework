@@ -6,11 +6,12 @@ DoMSV        =False ##include variables for MSV tagger
 Rel20        =True  ##switch between rel19 and rel20 .... this is a bit dangerous at this point. Setitng to false will not revert jet calibration for instance
 #(only option that will work on original DC14 xAOD)
 
-doRetag      =False   ## perform retagging
+doRetag           =False   ## perform retagging
 doComputeReference=False
 JetCollections = [ ########'AntiKt4LCTopoJets', 
   'AntiKt4EMTopoJets', 
-  'AntiKt3PV0TrackJets'
+  'AntiKt3PV0TrackJets',
+  #'AntiKt2PV0TrackJets'
   ]
 
 # ===================================================================
@@ -25,7 +26,7 @@ if doComputeReference:
 
 import glob
 from AthenaCommon.AthenaCommonFlags import jobproperties as jp
-jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1) #10) #-1
+jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1) #100) #-1) #10) #-1
 
 ## main test file: TTbar xAOD r19 mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad
 #jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/v/vdao//xAODs/Rel20/mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.merge.AOD.e2928_s1982_s2008_r6114_r6104_tid04859517_00/AOD.04859517._000001.pool.root.1"]
@@ -33,6 +34,9 @@ jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1) #10) #-1
 #jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/v/vdao//xAODs/mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.merge.AOD.e2928_s1982_s2008_r6205_r6223_tid05192995_00/AOD.05192995._000032.pool.root.1" ]
 
 jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/user/g/ggonella/ggonella/public/ForValerio/mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264_tid05419191_00/AOD.05419191._000184.pool.root.1" ]
+
+###jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/m/maklein/public/mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.DAOD_SUSY1.e3698_s2608_s2183_r6630_r6264_p2353_tid05555994_00/DAOD_SUSY1.05555994._000001.pool.root.1"]
+
 ###jp.AthenaCommonFlags.FilesInput = [ "/tmp/vdao/mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.DAOD_FTAG1.e3698_s2608_s2183_r6630_r6264_p2352_tid05526173_00/DAOD_FTAG1.05526173._000032.pool.root.1" ]
 
 # ====================================================================
@@ -73,7 +77,7 @@ rec.doWriteTAG.set_Value_and_Lock   (False)
 rec.doDPD.set_Value_and_Lock        (False)
 rec.doTruth.set_Value_and_Lock      (False)
 
-###rec.doApplyAODFix.set_Value_and_Lock(False)
+#############rec.doApplyAODFix.set_Value_and_Lock(False)
 
 include ("RecExCommon/RecExCommon_topOptions.py")
 
@@ -95,6 +99,10 @@ from BTagging.BTaggingFlags import BTaggingFlags
 #BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
 #BTaggingFlags.CalibrationTag = 'Run2DC14' ## '0801C' ##'k0002'
 #####if doRetag: BTaggingFlags.MV1 = True
+
+#### tmp Valerio
+#BTaggingFlags.MV2c20Flip = True
+#BTaggingFlags.SV1Flip = True
 
 if  doComputeReference:
   BTaggingFlags.Runmodus = "reference"
@@ -200,6 +208,21 @@ if doRetag:
   BTaggingFlags.btaggingESDList += [ BaseAuxNameJFSecVtx + author + tmpJFVxname + 'Aux.' for author in AuthorSubString]
 
   
+#ip3dGrade  =BTagConf.getTool("IP3DTag", "BTagTrackToJetAssociator","AntiKt4EMTopo")
+#ip3dGradeNT=BTagConf.getTool("IP3DNegTag", "BTagTrackToJetAssociator","AntiKt4EMTopo")
+#ip3dGrade.OutputLevel=VERBOSE
+#ip3dGradeNT.OutputLevel=VERBOSE
+
+#svTool=BTagConf.getTool("SV1FlipTag", "BTagTrackToJetAssociator","AntiKt4EMTopo")
+#svTool.OutputLevel=VERBOSE
+#svT=BTagConf.getTool("InDetVKalVxNegativeTagInJetTool", "BTagTrackToJetAssociator","AntiKt4EMTopo")
+#svT.OutputLevel=VERBOSE
+
+#svTool2=BTagConf.getTool("SV1Tag", "BTagTrackToJetAssociator","AntiKt4EMTopo")
+#svTool2.OutputLevel=VERBOSE
+#svT2=BTagConf.getTool("InDetVKalVxInJetTool", "BTagTrackToJetAssociator","AntiKt4EMTopo")
+#svT2.OutputLevel=VERBOSE
+
 ####################################################################################
 ####################################################################################
 ####################################################################################
@@ -223,6 +246,9 @@ ToolSvc += Trig__TrigDecisionTool( "TrigDecisionTool" )
 from TrigEDMConfig.TriggerEDM import EDMLibraries
 ToolSvc.TrigDecisionTool.Navigation.Dlls = EDMLibraries
 
+jvt = CfgMgr.JetVertexTaggerTool('JVT')
+ToolSvc += jvt
+
 ###ToolSvc += CfgMgr.TrigConf__xAODConfigTool( "xAODConfigTool" )
 ###ToolSvc += CfgMgr.Trig__TrigDecisionTool( "TrigDecisionTool", ConfigTool = ToolSvc.xAODConfigTool, TrigDecisionKey = "xTrigDecision", OutputLevel = DEBUG )
 
@@ -232,7 +258,8 @@ for JetCollection in JetCollections:
                                   OutputLevel=INFO,
                                   InDetTrackSelectionTool   =ToolSvc.InDetTrackSelTool,
                                   TrackVertexAssociationTool=ToolSvc.TightVertexAssocTool,
-                                  TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator
+                                  TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator,
+                                  JVTtool=ToolSvc.JVT,
                                   ) #DEBUG
   alg.JetCollectionName = JetCollection
   if "Track" in JetCollection:
@@ -244,7 +271,8 @@ for JetCollection in JetCollections:
   alg.ReduceInfo=ReduceInfo
   alg.DoMSV=DoMSV
   alg.Rel20=Rel20
-  alg.JetCleaningTool.CutLevel = "MediumBad" # options: "VeryLooseBad","LooseBad",
+  alg.JetCleaningTool.CutLevel= "LooseBad" ## was"MediumBad"
+  alg.JetCleaningTool.DoUgly  = True
   if not doComputeReference: algSeq += alg
   
   ###print JetCollection
@@ -253,9 +281,8 @@ for JetCollection in JetCollections:
   calSeg           ="JetArea_Residual_EtaJES"
   if "EM" in JetCollection: 
     collectionForTool="AntiKt4EMTopo"
-    #calibfile        ="JES_Prerecommendation2015_Feb2015_Internal.config"
-    #calSeg           ="JetArea_Residual_EtaJES_GSC"
     calibfile  ="JES_MC15Prerecommendation_April2015.config"
+    ###calibfile  ="JES_Prerecommendation2015_AFII_Apr2015.config"
     calSeg     ="JetArea_Residual_Origin_EtaJES_GSC"
   print collectionForTool
   ToolSvc += CfgMgr.JetCalibrationTool("BTagDumpAlg_"+JetCollection+"_JCalib",#"JCalib_"+JetCollection,

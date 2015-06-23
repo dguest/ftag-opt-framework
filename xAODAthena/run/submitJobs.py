@@ -16,8 +16,12 @@ username="vdao"
 ##suffix=".BTAGNTUP_OrigV6full"
 ##suffix=".BTAGNTUP_OrigV7full" ### ltest jet calibration
 ##suffix=".BTAGNTUP_V7retag"    ### latest jet calibration+retag
-##suffix=".BTAGNTUP_V8slim"       ### correct AODfix
-suffix=".BTAGNTUP_V8full"       ### correct AODfix
+##suffix=".BTAGNTUP_V8slim"     ### correct AODfix
+##suffix=".BTAGNTUP_V8full"     ### correct AODfix
+#####suffix=".BTAGNTUP_V9slim"       ### specific fix to run over FTAG
+#####suffix=".BTAGNTUP_V9full"       ### specific fix to run over FTAG + trigSelection + grl in data
+#####suffix=".BTAGNTUP_V10full"       ### finally fixing JVT
+suffix=".BTAGNTUP_V11slim"       ### (put 3 jets collections)
 
 #suffix=".BTAGNTUP_Retag20143_v2"
 #suffix=".BTAGNTUP_RetagIPxDtrick"
@@ -37,7 +41,7 @@ def submitJob(ds) :
 
     ##com += "--express "
     com += " --skipScout "
-    ####################################################com += " --allowTaskDuplication "
+    ###########################################com += " --allowTaskDuplication "
     ##com += " --Debug "
     ##com += " --official --voms atlas:/atlas/perf-flavtag/Role=production "
     
@@ -55,13 +59,14 @@ def submitJob(ds) :
     print "final: "+oDS+"  has length: "+str(len(oDS))
     com += "--outDS "+ oDS + " "
   
-    com += "--nFilesPerJob 5 "
+    if "data" in ds:  com += "--nFilesPerJob 2 "
+    else           :  com += "--nFilesPerJob 10 "
 
     #com += "--extFile mycool.db,BTagCalibRUN2Onl-08-05-Run1Special.root "
     #com += "--addPoolFC ,BTagCalibRUN2Onl-08-05-Run1Special.root "
 
     #com += "--destSE UNI-FREIBURG_SCRATCHDISK "
-    com += "--excludedSite=ANALY_CPPM,ANALY_IN2P3-CC "
+    com += "--excludedSite=ANALY_CPPM,ANALY_IN2P3-CC,ANALY_RHUL_SL6 "
 
     return com
 
