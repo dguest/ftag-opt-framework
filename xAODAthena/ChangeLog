@@ -1,0 +1,21 @@
+2015-06-22     Valerio Dao (valerio.dao@cern.ch):
+	- adding support for GRL when running on data
+	- adding leading truth jet pt
+	- JVT re-calculation
+	- for data: dropping events with no jets and leading jet<30GeV
+	- implementing latest jet cleaning from: https://twiki.cern.ch/twiki/bin/view/AtlasProtected/HowToCleanJets2015
+	
+
+2015-05-30	Valerio Dao (valerio.dao@cern.ch):
+	- adding L1 trigger info (event/wise)
+	- adding event cleaning flags from data
+	- implementing latest jet calibration
+	- removing jet cleaning but saving isBadMedium quantity
+	- adding truth PV information
+
+2015-05-19	Valerio Dao (valerio.dao@cern.ch):
+	- adding C-hadron information
+	- taking hadron from dR-matching instead of ghost
+	- adding sumTrk variables recomputed on the fly with Tracking CP tools
+	- computing signed ip and z0/d0 with b-tagging tools
+
