@@ -158,6 +158,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_m  =new std::vector<float>(); //v_jet_m->reserve(15);
   v_jet_truthflav  =new std::vector<int>();
   v_jet_nBHadr     =new std::vector<int>();
+  v_jet_nCHadr     =new std::vector<int>();
+  v_jet_nHBoso     =new std::vector<int>();
   v_jet_GhostL_q   =new std::vector<int>();
   v_jet_GhostL_HadI=new std::vector<int>();
   v_jet_GhostL_HadF=new std::vector<int>();
@@ -343,6 +345,16 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_sv1_ntrk =new std::vector<int>();
   v_jet_ip3d_ntrk=new std::vector<int>();
   v_jet_jf_ntrk  =new std::vector<int>();
+
+  // additions by nikola
+  v_jet_trkjet2_pt = new std::vector<std::vector<float> >();
+  v_jet_trkjet2_MV2c00 = new std::vector<std::vector<double> >();
+
+  v_jet_trkjet3_pt = new std::vector<std::vector<float> >();
+  v_jet_trkjet3_MV2c00 = new std::vector<std::vector<double> >();
+
+  v_jet_trkjet4_pt = new std::vector<std::vector<float> >();
+  v_jet_trkjet4_MV2c00 = new std::vector<std::vector<double> >();
   
   tree->Branch("runnb",&runnumber);
   tree->Branch("eventnb",&eventnumber);
@@ -382,6 +394,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_m",&v_jet_m);
   tree->Branch("jet_truthflav"  ,&v_jet_truthflav);
   tree->Branch("jet_nBHadr"     ,&v_jet_nBHadr);
+  tree->Branch("jet_nCHadr"     ,&v_jet_nCHadr);
+  tree->Branch("jet_nHBoso"     ,&v_jet_nHBoso);
   tree->Branch("jet_GhostL_q"   ,&v_jet_GhostL_q);
   tree->Branch("jet_GhostL_HadI",&v_jet_GhostL_HadI);
   tree->Branch("jet_GhostL_HadF",&v_jet_GhostL_HadF);
@@ -576,6 +590,16 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_ip3d_ntrk",&v_jet_ip3d_ntrk);
   tree->Branch("jet_jf_ntrk",&v_jet_jf_ntrk);
 
+  // additions by nikola
+  tree->Branch("jet_trkjet2_pt", &v_jet_trkjet2_pt);
+  tree->Branch("jet_trkjet2_MV2c00", &v_jet_trkjet2_MV2c00);
+
+  tree->Branch("jet_trkjet3_pt", &v_jet_trkjet3_pt);
+  tree->Branch("jet_trkjet3_MV2c00", &v_jet_trkjet3_MV2c00);
+
+  tree->Branch("jet_trkjet4_pt", &v_jet_trkjet4_pt);
+  tree->Branch("jet_trkjet4_MV2c00", &v_jet_trkjet4_MV2c00);
+
   clearvectors();
 
   return StatusCode::SUCCESS;
@@ -609,7 +633,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       std::cout << trig << std::endl;
       v_L1trigger[count]=0;
       v_L1triggerNames.push_back(trig);
-      tree->Branch( trig.c_str(), &(v_L1trigger[count]) );
+//      tree->Branch( trig.c_str(), &(v_L1trigger[count]) );
     }
   }
 
@@ -1014,11 +1038,10 @@ StatusCode btagIBLAnalysisAlg::execute() {
     
     ///continue;  //VALERIO !!!!!!!!
 
-    /////////////////////////////////////////////////////////////////////////////// ///////////////////////////////////////////////////////////////////////////////
-    // B/C hadron quantities
+    /////////////////////////////////////////////////////////////////////////////// ///////////////////////////////////////////////////////////////////////////////    
+    // get B hadron quantities
     const xAOD::TruthParticle* matchedBH=NULL;
-    const xAOD::TruthParticle* matchedCH=NULL;
-    const std::string labelB = "ConeExclBHadronsFinal"; //"GhostBHadronsFinal";
+    const std::string labelB = "ConeExclBHadronsFinal"; // "GhostBHadronsFinal"
     std::vector<const IParticle*> ghostB; ghostB.reserve(2);
     jet->getAssociatedObjects<IParticle>(labelB, ghostB);
     if (ghostB.size() >=1 ) {
@@ -1027,18 +1050,32 @@ StatusCode btagIBLAnalysisAlg::execute() {
     } 
     v_jet_nBHadr->push_back(ghostB.size());
 
-    const std::string labelC = "ConeExclCHadronsFinal"; 
+    // get C hadron quantities
+    const xAOD::TruthParticle* matchedCH=NULL;
+    const std::string labelC = "ConeExclCHadronsFinal"; // "GhostCHadronsFinal"
     std::vector<const IParticle*> ghostC; ghostC.reserve(2);
     jet->getAssociatedObjects<IParticle>(labelC, ghostC);
     if (ghostC.size() >=1 ) {
        matchedCH=(const xAOD::TruthParticle*)(ghostC.at(0));
        // to do: in case of 2, get the closest
     } 
+    v_jet_nCHadr->push_back(ghostC.size());
+
+    // get H boson quantities
+    const xAOD::TruthParticle* matchedHB=NULL;
+    const std::string labelH = "GhostHBosons";
+    std::vector<const IParticle*> ghostH; ghostH.reserve(2);
+    jet->getAssociatedObjects<IParticle>(labelH, ghostH);
+    if (ghostH.size() >=1 ) {
+       matchedHB=(const xAOD::TruthParticle*)(ghostH.at(0));
+       // to do: in case of 2, get the closest
+    } 
+    v_jet_nHBoso->push_back(ghostH.size());
 
     std::vector<const xAOD::TruthParticle*> tracksFromB; 
     std::vector<const xAOD::TruthParticle*> tracksFromC; 
     std::vector<const xAOD::TruthParticle*> tracksFromCc;
-    
+
     if ( matchedBH!=NULL ) {
       v_bH_pt   ->push_back(matchedBH->pt());
       v_bH_eta  ->push_back(matchedBH->eta());
@@ -1342,7 +1379,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       //v_jet_mvb    ->push_back(bjet->auxdata<double>("MVb_discriminant"));
     } catch(...) { }
    
-    m_doMSV=false;
+//    m_doMSV=false;
     if(m_doMSV){
       // MSV
       //need initial values if no msv vertex is find, fix in MSVvariablesFactory
@@ -1441,6 +1478,64 @@ StatusCode btagIBLAnalysisAlg::execute() {
       
     } // end m_doMSV
  
+    // additions by nikola    
+    if (m_doMSV)
+    {
+      // R = 0.2
+      std::vector<float> trkjet2_pt;
+      std::vector<double> trkjet2_mv2c00;
+
+      std::vector<const xAOD::Jet*> ghostTrackJet2;
+      jet->getAssociatedObjects<xAOD::Jet>("GhostAntiKt2TrackJet", ghostTrackJet2);
+
+      for (int i = 0; i < ghostTrackJet2.size(); i++)
+      {
+        trkjet2_pt.push_back(ghostTrackJet2.at(i)->pt());
+
+        const xAOD::BTagging* ghostTrackBJet = ghostTrackJet2.at(i)->btagging();
+        trkjet2_mv2c00.push_back(ghostTrackBJet->auxdata<double>("MV2c00_discriminant"));
+      }
+
+      v_jet_trkjet2_pt->push_back(trkjet2_pt);
+      v_jet_trkjet2_MV2c00->push_back(trkjet2_mv2c00);
+
+      // R = 0.3
+      std::vector<float> trkjet3_pt;
+      std::vector<double> trkjet3_mv2c00;
+
+      std::vector<const xAOD::Jet*> ghostTrackJet3;
+      jet->getAssociatedObjects<xAOD::Jet>("GhostAntiKt3TrackJet", ghostTrackJet3);
+
+      for (int i = 0; i < ghostTrackJet3.size(); i++)
+      {
+        trkjet3_pt.push_back(ghostTrackJet3.at(i)->pt());
+
+        const xAOD::BTagging* ghostTrackBJet = ghostTrackJet3.at(i)->btagging();
+        trkjet3_mv2c00.push_back(ghostTrackBJet->auxdata<double>("MV2c00_discriminant"));
+      }
+
+      v_jet_trkjet3_pt->push_back(trkjet3_pt);
+      v_jet_trkjet3_MV2c00->push_back(trkjet3_mv2c00);
+
+      // R = 0.4
+      std::vector<float> trkjet4_pt;
+      std::vector<double> trkjet4_mv2c00;
+
+      std::vector<const xAOD::Jet*> ghostTrackJet4;
+      jet->getAssociatedObjects<xAOD::Jet>("GhostAntiKt4TrackJet", ghostTrackJet4);
+
+      for (int i = 0; i < ghostTrackJet4.size(); i++)
+      {
+        trkjet4_pt.push_back(ghostTrackJet4.at(i)->pt());
+
+        const xAOD::BTagging* ghostTrackBJet = ghostTrackJet4.at(i)->btagging();
+        trkjet4_mv2c00.push_back(ghostTrackBJet->auxdata<double>("MV2c00_discriminant"));
+      }
+
+      v_jet_trkjet4_pt->push_back(trkjet4_pt);
+      v_jet_trkjet4_MV2c00->push_back(trkjet4_mv2c00);
+    }
+
     /// now the tracking part: prepare all the tmpVectors
     int j_btag_ntrk=0;
     int j_sv1_ntrk =0;
@@ -1977,6 +2072,8 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_m->clear();
   v_jet_truthflav->clear();
   v_jet_nBHadr->clear();
+  v_jet_nCHadr->clear();
+  v_jet_nHBoso->clear();
   v_jet_GhostL_q->clear();
   v_jet_GhostL_HadI->clear();
   v_jet_GhostL_HadF->clear();
@@ -2159,5 +2256,15 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_sv1_ntrk->clear();
   v_jet_ip3d_ntrk->clear();
   v_jet_jf_ntrk->clear();  
+
+  // additions by nikola
+  v_jet_trkjet2_pt->clear();
+  v_jet_trkjet2_MV2c00->clear();
+
+  v_jet_trkjet3_pt->clear();
+  v_jet_trkjet3_MV2c00->clear();
+
+  v_jet_trkjet4_pt->clear();
+  v_jet_trkjet4_MV2c00->clear();
 }
 
