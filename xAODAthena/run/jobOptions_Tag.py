@@ -14,6 +14,12 @@ JetCollections = [ ########'AntiKt4LCTopoJets',
   #'AntiKt2PV0TrackJets'
   ]
 
+doSMT=True
+
+if doSMT:
+  doRetag=True
+
+
 # ===================================================================
 # ===================================================================
 # ===================================================================
@@ -26,14 +32,15 @@ if doComputeReference:
 
 import glob
 from AthenaCommon.AthenaCommonFlags import jobproperties as jp
-jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1) #100) #-1) #10) #-1
+jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(100) #100) #-1) #10) #-1
 
 ## main test file: TTbar xAOD r19 mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad
 #jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/v/vdao//xAODs/Rel20/mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.merge.AOD.e2928_s1982_s2008_r6114_r6104_tid04859517_00/AOD.04859517._000001.pool.root.1"]
 #jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/v/vdao//public/AOD.01587947._004222.pool.root.1"]
 #jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/v/vdao//xAODs/mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.merge.AOD.e2928_s1982_s2008_r6205_r6223_tid05192995_00/AOD.05192995._000032.pool.root.1" ]
 
-jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/user/g/ggonella/ggonella/public/ForValerio/mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264_tid05419191_00/AOD.05419191._000184.pool.root.1" ]
+
+jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/user/a/asciandr/work/public/mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_a766_a767_r6264_tid05443507_00/AOD.05443507._000214.pool.root.1" ]
 
 ###jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/m/maklein/public/mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.DAOD_SUSY1.e3698_s2608_s2183_r6630_r6264_p2353_tid05555994_00/DAOD_SUSY1.05555994._000001.pool.root.1"]
 
@@ -60,6 +67,8 @@ DetFlags.BField_setOn()
 DetFlags.ID_setOn()
 DetFlags.Calo_setOff()
 DetFlags.Muon_setOff()
+if doSMT:
+   DetFlags.Muon_setOn()
 
 from RecExConfig.RecFlags import rec
 rec.doTrigger.set_Value_and_Lock(True)
@@ -99,6 +108,9 @@ from BTagging.BTaggingFlags import BTaggingFlags
 #BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
 #BTaggingFlags.CalibrationTag = 'Run2DC14' ## '0801C' ##'k0002'
 #####if doRetag: BTaggingFlags.MV1 = True
+if doSMT:
+  BTaggingFlags.SoftMu = True
+
 
 #### tmp Valerio
 #BTaggingFlags.MV2c20Flip = True
@@ -262,6 +274,7 @@ for JetCollection in JetCollections:
                                   JVTtool=ToolSvc.JVT,
                                   ) #DEBUG
   alg.JetCollectionName = JetCollection
+  alg.doSMT = doSMT
   if "Track" in JetCollection:
     alg.JetPtCut = 5.e3
     alg.CleanJets = False

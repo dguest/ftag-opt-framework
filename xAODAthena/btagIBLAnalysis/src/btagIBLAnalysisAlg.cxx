@@ -31,6 +31,8 @@
 #include "TrigDecisionTool/TrigDecisionTool.h"
 #include "GoodRunsLists/IGoodRunsListSelectionTool.h"
 #include "JetInterface/IJetUpdateJvt.h"
+#include "xAODMuon/MuonContainer.h"
+#include "xAODMuon/MuonAuxContainer.h"
 
 // some tracking mumbo jumbo
 #include "TDatabasePDG.h"
@@ -61,7 +63,8 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pS
   m_TightTrackVertexAssociationTool(""),
   m_tdt("Trig::TrigDecisionTool/TrigDecisionTool"),
   m_GRLSelectionTool("GoodRunsListSelectionTool/GoodRunsListSelectionTool", this),
-  m_jvt("")
+  m_jvt(""),
+  m_SMT(false)
 {
 
   declareProperty( "JetCleaningTool", m_jetCleaningTool );
@@ -71,6 +74,7 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pS
   declareProperty("TrackVertexAssociationTool", m_TightTrackVertexAssociationTool);
   declareProperty("TrackToVertexIPEstimator",m_trackToVertexIPEstimator);
   declareProperty("JVTtool",m_jvt);
+  declareProperty("doSMT",m_SMT);
   
   
   
@@ -355,6 +359,25 @@ StatusCode btagIBLAnalysisAlg::initialize() {
 
   v_jet_trkjet4_pt = new std::vector<std::vector<float> >();
   v_jet_trkjet4_MV2c00 = new std::vector<std::vector<double> >();
+
+  if (m_SMT) {
+     v_jet_mu_assJet_pt=new std::vector<float>();
+     v_jet_mu_truthflav=new std::vector<float>();
+     v_jet_mu_dR =new std::vector<float>();
+     v_jet_mu_pTrel=new std::vector<float>();;
+     v_jet_mu_qOverPratio=new std::vector<float>();
+     v_jet_mu_mombalsignif=new std::vector<float>();
+     v_jet_mu_scatneighsignif=new std::vector<float>();
+     v_jet_mu_VtxTyp=new std::vector<float>();
+     v_jet_mu_pt=new std::vector<float>();
+     v_jet_mu_eta=new std::vector<float>();
+     v_jet_mu_phi=new std::vector<float>();
+     v_jet_mu_d0=new std::vector<float>();
+     v_jet_mu_z0=new std::vector<float>();
+     v_jet_mu_parent_pdgid=new std::vector<float>();
+     v_jet_mu_ID_qOverP_var=new std::vector<float>();
+     v_jet_mu_muonType=new std::vector<float>(); 
+  }
   
   tree->Branch("runnb",&runnumber);
   tree->Branch("eventnb",&eventnumber);
@@ -600,6 +623,26 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_trkjet4_pt", &v_jet_trkjet4_pt);
   tree->Branch("jet_trkjet4_MV2c00", &v_jet_trkjet4_MV2c00);
 
+  if (m_SMT) {
+    tree->Branch("jet_mu_assJet_pt",&v_jet_mu_assJet_pt);
+    tree->Branch("jet_mu_truthflav",&v_jet_mu_truthflav);
+    tree->Branch("jet_mu_dR",&v_jet_mu_dR);
+    tree->Branch("jet_mu_pTrel",&v_jet_mu_pTrel);
+    tree->Branch("jet_mu_qOverPratio",&v_jet_mu_qOverPratio);
+    tree->Branch("jet_mu_mombalsignif",&v_jet_mu_mombalsignif);
+    tree->Branch("jet_mu_scatneighsignif",&v_jet_mu_scatneighsignif);
+    tree->Branch("jet_mu_VtxTyp",&v_jet_mu_VtxTyp);
+    tree->Branch("jet_mu_pt",&v_jet_mu_pt);
+    tree->Branch("jet_mu_eta",&v_jet_mu_eta);
+    tree->Branch("jet_mu_phi",&v_jet_mu_phi);
+    tree->Branch("jet_mu_d0",&v_jet_mu_d0);
+    tree->Branch("jet_mu_z0",&v_jet_mu_z0);
+    tree->Branch("jet_mu_parent_pdgid",&v_jet_mu_parent_pdgid);
+    tree->Branch("jet_mu_ID_qOverP_var",&v_jet_mu_ID_qOverP_var);
+    tree->Branch("jet_mu_muonType",&v_jet_mu_muonType);
+  }
+  
+
   clearvectors();
 
   return StatusCode::SUCCESS;
@@ -753,7 +796,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	  if ( particle->isCharmHadron() )  m_partonC.push_back(particle);
 	  if ( particle->isBottomHadron() ) m_partonB.push_back(particle);
 	}
-	
 	if (particle->pt() < 15e3) continue;
 	if (particle->status() != 1) continue;
 	if (particle->barcode() > 2e5) continue;
@@ -896,8 +938,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
   // Now run over the selected jets and do whatever else needs doing
   for (unsigned int j=0; j<selJets.size(); j++) {
     const xAOD::Jet* jet=selJets.at(j);
-    
-    /////////////////////////////////////////////////////////////////////////////// ///////////////////////////////////////////////////////////////////////////////
+
+       /////////////////////////////////////////////////////////////////////////////// ///////////////////////////////////////////////////////////////////////////////
     // flagging jets that overlap with electron
     bool iseljetoverlap = false;
 
@@ -1608,6 +1650,75 @@ StatusCode btagIBLAnalysisAlg::execute() {
     }  //bjet->IP3D_TrackParticleLinks();
 
     v_jet_sv0_Nvtx->push_back(SV0vertices.size());
+
+    float jet_mu_dRmin_pt=999,jet_mu_dRmin_dR=999,jet_mu_dRmin_truthflav=999,jet_mu_dRmin_eta=999,jet_mu_dRmin_phi=999,jet_mu_dRmin_assJet_pt=999,jet_mu_dRmin_qOverPratio=999,jet_mu_dRmin_mombalsignif=999,jet_mu_dRmin_scatneighsignif=999,jet_mu_dRmin_pTrel=999,jet_mu_dRmin_VtxTyp=999,jet_mu_dRmin_d0=999,jet_mu_dRmin_z0=999,jet_mu_dRmin_parent_pdgid=999,jet_mu_dRmin_ID_qOverP_var=999,jet_mu_dRmin_muonType=999;     
+     if (m_SMT) {
+       try{
+       std::vector<ElementLink<xAOD::MuonContainer> > assocMuons;
+       assocMuons= bjet->auxdata<std::vector<ElementLink<xAOD::MuonContainer> > >("Muons");
+       if(assocMuons.size()!=0){
+         for (unsigned int iT=0; iT<assocMuons.size(); iT++) {
+           if (!assocMuons.at(iT).isValid()) continue;
+           const xAOD::Muon* tmpMuon= *(assocMuons.at(iT));
+           float dr = deltaR(tmpMuon->eta(),jet->eta(),tmpMuon->phi(),jet->phi());
+           if(dr>=0.4) continue;
+           const ElementLink< xAOD::TrackParticleContainer >& pMuIDTrack=tmpMuon->inDetTrackParticleLink();
+           const ElementLink< xAOD::TrackParticleContainer >& pMuMSTrack=tmpMuon->muonSpectrometerTrackParticleLink();
+           const xAOD::Vertex * pVtx=(*pMuIDTrack)->vertex();
+           const std::vector<float>&cov= (*pMuIDTrack)->definingParametersCovMatrixVec();
+           float momBalSignif0=999.;
+           tmpMuon->parameter(momBalSignif0, xAOD::Muon::momentumBalanceSignificance);
+           if(momBalSignif0==0) continue;
+           if((*pMuMSTrack)->qOverP()==0) continue;
+           if(dr<jet_mu_dRmin_dR){
+             jet_mu_dRmin_dR=dr;
+             jet_mu_dRmin_pt=tmpMuon->pt()/1000;
+             jet_mu_dRmin_truthflav=thisJetTruthLabel;
+             jet_mu_dRmin_eta=tmpMuon->eta();
+             jet_mu_dRmin_phi=tmpMuon->phi();
+             jet_mu_dRmin_assJet_pt=jet->pt()/1000;
+             jet_mu_dRmin_qOverPratio=(*pMuIDTrack)->qOverP()/(*pMuMSTrack)->qOverP();
+             float momBalSignif=999.;
+             if(tmpMuon->parameter(momBalSignif, xAOD::Muon::momentumBalanceSignificance)) {
+               jet_mu_dRmin_mombalsignif=momBalSignif;
+             } else {jet_mu_dRmin_mombalsignif=momBalSignif;}
+             float scatNeighSignif=999.;
+             if(tmpMuon->parameter(scatNeighSignif, xAOD::Muon::scatteringNeighbourSignificance)) {
+               jet_mu_dRmin_scatneighsignif=scatNeighSignif;
+             } else {jet_mu_dRmin_scatneighsignif=scatNeighSignif;}
+             TLorentzVector myjet, mymu;
+             myjet.SetPtEtaPhiM(jet->pt(),jet->eta(),jet->phi(),0);
+             mymu.SetPtEtaPhiM(tmpMuon->pt(),tmpMuon->eta(),tmpMuon->phi(),0);
+             jet_mu_dRmin_pTrel=myjet.Vect().Perp(mymu.Vect())/1000;
+             if(pVtx!=NULL) {
+               jet_mu_dRmin_VtxTyp=pVtx->vertexType();
+             } else {jet_mu_dRmin_VtxTyp=999.;}
+             jet_mu_dRmin_d0=tmpMuon->primaryTrackParticle()->d0();
+             jet_mu_dRmin_z0=tmpMuon->primaryTrackParticle()->z0();
+ 
+             const xAOD::TruthParticle* matched_truth_muon=0;
+             if(tmpMuon->isAvailable<ElementLink<xAOD::TruthParticleContainer> >("truthParticleLink")) {
+               ElementLink<xAOD::TruthParticleContainer> link = tmpMuon->auxdata<ElementLink<xAOD::TruthParticleContainer> >("truthParticleLink");
+               if(link.isValid()) {
+                 matched_truth_muon = *link;
+                 int pdgid = parent_classify(matched_truth_muon);
+                 jet_mu_dRmin_parent_pdgid=pdgid;
+               } else {jet_mu_dRmin_parent_pdgid=999.;}
+             }
+             jet_mu_dRmin_ID_qOverP_var=cov[14];
+             jet_mu_dRmin_muonType=tmpMuon->muonType();
+           }
+         }
+ 
+       }
+       } catch(...) {
+       //std::cout << "NO Muons found!"<<std::endl;
+       //todo: write out some warning here but don't want to clog logfiles for now
+       }
+         
+     }
+ 
+
     for (unsigned int sv0V=0; sv0V< SV0vertices.size(); sv0V++) {
       if (!SV0vertices.at(sv0V).isValid()) {
 	//std::cout << "INVALID sv0 vertex: " << std::endl;
@@ -1963,6 +2074,25 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_trk_IP3D_llr->push_back(j_trk_ip3d_llr);
     
     v_jet_trk_jf_Vertex->push_back(j_trk_jf_Vertex); //mod Remco
+
+    if (m_SMT) {
+       v_jet_mu_assJet_pt->push_back(jet_mu_dRmin_assJet_pt);
+       v_jet_mu_truthflav->push_back(jet_mu_dRmin_truthflav);
+       v_jet_mu_pt->push_back(jet_mu_dRmin_pt);
+       v_jet_mu_eta->push_back(jet_mu_dRmin_eta);
+       v_jet_mu_phi->push_back(jet_mu_dRmin_phi);
+       v_jet_mu_qOverPratio->push_back(jet_mu_dRmin_qOverPratio);
+       v_jet_mu_mombalsignif->push_back(jet_mu_dRmin_mombalsignif);
+       v_jet_mu_scatneighsignif->push_back(jet_mu_dRmin_scatneighsignif);
+       v_jet_mu_dR->push_back(jet_mu_dRmin_dR);
+       v_jet_mu_pTrel->push_back(jet_mu_dRmin_pTrel);
+       v_jet_mu_VtxTyp->push_back(jet_mu_dRmin_VtxTyp);
+       v_jet_mu_d0->push_back(jet_mu_dRmin_d0);
+       v_jet_mu_z0->push_back(jet_mu_dRmin_z0);
+       v_jet_mu_parent_pdgid->push_back(jet_mu_dRmin_parent_pdgid);
+       v_jet_mu_ID_qOverP_var->push_back(jet_mu_dRmin_ID_qOverP_var);
+       v_jet_mu_muonType->push_back(jet_mu_dRmin_muonType);      
+    }
   } // jet loop
 
   for (unsigned int j=0; j<selJets.size(); j++) {
@@ -2266,5 +2396,44 @@ void btagIBLAnalysisAlg :: clearvectors(){
 
   v_jet_trkjet4_pt->clear();
   v_jet_trkjet4_MV2c00->clear();
+
+  if (m_SMT) {
+     v_jet_mu_pt->clear();
+     v_jet_mu_eta->clear();
+     v_jet_mu_phi->clear();
+     v_jet_mu_qOverPratio->clear();
+     v_jet_mu_dR->clear();
+     v_jet_mu_d0->clear();
+     v_jet_mu_z0->clear();
+     v_jet_mu_VtxTyp->clear();
+     v_jet_mu_mombalsignif->clear();
+     v_jet_mu_scatneighsignif->clear();
+     v_jet_mu_pTrel->clear();
+     v_jet_mu_truthflav->clear();
+     v_jet_mu_parent_pdgid->clear();
+     v_jet_mu_ID_qOverP_var->clear();
+     v_jet_mu_muonType->clear();
+     v_jet_mu_assJet_pt->clear();
+  }
+
 }
 
+int btagIBLAnalysisAlg::parent_classify(const xAOD::TruthParticle * theParticle){
+  const xAOD::TruthParticle* parent = 0; //the parent index
+  Int_t particle_id = 999;
+  Int_t parent_id  = 999;
+
+  if(theParticle==NULL) return parent_id;
+
+  particle_id = theParticle->pdgId();
+  parent = theParticle->parent(0);
+  if(parent) parent_id = parent->pdgId();
+  else return parent_id;
+
+  while (fabs(parent_id)==fabs(particle_id) && fabs(parent_id)<400 && fabs(parent_id)!=0){
+    parent = parent->parent(0);
+    if(parent) parent_id = parent->pdgId();
+    else break;
+  }
+  return parent_id;
+}
