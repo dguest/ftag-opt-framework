@@ -14,7 +14,7 @@ JetCollections = [ ########'AntiKt4LCTopoJets',
   #'AntiKt2PV0TrackJets'
   ]
 
-doSMT=True
+doSMT=False
 
 if doSMT:
   doRetag=True
