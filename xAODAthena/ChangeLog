@@ -1,10 +1,16 @@
+2015-08-30     Valerio Dao (valerio.dao@cern.ch):
+	- additional variables (Phi direction from trk)
+	- better understanding of track impact parameter significance
+	- better organisation of the job options
+	- merging my changes with the mainstream addition from Nikola and Andrea
+
 2015-06-22     Valerio Dao (valerio.dao@cern.ch):
 	- adding support for GRL when running on data
 	- adding leading truth jet pt
 	- JVT re-calculation
 	- for data: dropping events with no jets and leading jet<30GeV
 	- implementing latest jet cleaning from: https://twiki.cern.ch/twiki/bin/view/AtlasProtected/HowToCleanJets2015
-	
+
 
 2015-05-30	Valerio Dao (valerio.dao@cern.ch):
 	- adding L1 trigger info (event/wise)

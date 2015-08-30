@@ -26,7 +26,18 @@ To submit samples on the grid:
 - edit " submitJobs.py " with your grid usedName, production suffix
 
 
-List of packages/release
+#########################################################################################################
+#########################################################################################################
+List of packages/release:
+
+______________________________________________________________________________________________________
+2015-08-30:  Valerio Dao
+asetup 20.1.6.3,AtlasDerivation,gcc48,here
+pkgco.py JetInterface-00-00-43
+pkgco.py JetMomentTools-00-03-20
+pkgco.py PileupReweighting-00-03-06
+
+
 ______________________________________________________________________________________________________
 2015-06-22:  Valerio Dao
 asetup 20.1.5.3,AtlasProduction,gcc48,here 
