@@ -3,7 +3,6 @@
 
 #include "AthenaBaseComps/AthHistogramAlgorithm.h"
 #include "GaudiKernel/ToolHandle.h" 
-//#include "TrkExInterfaces/IExtrapolator.h"
 
 #include "TFile.h"
 #include "TTree.h"
@@ -19,10 +18,13 @@
 class IJetSelector;
 class IJetCalibrationTool;
 namespace InDet { class IInDetTrackSelectionTool; }
-namespace CP { class ITrackVertexAssociationTool;}
+namespace CP { 
+  class ITrackVertexAssociationTool;
+  class IPileupReweightingTool;
+}
 namespace Reco { class ITrackToVertex; }
 namespace Trk  { class ITrackToVertexIPEstimator; }
-//namespace Trig { class TrigDecisionTool };
+
 class IGoodRunsListSelectionTool;
 class IJetUpdateJvt;
 
@@ -49,7 +51,8 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 
   TFile* output;
   TTree* tree;
-
+  std::string m_stream;
+  
   // general event info
   int runnumber;
   int eventnumber;
@@ -87,6 +90,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_jet_sumtrkS_pt;
   std::vector<float> *v_jet_sumtrkV_pt;
   std::vector<float> *v_jet_sumtrkV_eta;
+  std::vector<float> *v_jet_sumtrkV_phi;
   std::vector<int>   *v_jet_sumtrk_ntrk;
   std::vector<float> *v_jet_phi;
   std::vector<float> *v_jet_E;
@@ -286,6 +290,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
  
   std::vector<std::vector<int> >   *v_jet_trk_IP3D_grade;
   std::vector<std::vector<float> > *v_jet_trk_IP3D_d0;
+  std::vector<std::vector<float> > *v_jet_trk_IP3D_d02D;
   std::vector<std::vector<float> > *v_jet_trk_IP3D_z0;
   std::vector<std::vector<float> > *v_jet_trk_IP3D_d0sig;
   std::vector<std::vector<float> > *v_jet_trk_IP3D_z0sig;
@@ -299,16 +304,15 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<int>   *v_jet_ip3d_ntrk;
   std::vector<int>   *v_jet_jf_ntrk;
 
-  // additions by nikola
-  std::vector<std::vector<float> > *v_jet_trkjet2_pt;
+  // additions by Nikola
+  std::vector<std::vector<float> >  *v_jet_trkjet2_pt;
   std::vector<std::vector<double> > *v_jet_trkjet2_MV2c00;
-
-  std::vector<std::vector<float> > *v_jet_trkjet3_pt;
+  std::vector<std::vector<float> >  *v_jet_trkjet3_pt;
   std::vector<std::vector<double> > *v_jet_trkjet3_MV2c00;
-
-  std::vector<std::vector<float> > *v_jet_trkjet4_pt;
+  std::vector<std::vector<float> >  *v_jet_trkjet4_pt;
   std::vector<std::vector<double> > *v_jet_trkjet4_MV2c00;
 
+  // additions by Andrea
   std::vector<float> *v_jet_mu_truthflav;
   std::vector<float> *v_jet_mu_dR;
   std::vector<float> *v_jet_mu_pTrel;
@@ -344,11 +348,12 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 
 
   /// from outside
-  bool m_reduceInfo; //if set to true is allows to run over xAOD and not crashing when info are missing
-  bool m_doMSV; //if set to true it includes variables from multi SV tagger
-  bool m_rel20; //if set to true code works for rel20, if set to false it will work for rel19
+  bool m_reduceInfo;               // if set to true is allows to run over xAOD and not crashing when info are missing
+  bool m_doMSV;                    // if set to true it includes variables from multi SV tagger
+  bool m_rel20;                    // if set to true code works for rel20, if set to false it will work for rel19
+  bool m_SMT;
   std::string m_jetCollectionName; // name of the jet collection to work with
-  float m_jetPtCut; // pT cut to apply
+  float m_jetPtCut;                // pT cut to apply
   bool m_calibrateJets;
   bool m_cleanJets;
   
@@ -379,15 +384,13 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 
   ToolHandle<IJetUpdateJvt> m_jvt;
 
-  bool m_SMT;
-
+  ToolHandle<CP::IPileupReweightingTool> m_PUtool;
+ 
   // determine whether particle is B hadron or not
   bool isBHadron(int pdgid);
 
   // compute dR between two objects
   float deltaR(float eta1, float eta2, float phi1, float phi2);
-
-  //ToolHandle<IExtrapolator> m_extrapolator; //Trk::
   
 }; 
 
