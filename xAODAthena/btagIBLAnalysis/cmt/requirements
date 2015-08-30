@@ -34,9 +34,10 @@ use  TrigDecisionTool   TrigDecisionTool-*      Trigger/TrigAnalysis
 use  xAODMuon           xAODMuon-*              Event/xAOD
 
 use TrkVertexFitterInterfaces  TrkVertexFitterInterfaces-*     Tracking/TrkVertexFitter
-use ITrackToVertex      ITrackToVertex-*         Reconstruction/RecoTools
-use InDetTrackSelectionTool InDetTrackSelectionTool-* InnerDetector/InDetRecTools
-use TrackVertexAssociationTool TrackVertexAssociationTool-* InnerDetector/InDetRecTools
+use ITrackToVertex             ITrackToVertex-*                Reconstruction/RecoTools
+use InDetTrackSelectionTool    InDetTrackSelectionTool-*       InnerDetector/InDetRecTools
+use TrackVertexAssociationTool TrackVertexAssociationTool-*    InnerDetector/InDetRecTools
+use PileupReweighting          PileupReweighting-*             PhysicsAnalysis/AnalysisCommon
 
 ## default is to make component library
 library btagIBLAnalysis *.cxx components/*.cxx
