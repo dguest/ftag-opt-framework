@@ -12,7 +12,7 @@
 
   //gROOT->ProcessLine("Plotter_pt2(\"../../files/DC14_ttbar/\",\"13TeVXAOD_DC14_tt\")");
   //gROOT->ProcessLine("Plotter_pt2(\"../../files/reTag_base_ttbar/\",\"13TeVXAOD_Base_tt\")");
-  gROOT->ProcessLine("Plotter_pt2(\"../../files/reTag_base2_ttbar/\",\"13TeVXAOD_Base2_tt\")");
+  gROOT->ProcessLine("Plotter_pt2(\"/afs/cern.ch/work/a/abell/public/user.vdao.mc15_13TeV.410000.PowhegPythiaEvtGen_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264.BTAGNTUP_V11slim_BTAGSTREAM\",\"./\",\"70\")");
 
   gROOT->ProcessLine(".q");
 }

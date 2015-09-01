@@ -22,7 +22,7 @@ TChain* myT_1;
 
 bool is8TeV=false;
 bool isXAOD=false;
-float workpoint=0.70;
+float workpoint=0.7;
 string outputFolder;
 
 TFile* outF;
@@ -65,7 +65,7 @@ float getHighBin(string tagger) {
   if (tagger=="MVb")       return  1.;
   if (tagger=="SV1")       return  13;
   if (tagger=="JetFitter") return  10;
-  cout << "NOT SUPPORTED!!! " << endl;
+  cout << "NOT SUPPORTED!!!" << endl;
   return 0.;
 }
 
@@ -99,7 +99,7 @@ string getVariable(string tagger, bool a8TeV) {
     else       return  "jet_tagNN";
   }
 
-  cout << "NOT SUPPORTED!!! " << endl;
+  cout << "NOT SUPPORTED!!!" << endl;
   return "0.";
 }
 
@@ -150,7 +150,7 @@ TGraphAsymmErrors* GetEfficiency(string varName,
   TH2D* bjets=GetHisto(varName, cutBase+" && jet_truthflav==5", 
 		       varLabel, tagger, nBin, Max, Min);
 
-  TH2D* ljets=GetHisto(varName, cutBase+" && (jet_truthflav!=4 && jet_truthflav!=5 && jet_truthflav!=15) ", 
+  TH2D* cjets=GetHisto(varName, cutBase+" && (jet_truthflav==4)", 
 		       varLabel, tagger, nBin, Max, Min);
 
   /*
@@ -159,13 +159,13 @@ TGraphAsymmErrors* GetEfficiency(string varName,
   myC1->cd(1);
   bjets->Draw("COLZ");
   myC1->cd(2);
-  ljets->Draw("COLZ");
+  cjets->Draw("COLZ");
   myC1->Update();
   */
 
   bjets->SetDirectory(0);
-  ljets->SetDirectory(0);
-  cout << "Integrals: " << bjets->Integral() << "  .... " << ljets->Integral() << endl;
+  cjets->SetDirectory(0);
+  cout << "Integrals: " << bjets->Integral() << "  .... " << cjets->Integral() << endl;
 
   TH1D* den  =NULL;
   TH1D* num  =NULL;
@@ -186,12 +186,12 @@ TGraphAsymmErrors* GetEfficiency(string varName,
     if (BigX==nBin) BigX=nBin+1;
 
     float bInt=bjets->Integral(SmallX,BigX,0,masterBin+1);
-    float lInt=ljets->Integral(SmallX,BigX,0,masterBin+1);
+    float cInt=cjets->Integral(SmallX,BigX,0,masterBin+1);
     //cout << " for this bin: " << bin 
     //<< " small: " << SmallX << " big: " << BigX << endl;
-    //cout << "Full integrals: " << bInt << " , " << lInt << endl;
-    den->SetBinContent(bin,lInt);
-    den->SetBinError(bin,sqrt(lInt));
+    //cout << "Full integrals: " << bInt << " , " << cInt << endl;
+    den->SetBinContent(bin,cInt);
+    den->SetBinError(bin,sqrt(cInt));
     
     int binCut=-1;
     float prevEff=0;
@@ -205,12 +205,12 @@ TGraphAsymmErrors* GetEfficiency(string varName,
 	break;
       }
     }
-    float lIntCut=ljets->Integral(SmallX,BigX,binCut,masterBin+1);
+    float cIntCut=cjets->Integral(SmallX,BigX,binCut,masterBin+1);
     cout << " Cut of: " << binCut 
 	 << " gives and eff of: " << prevEff 
-	 << " .... and fakeRate of: " << lIntCut/lInt << endl ;
-    num->SetBinContent(bin,lIntCut);
-    num->SetBinError(bin,sqrt(lIntCut));
+	 << " .... and fakeRate of: " << cIntCut/cInt << endl ;
+    num->SetBinContent(bin,cIntCut);
+    num->SetBinError(bin,sqrt(cIntCut));
   
   } // bin loop
 
@@ -250,7 +250,7 @@ void GetComparison(string file1, string cutBase, string tagger,
 
   mainH->Reset();
   mainH->SetTitle( (";"+varLabel+";"+yLabel+";").c_str() );
-  mainH->SetMaximum(0.10);
+  mainH->SetMaximum(0.20);
   mainH->SetMinimum(0.0);
   mainH->Draw("HIST");
   mainH->SetDirectory(0);
@@ -404,7 +404,7 @@ void PrintTagger(string tagger, string file1)  {
   }
   
   // MV1: quite detailed info
-  string yLabel=tagger+"l rej @70% eff.";
+  string yLabel=tagger+"c rej @70% eff.";
   string effCut=" && "+getVariable(tagger, is8TeV)+">"+" ";
  
   /*
@@ -447,7 +447,7 @@ void Plotter_pt3(const char* infile,
   if (outputFolder.find("8TeV")!=string::npos) is8TeV=true;
   if (outputFolder.find("XAOD")!=string::npos) isXAOD=true;
   
-  outF=new TFile( (outputFolder+"/effPlotsFix.root").c_str(),"RECREATE");
+  outF=new TFile( (outputFolder+"/effPlotsFix_c.root").c_str(),"RECREATE");
   cout << "Created file: " << outF->GetName() << endl;
 
   string file1=infile;

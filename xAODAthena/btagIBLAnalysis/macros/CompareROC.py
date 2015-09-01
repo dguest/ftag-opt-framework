@@ -229,18 +229,23 @@ for tag in taggerList:
         endV=0
         start=0
         ##if not (name1!="" and name2!=""): start=findStart(bin,px1,curve2)
-        for bin2 in xrange(start,curve2.GetN()+1):
-            px2=Double(0)
-            py2=Double(0)
-            curve2.GetPoint(bin2-1,px2,py2)
-            if fabs(px2-px1)>0.01 : continue
-            if fabs(px2-px1)<fabs(clo_px2-px1):
-                clo_py2=py2
-                clo_px2=px2
-                endV=bin2
-            elif px2<px1:  break
+        #for bin2 in xrange(start,ratC.GetN()+1):
+        #    #print "       bin2: "+str(bin2)
+        #    px2=Double(0)
+        #    py2=Double(0)
+        #    curve2.GetPoint(bin2-1,px2,py2)
+        #    if fabs(px2-px1)>0.05 : continue
+        #    if fabs(px2-px1)<fabs(clo_px2-px1):
+        #        clo_py2=py2
+        #        clo_px2=px2
+        #        endV=bin2
+        #    elif px2<px1:  break
+        ##print "  ---> end is: "+str(endV)+"  with: "+str(clo_px2)
+        #if clo_py2!=100000 : ratC.SetPoint(bin-1,px1,clo_py2/py1)
+        #else               : ratC.SetPoint(bin-1,px1,-1)
+        clo_py2=curve2.Eval(px1)
         if clo_py2!=100000 :
-            ratC.SetPoint(countPoint,px1,clo_py2/py1-1)
+            ratC.SetPoint(countPoint,px1,clo_py2/py1)
             if "Errors" in ratC.ClassName(): ratC.SetPointError(countPoint,0,0)
             countPoint+=1
 
@@ -265,21 +270,25 @@ for tag in taggerList:
             clo_px2=100000
             endV=0
             start=0
-            for bin2 in xrange(start,curve3.GetN()+1):
-                #print "       bin2: "+str(bin2) 
-                px2=Double(0)
-                py2=Double(0)
-                curve3.GetPoint(bin2-1,px2,py2)
-                if fabs(px2-px1)>0.01 : continue
-                if fabs(px2-px1)<fabs(clo_px2-px1):
-                    clo_py2=py2
-                    clo_px2=px2
-                    endV=bin2
-                elif px2<px1:  break
+      	    #for bin2 in xrange(start,ratC.GetN()+1):
+        	#    #print "       bin2: "+str(bin2)
+        	#    px2=Double(0)
+        	#    py2=Double(0)
+        	#    curve2.GetPoint(bin2-1,px2,py2)
+        	#    if fabs(px2-px1)>0.05 : continue
+        	#    if fabs(px2-px1)<fabs(clo_px2-px1):
+        	#        clo_py2=py2
+        	#        clo_px2=px2
+        	#        endV=bin2
+        	#    elif px2<px1:  break
+        	##print "  ---> end is: "+str(endV)+"  with: "+str(clo_px2)
+        	#if clo_py2!=100000 : ratC.SetPoint(bin-1,px1,clo_py2/py1)
+        	#else               : ratC.SetPoint(bin-1,px1,-1)
+            clo_py2=curve2.Eval(px1)
             if clo_py2!=100000 :
-                ratC2.SetPoint(countPoint,px1,clo_py2/py1-1)
-                if "Errors" in ratC2.ClassName(): ratC2.SetPointError(countPoint,0,0)
-                countPoint+=1
+            	ratC.SetPoint(countPoint,px1,clo_py2/py1)
+            	if "Errors" in ratC.ClassName(): ratC.SetPointError(countPoint,0,0)
+            	countPoint+=1
 
         for point in xrange(countPoint+1,ratC2.GetN()+1): ratC2.RemovePoint(point)
         ratC2.SetLineWidth(2)
@@ -288,6 +297,9 @@ for tag in taggerList:
     
     myCx.Update()
     myCx.Print(odir+"/bVSlight__"+tag+".pdf")
+    myCx.Print(odir+"/bVSlight__"+tag+".eps")
+    myCx.Print(odir+"/bVSlight__"+tag+".png")
+    myCx.Print(odir+"/bVSlight__"+tag+".C")
 
 myC.cd()
 legend4.Draw()
@@ -412,18 +424,23 @@ for tag in taggerList:
         clo_px2=100000
         endV=0
         start=0
-        for bin2 in xrange(start,ratC.GetN()+1):
-            px2=Double(0)
-            py2=Double(0)
-            curve2.GetPoint(bin2-1,px2,py2)
-            if fabs(px2-px1)>0.01 : continue
-            if fabs(px2-px1)<fabs(clo_px2-px1):
-                clo_py2=py2
-                clo_px2=px2
-                endV=bin2
-            elif px2<px1:  break
+        #for bin2 in xrange(start,ratC.GetN()+1):
+        #    #print "       bin2: "+str(bin2)
+        #    px2=Double(0)
+        #    py2=Double(0)
+        #    curve2.GetPoint(bin2-1,px2,py2)
+        #    if fabs(px2-px1)>0.05 : continue
+        #    if fabs(px2-px1)<fabs(clo_px2-px1):
+        #        clo_py2=py2
+        #        clo_px2=px2
+        #        endV=bin2
+        #    elif px2<px1:  break
+        ##print "  ---> end is: "+str(endV)+"  with: "+str(clo_px2)
+        #if clo_py2!=100000 : ratC.SetPoint(bin-1,px1,clo_py2/py1)
+        #else               : ratC.SetPoint(bin-1,px1,-1)
+        clo_py2=curve2.Eval(px1)
         if clo_py2!=100000 :
-            ratC.SetPoint(countPoint,px1,clo_py2/py1-1)
+            ratC.SetPoint(countPoint,px1,clo_py2/py1)
             if "Errors" in ratC.ClassName(): ratC.SetPointError(countPoint,0,0)
             countPoint+=1
     for point in xrange(countPoint+1,ratC.GetN()+1):
@@ -448,22 +465,25 @@ for tag in taggerList:
             clo_px2=100000
             endV=0
             start=0
-            for bin2 in xrange(start,ratC2.GetN()+1):
-                #print "       bin2: "+str(bin2) 
-                px2=Double(0)
-                py2=Double(0)
-                curve3.GetPoint(bin2-1,px2,py2)
-                if fabs(px2-px1)>0.01 : continue
-                if fabs(px2-px1)<fabs(clo_px2-px1):
-                    clo_py2=py2
-                    clo_px2=px2
-                    endV=bin2
-                elif px2<px1:  break
-                    
+        	#for bin2 in xrange(start,ratC.GetN()+1):
+        	#    #print "       bin2: "+str(bin2)
+        	#    px2=Double(0)
+        	#    py2=Double(0)
+        	#    curve2.GetPoint(bin2-1,px2,py2)
+        	#    if fabs(px2-px1)>0.05 : continue
+        	#    if fabs(px2-px1)<fabs(clo_px2-px1):
+        	#        clo_py2=py2
+        	#        clo_px2=px2
+        	#        endV=bin2
+        	#    elif px2<px1:  break
+        	##print "  ---> end is: "+str(endV)+"  with: "+str(clo_px2)
+        	#if clo_py2!=100000 : ratC.SetPoint(bin-1,px1,clo_py2/py1)
+        	#else               : ratC.SetPoint(bin-1,px1,-1)
+            clo_py2=curve2.Eval(px1)
             if clo_py2!=100000 :
-                ratC2.SetPoint(countPoint,px1,clo_py2/py1-1)
-                if "Errors" in ratC2.ClassName(): ratC2.SetPointError(countPoint,0,0)
-                countPoint+=1
+            	ratC.SetPoint(countPoint,px1,clo_py2/py1)
+            	if "Errors" in ratC.ClassName(): ratC.SetPointError(countPoint,0,0)
+            	countPoint+=1
     
         for point in xrange(countPoint+1,ratC2.GetN()+1): ratC2.RemovePoint(point)
         ratC2.SetLineWidth(2)
@@ -473,6 +493,9 @@ for tag in taggerList:
     myCx.Update()
     
     myCx.Print(odir+"/bVSc__"+tag+".pdf")
+    myCx.Print(odir+"/bVSc__"+tag+".eps")
+    myCx.Print(odir+"/bVSc__"+tag+".png")
+    myCx.Print(odir+"/bVSc__"+tag+".C")
 
 myC2.cd()
 legend4.Draw()

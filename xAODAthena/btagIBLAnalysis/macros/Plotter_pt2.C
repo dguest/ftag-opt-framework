@@ -23,6 +23,7 @@ TChain* myT_1;
 bool is8TeV=false;
 bool isXAOD=false;
 string outputFolder;
+string workpoint = "70";
 
 TFile* outF;
 
@@ -50,8 +51,20 @@ string getCut(string tagger, bool a8TeV) {
     if (a8TeV) return  "0.0295";
     else      return  "-0.00416666666667";
   }
-  if (tagger=="MV2c20") {
-    if (a8TeV) return  "0.0105";
+  if (tagger=="MV2c20" && workpoint == "60") {
+    if (a8TeV) return  "0.4496";
+    else      return  "-0.0215";
+  }
+  if (tagger=="MV2c20" && workpoint == "70") {
+    if (a8TeV) return  "-0.0436";
+    else      return  "-0.0215";
+  }
+  if (tagger=="MV2c20" && workpoint == "77") {
+    if (a8TeV) return  "-0.4434";
+    else      return  "-0.0215";
+  }
+  if (tagger=="MV2c20" && workpoint == "85") {
+    if (a8TeV) return  "-0.7887";
     else      return  "-0.0215";
   }
   if (tagger=="IP3D") {
@@ -199,7 +212,7 @@ void GetComparison(string file1, string cutBase, string effCut,
   mainH->SetDirectory(0);
 
     if (myT_1==0) {
-    myT_1=new TChain("bTag");
+    myT_1=new TChain("bTag_AntiKt4EMTopoJets");
     cout << " OPENING FILE: " << file1 << endl;
     if ( file1.find("root")!=string::npos )  {
       myT_1->Add( file1.c_str() );
@@ -324,8 +337,12 @@ void GetComparison(string file1, string cutBase, string effCut,
   //outF->WriteObject(gra2,cEff);
   //outF->WriteObject(gra3,lEff);
   
-  varToPrint=outputFolder+"/"+varToPrint+".eps";
-  can->Print( varToPrint );
+  TString varToPrint1=outputFolder+"/"+varToPrint+".eps";
+  TString varToPrint2=outputFolder+"/"+varToPrint+".png";
+  TString varToPrint3=outputFolder+"/"+varToPrint+".C";
+  can->Print( varToPrint1 );
+  can->Print( varToPrint2 );
+  can->Print( varToPrint3 );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -426,7 +443,7 @@ void PrintTagger(string tagger, string file1)  {
   /// even more ugly
   
   string CutBase="";
-  if (isXAOD) CutBase=" abs(jet_eta)<2.5 && jet_pt>25e3 && jet_truthMatch==1 ";
+  if (isXAOD) CutBase=" abs(jet_eta)<2.5 && jet_pt>25e3 && (abs(jet_JVT)>0.64 || jet_pt>50e3 || abs(jet_eta)>2.4)";
   else        CutBase=" abs(jet_eta)<2.5 && jet_pt>25e3 && jet_truthmatched==1 ";
 
   string Cut1=" "; 
@@ -443,7 +460,7 @@ void PrintTagger(string tagger, string file1)  {
   }
   
   // MV1: quite detailed info
-  string yLabel=tagger+"@70% eff.";
+  string yLabel=tagger+"@"+workpoint+"% eff.";
   string effCut=" && "+getVariable(tagger, is8TeV)+">"+getCut(tagger, is8TeV)+" ";
  
   GetComparison(file1,CutBase, effCut,
@@ -467,7 +484,7 @@ void PrintTagger(string tagger, string file1)  {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Plotter_pt2(const char* infile,
-		 const char* outfolder) {
+		 const char* outfolder, string wkpoint) {
   gStyle->SetOptStat(0);
   SetAtlasStyle();
   
@@ -475,22 +492,24 @@ void Plotter_pt2(const char* infile,
   if (outputFolder.find("8TeV")!=string::npos) is8TeV=true;
   if (outputFolder.find("XAOD")!=string::npos) isXAOD=true;
   
+  workpoint=wkpoint;
+
   outF=new TFile( (outputFolder+"/effPlots.root").c_str(),"RECREATE");
   cout << "Created file: " << outF->GetName() << endl;
 
   string file1=infile;
   gSystem->Exec( ("mkdir -p "+outputFolder).c_str());
 
-  PrintTagger("MV1",file1);
+//  PrintTagger("MV1",file1);
   //PrintTagger("MV1c",file1);
-  PrintTagger("MV2c00",file1);
+//  PrintTagger("MV2c00",file1);
   //PrintTagger("MV2c10",file1);
   PrintTagger("MV2c20",file1);
   //PrintTagger("MVb",file1);
-  PrintTagger("IP3D",file1);
+//  PrintTagger("IP3D",file1);
   //PrintTagger("IP3D+SV1",file1);
-  PrintTagger("SV1",file1);
-  PrintTagger("JetFitter",file1);
+//  PrintTagger("SV1",file1);
+//  PrintTagger("JetFitter",file1);
 
   outF->Close();
 }

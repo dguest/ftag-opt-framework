@@ -64,7 +64,7 @@ while obj!=None:
 plotList.sort()
 plotList=list(set(plotList))
 print plotList
-taggerList=["IP3D","SV1","MV2c00","MV2c20","MV1","JetFitter"]
+#taggerList=["IP3D","SV1","MV2c00","MV2c20","MV1","JetFitter"]
 taggerList=["MV2c20"]
 
 canvases=[]
@@ -91,7 +91,7 @@ for tag in taggerList:
         base.SetMinimum(0.001)
         if jetType=="c": base.SetMaximum(20)
         if jetType=="l": base.SetMaximum(1500)
-        if special:  base.SetMaximum(0.20)
+        #if special:  base.SetMaximum(0.20)
         base.Draw("HIST")
         if special: base.GetXaxis().SetRangeUser(25,600);
         legend4=TLegend(0.60,0.75,0.82,0.95)
@@ -110,6 +110,16 @@ for tag in taggerList:
             curve1=f1.Get( "Eff_"+jetType+"__Eff__"+var.replace("Base__","")+"__"+tag+"_70")
         curve1.SetLineColor(count);
         curve1.SetMarkerColor(count);
+        binnumber=0
+        for binnumber in xrange(curve1.GetN()):
+        	ax = Double(0)
+        	ay = Double(0)
+        	curve1.GetPoint(binnumber,ax,ay)
+        	eax=curve1.GetErrorX(binnumber)
+        	eay=curve1.GetErrorY(binnumber)
+        	if ay!=0:
+        		curve1.SetPoint(binnumber,ax,1/ay)
+        		curve1.SetPointError(binnumber,eax,+eax,eay/(ay*ay),eay/(ay*ay))
         legend4.AddEntry(curve1 ,leg1, "LPE")
         curve1.Draw("PE")
 
@@ -122,6 +132,15 @@ for tag in taggerList:
             curve2=f2.Get( "Eff_"+jetType+"__Eff__"+var.replace("Base__","")+"__"+tag+"_70")
         curve2.SetLineColor(count);
         curve2.SetMarkerColor(count);
+        for binnumber in xrange(curve2.GetN()):
+        	ax = Double(0)
+        	ay = Double(0)
+        	curve2.GetPoint(binnumber,ax,ay)
+        	eax=curve2.GetErrorX(binnumber)
+        	eay=curve2.GetErrorY(binnumber)
+        	if ay!=0:
+        		curve2.SetPoint(binnumber,ax,1/ay)
+        		curve2.SetPointError(binnumber,eax,+eax,eay/(ay*ay),eay/(ay*ay))
         legend4.AddEntry(curve2 ,leg2, "LPE")
         curve2.Draw("PE")
         

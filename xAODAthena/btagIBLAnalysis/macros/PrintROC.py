@@ -95,15 +95,15 @@ elif isXAOD:
 #        ["MV2c00"  , "mv2c00"  ,  -0.5 ,  0.5    ,  3000, 2 ],
 #        ["MV2c10"  , "mv2c10"  ,  -0.5 ,  0.5    ,  3000, 4 ],
 #        ["MV2c20"  , "mv2c20"  ,  -0.5 ,  0.5    ,  3000, 7 ],
-        ["MV2c00"  , "mv2c00"  ,  -1.01 ,  1.01    ,  1000, 2 ],
-        ["MV2c10"  , "mv2c10"  ,  -1.01 ,  1.01    ,  1000, 4 ],
+#        ["MV2c00"  , "mv2c00"  ,  -1.01 ,  1.01    ,  1000, 2 ],
+#        ["MV2c10"  , "mv2c10"  ,  -1.01 ,  1.01    ,  1000, 4 ],
         ["MV2c20"  , "mv2c20"  ,  -1.01 ,  1.01    ,  1000, 7 ],
         ["IP3D"    , "ip3d_llr", -12.  ,   30    ,  1000, 8 ],
         ["IP2D"    , "ip2d_llr", -12.  ,   30    ,  1000, 10 ],
         ["SV1"     , "sv1_llr" ,  -4.  ,   13    ,  1000, 6 ],
 #        ["IP3D+SV1", "sv1ip3d" , -10.  ,   35    ,  3000, 797 ],
 ##        ["MVb"     , "mvb"     ,  -1.05,  0.8    ,  3000, 920 ],
-        ["JetFitter"     , "jf_llr"     ,  -15,  10    ,  1000, 40 ]
+#        ["JetFitter"     , "jf_llr"     ,  -15,  10    ,  1000, 40 ]
         ]
 else:
     taggers=[ ["MV1"     , "mv1"     ,   0.0  ,  0.9945  , 20000, 1 ],   #20000
@@ -123,10 +123,8 @@ def GetHisto(tag, intree, val):
     tmpH.Sumw2()
     var="jet_"+tag[1]+">>"+tmpH.GetName()
     cut=""
-  
-    if "EM" in odir: cut=" abs(jet_eta)<2.5 && jet_pt>100e3 &&  (jet_JVT>0.2 || jet_pt>50e3 || abs(jet_eta)>2.4) && jet_truthMatch==1 && jet_truthflav=="+str(val)
-    #else           : cut=" abs(jet_eta)<2.5 && jet_pt>25e3 &&  (jet_JVT>0.2 || jet_pt>50e3 || abs(jet_eta)>2.4) && jet_LabDr_HadF=="+str(val)
-    else           : cut=" abs(jet_eta)<2.5 && jet_pt>25e3 &&  (jet_JVT>0.2 || jet_pt>50e3 || abs(jet_eta)>2.4) && jet_truthflav=="+str(val)
+ 
+    cut=" abs(jet_eta)<2.5 && jet_pt>25e3 &&  jet_truthMatch==1 && jet_truthflav=="+str(val)
 
     ##if not is8T: cut="jet_truthflav=="+str(val)+" && jet_pt>25e3  &&  (jet_JVT>0.2 || jet_pt>50e3 || abs(jet_eta)>2.4) "
     ##             cut="jet_LabDr_HadF=="+str(val)+" && jet_pt>25e3  &&  (jet_JVT>0.2 || jet_pt>50e3 || abs(jet_eta)>2.4) "
@@ -260,6 +258,8 @@ for curve in lightCurve:
 legend4.Draw()
 myC.Update()
 myC.Print(odir+"/bVSlight.eps")
+myC.Print(odir+"/bVSlight.png")
+myC.Print(odir+"/bVSlight.C")
 
 myC2=TCanvas( "cVSl", "cVSl",900,900);
 myC2.SetLogy()
@@ -278,6 +278,8 @@ myText(0.20,0.24,1,myLumi,0.045)
 myText(0.20,0.19,1,myLumi2,0.045)
 myC2.Update()
 myC2.Print(odir+"/cVSlight.eps")
+myC2.Print(odir+"/cVSlight.png")
+myC2.Print(odir+"/cVSlight.C")
 
 ofile.Close()
 
