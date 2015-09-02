@@ -13,14 +13,16 @@
 ###mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264/
 ###mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6633_r6264/
 
+mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264/
+
 
 ##### dijet samples:  (6633: week1,  6630: week1)
 ##############mc15_13TeV.361020.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ0W.merge.AOD.e3569_s2576_s2132_r6630_r6264/
-mc15_13TeV.361021.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ1W.merge.AOD.e3569_s2576_s2132_r6630_r6264/
-mc15_13TeV.361022.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ2W.merge.AOD.e3668_s2576_s2132_r6630_r6264/
-mc15_13TeV.361023.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ3W.merge.AOD.e3668_s2576_s2132_r6630_r6264/
-mc15_13TeV.361024.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ4W.merge.AOD.e3668_s2576_s2132_r6630_r6264/
-mc15_13TeV.361025.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ5W.merge.AOD.e3668_s2576_s2132_r6630_r6264/
+#mc15_13TeV.361021.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ1W.merge.AOD.e3569_s2576_s2132_r6630_r6264/
+#mc15_13TeV.361022.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ2W.merge.AOD.e3668_s2576_s2132_r6630_r6264/
+#mc15_13TeV.361023.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ3W.merge.AOD.e3668_s2576_s2132_r6630_r6264/
+#mc15_13TeV.361024.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ4W.merge.AOD.e3668_s2576_s2132_r6630_r6264/
+#mc15_13TeV.361025.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ5W.merge.AOD.e3668_s2576_s2132_r6630_r6264/
 ##mc15_13TeV.361026.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ6W.merge.AOD.e3569_s2608_s2183_r6630_r6264/
 ##mc15_13TeV.361027.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ7W.merge.AOD.e3668_s2608_s2183_r6630_r6264/
 ##mc15_13TeV.361028.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ8W.merge.AOD.e3569_s2576_s2132_r6630_r6264/
@@ -34,51 +36,15 @@ mc15_13TeV.361025.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ5W.merge.AOD.e3668_s2576_s
 ################################
 ###  DATA
 ################################
-#data15_13TeV.00266904.physics_Main.merge.AOD.f594_m1435
-#data15_13TeV.00266919.physics_Main.merge.AOD.f594_m1435
-#data15_13TeV.00267073.physics_Main.merge.AOD.f594_m1435
-#data15_13TeV.00267069.physics_Main.merge.AOD.f594_m1435
-#data15_comm.periodD2.physics_Main.PhysCont.AOD.t0pro17_v01/
-
-### FTAG DERIVATIONS: lacking vertex container ......
-#data15_13TeV.00266904.physics_Main.merge.DAOD_FTAG1.f594_m1435_p2361/
-#data15_13TeV.00267069.physics_Main.merge.DAOD_FTAG1.f594_m1435_p2361/
-
-
-######################################################################################################################
-#####  8TeV rel20 re-reco
-##mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r6269_r6260/
-######################################################################################################################
-
-
-######################################################################################################################
-######################################################################################################################
-######################################################################################################################
-### OLD r20 sample (DC14+r20reco)
-##mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.merge.AOD.e2928_s1982_s2008_r6114_r6104/
-#mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.merge.AOD.e2928_s1982_s2008_r5787_r5853/
-#valid2.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e3099_s1982_s1964_r6179/
-###mc14_13TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.merge.AOD.e2928_s1982_s2008_r6205_r6223/
-###mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.recon.AOD.e1727_s1933_s1911_r6265/
-#############mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r6269_r6260/
-###mc14_8TeV.117050.PowhegPythia_P2011C_ttbar.merge.AOD.e1727_s1933_s1911_r6269_r6260_tid05387577_00
-
-### old tests
-#mc14_13TeV.184172.PowhegPythia_P2012_ttbar_nonallhad_mtt_1100_1300.merge.AOD.e3232_s1982_s2008_r6205_r6223/
-#mc14_13TeV.184173.PowhegPythia_P2012_ttbar_nonallhad_mtt_1300_1500.merge.AOD.e3232_s1982_s2008_r6205_r6223/
-#mc14_13TeV.184174.PowhegPythia_P2012_ttbar_nonallhad_mtt_1500_1700.merge.AOD.e3232_s1982_s2008_r6205_r6223/
-#mc14_13TeV.184175.PowhegPythia_P2012_ttbar_nonallhad_mtt_1700_2000.merge.AOD.e3232_s1982_s2008_r6205_r6223/
-#mc14_13TeV.184176.PowhegPythia_P2012_ttbar_nonallhad_mtt_2000p.merge.AOD.e3232_s1982_s2008_r6205_r6223/
-
-
-#mc14_13TeV.191339.Pythia8_AU2MSTW2008LO_Zprimebb600.merge.AOD.e3677_s1982_s2008_r6243_r6223/
-#mc14_13TeV.191340.Pythia8_AU2MSTW2008LO_Zprimebb800.merge.AOD.e3677_s1982_s2008_r6243_r6223/
-#mc14_13TeV.191341.Pythia8_AU2MSTW2008LO_Zprimebb1000.merge.AOD.e3677_s1982_s2008_r6243_r6223/
-#mc14_13TeV.191342.Pythia8_AU2MSTW2008LO_Zprimebb1250.merge.AOD.e3677_s1982_s2008_r6243_r6223/
-#mc14_13TeV.191345.Pythia8_AU2MSTW2008LO_Zprimebb2000.merge.AOD.e3677_s1982_s2008_r6243_r6223/
-#mc14_13TeV.191346.Pythia8_AU2MSTW2008LO_Zprimebb2500.merge.AOD.e3677_s1982_s2008_r6243_r6223/
-#mc14_13TeV.191347.Pythia8_AU2MSTW2008LO_Zprimebb3000.merge.AOD.e3677_s1982_s2008_r6243_r6223/
-#mc14_13TeV.191348.Pythia8_AU2MSTW2008LO_Zprimebb4000.merge.AOD.e3677_s1982_s2008_r6243_r6223/
-#mc14_13TeV.191349.Pythia8_AU2MSTW2008LO_Zprimebb5000.merge.AOD.e3677_s1982_s2008_r6243_r6223/
-
+#data15_13TeV.00276262.physics_Main.merge.DAOD_FTAG1.f620_m1480_p2411/
+#data15_13TeV.00276329.physics_Main.merge.DAOD_FTAG1.f620_m1480_p2411/
+#data15_13TeV.00276336.physics_Main.merge.DAOD_FTAG1.f620_m1480_p2411/
+#data15_13TeV.00276416.physics_Main.merge.DAOD_FTAG1.f620_m1480_p2411/
+#data15_13TeV.00276511.physics_Main.merge.DAOD_FTAG1.f620_m1480_p2411/
+#data15_13TeV.00276689.physics_Main.merge.DAOD_FTAG1.f623_m1480_p2411/
+#data15_13TeV.00276731.physics_Main.merge.DAOD_FTAG1.f620_m1480_p2411/
+#data15_13TeV.00276778.physics_Main.merge.DAOD_FTAG1.f620_m1480_p2411/
+#data15_13TeV.00276790.physics_Main.merge.DAOD_FTAG1.f620_m1480_p2411/
+#data15_13TeV.00276952.physics_Main.merge.DAOD_FTAG1.f620_m1480_p2411/
+#data15_13TeV.00276954.physics_Main.merge.DAOD_FTAG1.f620_m1480_p2411/
 

@@ -20,12 +20,17 @@ JetCollections = [
 ### Define input xAOD and output ntuple file name
 import glob
 from AthenaCommon.AthenaCommonFlags import jobproperties as jp
-jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(100)
+jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1)
 
 jp.AthenaCommonFlags.FilesInput = [ 
   "/afs/cern.ch/user/g/ggonella/ggonella/public/ForValerio/mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264_tid05419191_00/AOD.05419191._000184.pool.root.1"
   ##"/tmp/vdao/mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264_tid05419257_00/AOD.05419257._000001.pool.root.1"
   ]
+svcMgr += CfgMgr.THistSvc()
+for jet in JetCollections:
+  shortJetName=jet.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr")
+  svcMgr.THistSvc.Output += [ shortJetName+" DATAFILE='flav_"+shortJetName+".root' OPT='RECREATE'"]
+#svcMgr.THistSvc.Output += ["BTAGSTREAM DATAFILE='flavntuple.root' OPT='RECREATE'"]
 
 
 
@@ -105,6 +110,15 @@ from BTagging.BTaggingFlags import BTaggingFlags
 
 include("RetagFragment.py")
 
+if doRetag:
+  from BTagging.BTaggingConfiguration import getConfiguration
+  BTagConf = getConfiguration()
+  ip3d =BTagConf.getTool("IP3DTag", "BTagTrackToJetAssociator","AntiKt4EMTopo")
+  #ip3d.OutputLevel=DEBUG
+  ip3d.SortingMode="SortD0"
+  
+  ip2d =BTagConf.getTool("IP2DTag", "BTagTrackToJetAssociator","AntiKt4EMTopo")
+  ip2d.SortingMode="SortPt"
 
 ##########################################################################################################################################################
 ##########################################################################################################################################################

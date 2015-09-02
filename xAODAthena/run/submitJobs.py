@@ -21,10 +21,15 @@ import sys
 #suffix=".BTAGNTUP_V21full"        ### same as V20 but this time really full
 #suffix=".BTAGNTUP_V22tmp"         ### same as V21 but no GRL and no mu recalculation
 
+#suffix=".BTAGNTUP_V23"            ### same as V21 but no GRL and no mu recalculation
+
+suffix=".BTAGNTUP_VtestIPxDRef"       ### IPxD tests
+
+
 ###########################################################################################################################
 ###########################################################################################################################
 ###########################################################################################################################
-isOfficial=True
+isOfficial=False
 username="vdao"
 
 
@@ -64,7 +69,7 @@ def submitJob(ds) :
     if "data" in ds:  com += "--nFilesPerJob 2 "
     else           :  com += "--nFilesPerJob 5 "
 
-    com += " --extFile ilumicalc_histograms_None_270806-271744.root "
+    com += " --extFile ilumicalc_histograms_None_276262-276954.root "
     #com += "--extFile mycool.db,BTagCalibRUN2Onl-08-05-Run1Special.root "
     #com += "--addPoolFC ,BTagCalibRUN2Onl-08-05-Run1Special.root "
 

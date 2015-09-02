@@ -20,12 +20,16 @@ JetCollections = [
 ### Define input xAOD and output ntuple file name
 import glob
 from AthenaCommon.AthenaCommonFlags import jobproperties as jp
-jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(2000)
+jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1)
 
 jp.AthenaCommonFlags.FilesInput = [
   "/afs/cern.ch/work/v/vdao//xAODs/data15_13TeV.00276330.physics_Main.merge.DAOD_FTAG1.f620_m1480_p2411_tid06320446_00/DAOD_FTAG1.06320446._000001.pool.root.1",
   ]
-
+svcMgr += CfgMgr.THistSvc()
+for jet in JetCollections:
+  shortJetName=jet.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr")
+  svcMgr.THistSvc.Output += [ shortJetName+" DATAFILE='flav_"+shortJetName+".root' OPT='RECREATE'"]
+#svcMgr.THistSvc.Output += ["BTAGSTREAM DATAFILE='flavntuple.root' OPT='RECREATE'"]
 
 
 ##########################################################################################################################################################
@@ -130,7 +134,7 @@ ToolSvc += jvt
 ToolSvc += CfgMgr.CP__PileupReweightingTool("prw",
                                             OutputLevel = INFO,
                                             UsePeriodConfig= "MC15",
-                                            LumiCalcFiles=["ilumicalc_histograms_None_270806-271744.root"]
+                                            LumiCalcFiles=["ilumicalc_histograms_None_276262-276954.root"]
                                             )
 
 ##########################################################################################################################################################
@@ -147,7 +151,7 @@ for JetCollection in JetCollections:
                                   TrackVertexAssociationTool=ToolSvc.TightVertexAssocTool,
                                   TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator,
                                   JVTtool=ToolSvc.JVT,
-                                  GRLname = "data15_13TeV.periodAllYear_DetStatus-v63-pro18-01_DQDefects-00-01-02_PHYS_StandardGRL_All_Good.xml"
+                                  GRLname = "data15_13TeV.periodAllYear_DetStatus-v64-pro19_DQDefects-00-01-02_PHYS_StandardGRL_All_Good.xml"
                                   ) #DEBUG
   alg.JetCollectionName = JetCollection
   alg.doSMT = doSMT
