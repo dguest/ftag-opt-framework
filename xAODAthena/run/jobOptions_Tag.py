@@ -2,12 +2,13 @@
 ##########################################################################################################################################################
 ### MAIN SWITCHES
 
-ReduceInfo        =True    ## write minimal amount of info on the output file
+ReduceInfo        =False   ## write minimal amount of info on the output file
 DoMSV             =False   ## include variables for MSV tagger
 doSMT             =False   ## include variables for SMT tagger
-doRetag           =True    ## perform retagging
+doRetag           =False    ## perform retagging
 doComputeReference=False
 JetCollections = [
+  ##"AntiKt10LCTopoJets"
   'AntiKt4EMTopoJets', 
   #'AntiKt3PV0TrackJets',
   #'AntiKt2PV0TrackJets',
@@ -25,6 +26,7 @@ jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1)
 jp.AthenaCommonFlags.FilesInput = [ 
   "/afs/cern.ch/user/g/ggonella/ggonella/public/ForValerio/mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264_tid05419191_00/AOD.05419191._000184.pool.root.1"
   ##"/tmp/vdao/mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264_tid05419257_00/AOD.05419257._000001.pool.root.1"
+  #"/afs/cern.ch/user/n/nwhallon/work/public/xAOD_samples/mc15_13TeV.361021.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ1W.merge.AOD.e3569_s2576_s2132_r6630_r6264_tid05403632_00/AOD.05403632._000098.pool.root.1"
   ]
 svcMgr += CfgMgr.THistSvc()
 for jet in JetCollections:
@@ -115,10 +117,10 @@ if doRetag:
   BTagConf = getConfiguration()
   ip3d =BTagConf.getTool("IP3DTag", "BTagTrackToJetAssociator","AntiKt4EMTopo")
   #ip3d.OutputLevel=DEBUG
-  ip3d.SortingMode="SortD0"
+  #####ip3d.SortingMode="SortZ0D0"
   
   ip2d =BTagConf.getTool("IP2DTag", "BTagTrackToJetAssociator","AntiKt4EMTopo")
-  ip2d.SortingMode="SortPt"
+  #####ip2d.SortingMode="SortPt"
 
 ##########################################################################################################################################################
 ##########################################################################################################################################################
