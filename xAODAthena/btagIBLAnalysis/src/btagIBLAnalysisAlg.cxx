@@ -1530,14 +1530,18 @@ StatusCode btagIBLAnalysisAlg::execute() {
     } // end m_doMSV
  
     // additions by nikola    
-    if (m_doMSV)
+    if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0)
     {
+      ATH_MSG_INFO("this is a trimmed large-R jet collection, adding information (pt and mv2c00) of track jets associated to parent untrimmed jet collection");
+      const xAOD::Jet* jet_parent = 0;
+      jet_parent = GetParentJet(jet, "Parent");
+
       // R = 0.2
       std::vector<float> trkjet2_pt;
       std::vector<double> trkjet2_mv2c00;
 
       std::vector<const xAOD::Jet*> ghostTrackJet2;
-      jet->getAssociatedObjects<xAOD::Jet>("GhostAntiKt2TrackJet", ghostTrackJet2);
+      jet_parent->getAssociatedObjects<xAOD::Jet>("GhostAntiKt2TrackJet", ghostTrackJet2);
 
       for (unsigned int i = 0; i < ghostTrackJet2.size(); i++)
       {
@@ -1555,7 +1559,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       std::vector<double> trkjet3_mv2c00;
 
       std::vector<const xAOD::Jet*> ghostTrackJet3;
-      jet->getAssociatedObjects<xAOD::Jet>("GhostAntiKt3TrackJet", ghostTrackJet3);
+      jet_parent->getAssociatedObjects<xAOD::Jet>("GhostAntiKt3TrackJet", ghostTrackJet3);
 
       for (unsigned int i = 0; i < ghostTrackJet3.size(); i++)
       {
@@ -1573,7 +1577,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       std::vector<double> trkjet4_mv2c00;
 
       std::vector<const xAOD::Jet*> ghostTrackJet4;
-      jet->getAssociatedObjects<xAOD::Jet>("GhostAntiKt4TrackJet", ghostTrackJet4);
+      jet_parent->getAssociatedObjects<xAOD::Jet>("GhostAntiKt4TrackJet", ghostTrackJet4);
 
       for (unsigned int i = 0; i < ghostTrackJet4.size(); i++)
       {
@@ -2132,6 +2136,17 @@ float btagIBLAnalysisAlg :: deltaR(float eta1, float eta2, float phi1, float phi
   return sqrt( pow(DEta,2)+pow(DPhi,2) );
 }
 
+const xAOD::Jet* btagIBLAnalysisAlg :: GetParentJet(const xAOD::Jet* Jet, std::string Keyname){
+  ElementLink<xAOD::JetContainer> el = Jet->auxdata<ElementLink<xAOD::JetContainer> >(Keyname);
+
+  if(el.isValid()){
+    return *el;
+  }
+  else{
+    ATH_MSG_WARNING("GetParentJet(): Unable to get parent link %s ! Null ptr is returned.");
+    return 0;
+  }
+}
 
 
 const xAOD::TruthParticle*  btagIBLAnalysisAlg :: truthParticle(const xAOD::TrackParticle *trkPart) const {

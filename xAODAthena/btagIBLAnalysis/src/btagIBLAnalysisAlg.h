@@ -392,6 +392,8 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   // compute dR between two objects
   float deltaR(float eta1, float eta2, float phi1, float phi2);
   
+  const xAOD::Jet* GetParentJet(const xAOD::Jet* Jet, std::string Keyname);
+
 }; 
 
 #endif //> !BTAGIBLANALYSIS_BTAGIBLANALYSISALG_H
