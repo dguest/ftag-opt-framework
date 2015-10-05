@@ -708,11 +708,14 @@ StatusCode btagIBLAnalysisAlg::execute() {
   coreFlag =eventInfo->isEventFlagBitSet(xAOD::EventInfo::Core, 18); 
 
   // PUrw for mc:
-  /////////puweight=1;
-  ///puweight=m_tool->getCombinedWeight( *eventInfo );
-  float tmpMu=m_PUtool->getLumiBlockMu( *eventInfo );
-  //std::cout << " origMu: " << mu << "  newValue: " <<  tmpMu << std::endl;
-  if (isData) mu=tmpMu;
+  if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets"))
+  {
+    /////////puweight=1;
+    ///puweight=m_tool->getCombinedWeight( *eventInfo );
+    float tmpMu=m_PUtool->getLumiBlockMu( *eventInfo );
+    //std::cout << " origMu: " << mu << "  newValue: " <<  tmpMu << std::endl;
+    if (isData) mu=tmpMu;
+  }
 
   const xAOD::VertexContainer* vertices = 0;
   CHECK( evtStore()->retrieve(vertices,"PrimaryVertices") );
@@ -865,9 +868,16 @@ StatusCode btagIBLAnalysisAlg::execute() {
   bool badCleaning=false;
   for ( const auto* jet : *jets ) {
     xAOD::Jet * newjet = 0;
-    
-    if(m_calibrateJets) m_jetCalibrationTool->calibratedCopy(*jet, newjet);
-    else                newjet = new xAOD::Jet(*jet);
+
+    if (m_calibrateJets)
+    {
+      if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets"))
+      {
+        m_jetCalibrationTool->calibratedCopy(*jet, newjet);
+      }
+      else newjet = new xAOD::Jet(*jet);
+    }
+    else newjet = new xAOD::Jet(*jet);
    
     // jet cleaning - should be done after lepton overlap removal
     /*
@@ -1016,13 +1026,23 @@ StatusCode btagIBLAnalysisAlg::execute() {
       }
     }
     v_jet_isPU->push_back(truthFree);
-    if (m_cleanJets) v_jet_isBadMedium->push_back( !m_jetCleaningTool->keep( *jet ) );
-    else             v_jet_isBadMedium->push_back( 0 );
+    if (m_cleanJets)
+    {
+      if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets"))
+      {
+        v_jet_isBadMedium->push_back( !m_jetCleaningTool->keep( *jet ) );
+      }
+      else v_jet_isBadMedium->push_back( 0 );
+    }
+    else v_jet_isBadMedium->push_back( 0 );
 
-    std::vector<float> testjvf;
-    bool jetHasJVF = jet->getAttribute<std::vector<float> >(xAOD::JetAttribute::JVF, testjvf);
     float jvfV=0;
-    if (jetHasJVF && testjvf.size()>m_indexPV) jvfV=testjvf.at(m_indexPV);
+    if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets"))
+    {
+      std::vector<float> testjvf;
+      bool jetHasJVF = jet->getAttribute<std::vector<float> >(xAOD::JetAttribute::JVF, testjvf);
+      if (jetHasJVF && testjvf.size()>m_indexPV) jvfV=testjvf.at(m_indexPV);
+    }
   
     v_jet_JVF->push_back( jvfV );
     float jvtV=0;
