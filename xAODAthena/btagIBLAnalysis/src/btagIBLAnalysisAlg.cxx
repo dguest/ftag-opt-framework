@@ -276,6 +276,10 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_msv_vtx_chi  = new std::vector<std::vector<float> >();
   v_jet_msv_vtx_ndf  = new std::vector<std::vector<float> >();
 
+  v_jet_ExKtbb_Hbb_DoubleMV2c20 = new std::vector<double>();
+  v_jet_ExKtbb_Hbb_MV2Only = new std::vector<double>();
+  v_jet_ExKtbb_Hbb_MV2andJFDRSig = new std::vector<double>();
+
   v_bH_pt   =new std::vector<float>();
   v_bH_eta  =new std::vector<float>();
   v_bH_phi  =new std::vector<float>();
@@ -542,6 +546,10 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     tree->Branch("jet_msv_vtx_ndf",&v_jet_msv_vtx_ndf);
   }
 
+  tree->Branch("jet_ExKtbb_Hbb_DoubleMV2c20", &v_jet_ExKtbb_Hbb_DoubleMV2c20);
+  tree->Branch("jet_ExKtbb_Hbb_MV2Only", &v_jet_ExKtbb_Hbb_MV2Only);
+  tree->Branch("jet_ExKtbb_Hbb_MV2andJFDRSig", &v_jet_ExKtbb_Hbb_MV2andJFDRSig);
+
   tree->Branch("bH_pt",&v_bH_pt);
   tree->Branch("bH_eta",&v_bH_eta);
   tree->Branch("bH_phi",&v_bH_phi);
@@ -708,14 +716,14 @@ StatusCode btagIBLAnalysisAlg::execute() {
   coreFlag =eventInfo->isEventFlagBitSet(xAOD::EventInfo::Core, 18); 
 
   // PUrw for mc:
-  if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets"))
-  {
+//  if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets"))
+//  {
     /////////puweight=1;
     ///puweight=m_tool->getCombinedWeight( *eventInfo );
     float tmpMu=m_PUtool->getLumiBlockMu( *eventInfo );
     //std::cout << " origMu: " << mu << "  newValue: " <<  tmpMu << std::endl;
     if (isData) mu=tmpMu;
-  }
+//  }
 
   const xAOD::VertexContainer* vertices = 0;
   CHECK( evtStore()->retrieve(vertices,"PrimaryVertices") );
@@ -869,14 +877,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
   for ( const auto* jet : *jets ) {
     xAOD::Jet * newjet = 0;
 
-    if (m_calibrateJets)
-    {
-      if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets"))
-      {
-        m_jetCalibrationTool->calibratedCopy(*jet, newjet);
-      }
-      else newjet = new xAOD::Jet(*jet);
-    }
+    if (m_calibrateJets) m_jetCalibrationTool->calibratedCopy(*jet, newjet);
     else newjet = new xAOD::Jet(*jet);
    
     // jet cleaning - should be done after lepton overlap removal
@@ -1028,21 +1029,22 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_isPU->push_back(truthFree);
     if (m_cleanJets)
     {
-      if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets"))
+      const xAOD::Jet* jet_to_clean = jet;
+      if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0)
       {
-        v_jet_isBadMedium->push_back( !m_jetCleaningTool->keep( *jet ) );
+        const xAOD::Jet* jet_parent = 0;
+        jet_parent = GetParentJet(jet, "Parent");
+        jet_to_clean = jet_parent;
       }
-      else v_jet_isBadMedium->push_back( 0 );
+
+      v_jet_isBadMedium->push_back( !m_jetCleaningTool->keep( *jet_to_clean ) );
     }
     else v_jet_isBadMedium->push_back( 0 );
 
     float jvfV=0;
-    if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets"))
-    {
-      std::vector<float> testjvf;
-      bool jetHasJVF = jet->getAttribute<std::vector<float> >(xAOD::JetAttribute::JVF, testjvf);
-      if (jetHasJVF && testjvf.size()>m_indexPV) jvfV=testjvf.at(m_indexPV);
-    }
+    std::vector<float> testjvf;
+    bool jetHasJVF = jet->getAttribute<std::vector<float> >(xAOD::JetAttribute::JVF, testjvf);
+    if (jetHasJVF && testjvf.size()>m_indexPV) jvfV=testjvf.at(m_indexPV);
   
     v_jet_JVF->push_back( jvfV );
     float jvtV=0;
@@ -1549,6 +1551,24 @@ StatusCode btagIBLAnalysisAlg::execute() {
       
     } // end m_doMSV
  
+    // ExKtbbTag
+    if(bjet->isAvailable<double>("ExKtbb_Hbb_DoubleMV2c20")){
+      // reference mode
+      v_jet_ExKtbb_Hbb_DoubleMV2c20->push_back(bjet->auxdata<double>("ExKtbb_Hbb_DoubleMV2c20"));
+
+      // analysis mode
+      if(bjet->isAvailable<double>("ExKtbb_Hbb_MV2Only")){
+        v_jet_ExKtbb_Hbb_MV2Only->push_back(bjet->auxdata<double>("ExKtbb_Hbb_MV2Only"));
+      }
+      if(bjet->isAvailable<double>("ExKtbb_Hbb_MV2andJFDRSig")){
+        v_jet_ExKtbb_Hbb_MV2andJFDRSig->push_back(bjet->auxdata<double>("ExKtbb_Hbb_MV2andJFDRSig"));
+      }
+
+    }
+    else{
+      std::cout << "WARNING! No ExKtbbTag run on " << m_jetCollectionName.c_str() << std::endl;
+    }
+
     // additions by nikola    
     if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0)
     {
@@ -2367,6 +2387,10 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_msv_vtx_z->clear();
   v_jet_msv_vtx_chi->clear();
   v_jet_msv_vtx_ndf->clear();
+
+  v_jet_ExKtbb_Hbb_DoubleMV2c20->clear();
+  v_jet_ExKtbb_Hbb_MV2Only->clear();
+  v_jet_ExKtbb_Hbb_MV2andJFDRSig->clear();
 
   v_bH_pt->clear();
   v_bH_eta->clear();

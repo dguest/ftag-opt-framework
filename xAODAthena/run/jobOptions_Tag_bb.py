@@ -2,11 +2,20 @@
 ##########################################################################################################################################################
 ### MAIN SWITCHES
 
-ReduceInfo        =True   ## write minimal amount of info on the output file
+ReduceInfo        =False   ## write minimal amount of info on the output file
 DoMSV             =True   ## include variables for MSV tagger
 doSMT             =False   ## include variables for SMT tagger
-doRetag           =True    ## perform retagging
+doRetag           =True    ##False    ## perform retagging
 doComputeReference=False
+JetCollections = [
+  ##"AntiKt10LCTopoJets"
+  # 'AntiKt4EMTopoJets', 
+  #'AntiKt3PV0TrackJets',
+  #'AntiKt2PV0TrackJets',
+  # 'AntiKt4LCTopoJets', 
+  'AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets',
+  ]
+
 
 #########################################################################################################################################################
 #########################################################################################################################################################
@@ -18,6 +27,10 @@ jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(10)
 jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/user/n/nwhallon/work/public/xAOD_samples/mc15_13TeV.301523.MadGraphPythia8EvtGen_A14NNPDF23LO_RS_G_hh_bbbb_c20_M2000.merge.AOD.e3820_s2608_s2183_r6630_r6264_tid05471453_00/AOD.05471453._000002.pool.root.1" ]
 
 svcMgr += CfgMgr.THistSvc()
+for jet in JetCollections:
+  shortJetName=jet.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr").replace("TrimmedPtFrac5SmallR20", "Trm")
+  svcMgr.THistSvc.Output += [ shortJetName+" DATAFILE='flav_"+shortJetName+".root' OPT='RECREATE'"]
+#svcMgr.THistSvc.Output += ["BTAGSTREAM DATAFILE='flavntuple.root' OPT='RECREATE'"]
 
 
 
@@ -72,46 +85,6 @@ include ("RecExCommon/RecExCommon_topOptions.py")
 from AthenaCommon.AlgSequence import AlgSequence
 algSeq = AlgSequence()
 
-# attempt to add jet trimming
-# Set up JetRec
-from JetRec.JetRecFlags import jetFlags
-from JetRec.JetRecConf import JetAlgorithm
-jetFlags.useTruth = True
-
-# Set up the tools for jet modifiers
-from JetRec.JetRecStandard import jtm
-jtm.modifiersMap[ "groomed" ] += [ jtm.ktsplitter, jtm.nsubjettiness, jtm.dipolarity, jtm.planarflow, jtm.angularity, jtm.width, jtm.comshapes, jtm.ktmassdrop, jtm.pull, jtm.encorr, jtm.charge ]
-jtm.modifiersMap[ "groomed" ] += [ jtm.jetens ]
-
-#Remake the jet container
-akt10untrimmed = jtm.addJetFinder( "MyAntiKt10LCTopoJets", "AntiKt", 1.0, "lctopo", modifiersin="groomed", ghostArea=0.0, ptmin=2000 )
-
-#Define the trimmed container
-akt10trim = jtm.addJetTrimmer( "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets", rclus=0.2, ptfrac=0.05, input="MyAntiKt10LCTopoJets", modifiersin="groomed" )
-
-# add jtm to jet algorithms
-from JetRec.JetAlgorithm import addJetRecoToAlgSequence
-addJetRecoToAlgSequence(algSeq)
-
-# config jet algorithm #
-from JetRec.JetRecConf import JetAlgorithm
-jetalg = algSeq.jetalg
-jetalg.OutputLevel = VERBOSE
-
-JetCollections = [
-  "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets"
-  #"AntiKt10LCTopoJets"
-  #'AntiKt4EMTopoJets', 
-  #'AntiKt3PV0TrackJets',
-  #'AntiKt2PV0TrackJets',
-  #'AntiKt4LCTopoJets', 
-  ]
-
-for jet in JetCollections:
-  shortJetName=jet.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr")
-  svcMgr.THistSvc.Output += [ shortJetName+" DATAFILE='flav_"+shortJetName+".root' OPT='RECREATE'"]
-#svcMgr.THistSvc.Output += ["BTAGSTREAM DATAFILE='flavntuple.root' OPT='RECREATE'"]
-
 ##########################################################################################################################################################
 ##########################################################################################################################################################
 ### GEO Business 
@@ -121,6 +94,72 @@ from AtlasGeoModel.InDetGMJobProperties import GeometryFlags as geoFlags
 print "geoFlags.Run()   = "+geoFlags.Run()
 print "geoFlags.isIBL() = "+str(  geoFlags.isIBL() )
 
+##########################################################################################################################################################
+##########################################################################################################################################################
+### Qi: Jet Business
+
+# Actually build AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets here
+from DerivationFrameworkJetEtMiss.ExtendedJetCommon import *
+addDefaultTrimmedJets(algSeq, "WhoCares")
+
+# make exkt subjet finding tool
+def buildExclusiveSubjets(JetCollectionName, nsubjet, ToolSvc = ToolSvc):
+    from JetSubStructureMomentTools.JetSubStructureMomentToolsConf import SubjetFinderTool
+    from JetSubStructureMomentTools.JetSubStructureMomentToolsConf import SubjetRecorderTool
+
+    SubjetContainerName = "%sExKt%iSubJets" % (JetCollectionName.replace("Jets", ""), nsubjet)
+
+    subjetrecorder = SubjetRecorderTool("subjetrecorder%i_%s" % (nsubjet, JetCollectionName))
+    ToolSvc += subjetrecorder
+
+    subjetlabel = "ExKt%iSubJets" % (nsubjet)
+
+    subjetrecorder.SubjetLabel = subjetlabel
+    subjetrecorder.SubjetContainerName = SubjetContainerName
+
+    from JetTagTools.JetTagToolsConf import Analysis__ExKtbbTagTool
+    ExKtbbTagToolInstance = Analysis__ExKtbbTagTool(
+                                                    name = "ExKtbbTagTool%i_%s" % (nsubjet, JetCollectionName),
+                                                    JetAlgorithm = "Kt",
+                                                    JetRadius = 10.0,
+                                                    PtMin = 5000,
+                                                    ExclusiveNJets = 2,
+
+                                                    # SubjetFinder = subjetfinder,
+                                                    SubjetRecorder = subjetrecorder,
+                                                    SubjetLabel = subjetlabel,
+                                                    SubjetAlgorithm_BTAG = "AntiKt",
+                                                    SubjetRadius_BTAG = 0.4
+                                                   )
+    ToolSvc += ExKtbbTagToolInstance
+
+    return (ExKtbbTagToolInstance, SubjetContainerName)
+
+# build exkt subjets here
+JetCollectionExKtSubJetList = []
+for JetCollectionExKt in JetCollections:
+  # build ExKtbbTagTool instance
+  (ExKtbbTagToolInstance, SubjetContainerName) = buildExclusiveSubjets(JetCollectionExKt, 2)
+  JetCollectionExKtSubJetList += [SubjetContainerName]
+  
+  # approach 2: existing JetRecTool
+  from JetRec.JetRecConf import JetRecTool
+  jetrec = JetRecTool(
+                       name = "JetRecTool_ExKtbb_%s" % (JetCollectionExKt),
+                       OutputContainer = JetCollectionExKt,
+                       InputContainer = JetCollectionExKt,
+                       JetModifiers = [ExKtbbTagToolInstance],
+                     )
+  ToolSvc += jetrec
+  from JetRec.JetRecConf import JetAlgorithm
+  algSeq += JetAlgorithm(
+                          name = "JetAlgorithm_ExKtbb_%s" % (JetCollectionExKt),
+                          Tools = [jetrec],
+                        )
+
+
+print "Fat Jet Collection:",JetCollections
+print "Fat Jet ExKt SubJet Collection:",JetCollectionExKtSubJetList
 
 ##########################################################################################################################################################
 ##########################################################################################################################################################
@@ -135,7 +174,46 @@ from BTagging.BTaggingFlags import BTaggingFlags
 #BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
 #BTaggingFlags.CalibrationTag = 'Run2DC14' ## '0801C' ##'k0002'
 
-include("RetagFragment.py")
+defaultTaggers = ['IP2D', 'IP3D', 'SV0', 'MultiSVbb1', 'MultiSVbb2', 'SV1', 'BasicJetFitter', 'JetFitterTag', 'GbbNNTag', 'MV2c00', 'MV2c10', 'MV2c20', 'MV2c100', 'MV2m']
+specialTaggers = ['ExKtbb_Hbb_MV2Only', 'ExKtbb_Hbb_MV2andJFDRSig', 'ExKtbb_Hbb_MV2andTopos']
+
+BTaggingFlags.CalibrationChannelAliases += ["AntiKt10LCTopoTrimmedPtFrac5SmallR20->AntiKt10LCTopo,AntiKt6LCTopo,AntiKt6TopoEM,AntiKt4LCTopo,AntiKt4TopoEM,AntiKt4EMTopo"]
+for JetCollectionExKtSubJet in JetCollectionExKtSubJetList:
+  BTaggingFlags.CalibrationChannelAliases += [JetCollectionExKtSubJet[:-4]+"->AntiKt4LCTopo"]
+
+# For debugging 
+# BTaggingFlags.OutputLevel = 1
+
+# For user-defined calibration file
+#BTaggingFlags.CalibrationFromLocalReplica = True 
+#BTaggingFlags.CalibrationTag = 'BTagCalibRUN2-08-99'
+
+from DerivationFrameworkFlavourTag.FlavourTagCommon import FlavorTagInit
+FlavorTagInit(myTaggers      = defaultTaggers,
+              JetCollections = JetCollectionExKtSubJetList,
+              Sequencer      = algSeq)
+FlavorTagInit(myTaggers      = defaultTaggers + specialTaggers,
+              JetCollections = JetCollections,
+              Sequencer      = algSeq)
+
+
+# import copy
+# JetCollections_BeforeBTag = copy.deepcopy(JetCollections)
+
+# #########################################################################
+# ### First round of b-tagging on all jets except those exkt parent jet ###
+# #########################################################################
+# JetCollections = copy.deepcopy(JetCollectionExKtSubJetList)
+# _taggerList = defaultTaggers
+# include("RetagFragment_ExKt.py")
+# #########################################################
+# ### Second round of b-tagging on exkt parent jet only ###
+# #########################################################
+# JetCollections = copy.deepcopy(JetCollections_BeforeBTag)
+# _taggerList = defaultTaggers + specialTaggers
+# include("RetagFragment_ExKt.py")
+
+# JetCollections = JetCollections_BeforeBTag
 
 if doRetag:
   from BTagging.BTaggingConfiguration import getConfiguration
@@ -180,7 +258,7 @@ ToolSvc += CfgMgr.CP__PileupReweightingTool("prw",
 ##########################################################################################################################################################
 ### Main Ntuple Dumper Algorithm
 for JetCollection in JetCollections:
-  shortJetName=JetCollection.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr")
+  shortJetName=JetCollection.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr").replace("TrimmedPtFrac5SmallR20", "Trm")
   alg = CfgMgr.btagIBLAnalysisAlg("BTagDumpAlg_"+JetCollection, 
                                   OutputLevel=INFO,
                                   Stream=shortJetName,
@@ -201,6 +279,8 @@ for JetCollection in JetCollections:
   alg.ReduceInfo=ReduceInfo
   alg.DoMSV     =DoMSV
   alg.Rel20     =True
+  alg.CleanJets = True
+  #alg.CleanParentJets = True
   alg.JetCleaningTool.CutLevel= "LooseBad" 
   alg.JetCleaningTool.DoUgly  = True
   if not doComputeReference: algSeq += alg
@@ -214,6 +294,11 @@ for JetCollection in JetCollections:
     calibfile  ="JES_MC15Prerecommendation_April2015.config"
     #########################calibfile  ="JES_Prerecommendation2015_AFII_Apr2015.config"
     calSeg     ="JetArea_Residual_Origin_EtaJES_GSC"
+  elif "AntiKt10LCTopoTrimmedPtFrac5SmallR20" in JetCollection:
+    collectionForTool = "AntiKt10LCTopoTrimmedPtFrac5SmallR20"
+    calibfile = "JES_MC15recommendation_FatJet_June2015.config"
+    calSeg = "EtaJES"
+
   print collectionForTool
   ToolSvc += CfgMgr.JetCalibrationTool("BTagDumpAlg_"+JetCollection+"_JCalib",
                                        IsData=False,
