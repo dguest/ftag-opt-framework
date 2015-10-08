@@ -104,7 +104,9 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   CHECK( histSvc.retrieve() );
     
   if (m_GRLname!="") ATH_CHECK(m_GRLSelectionTool.retrieve());
-  
+
+  ATH_MSG_INFO(m_jetCollectionName);
+
   tree = new TTree( ("bTag_"+m_jetCollectionName).c_str(),
 		    ("bTag" +m_jetCollectionName).c_str() );
   ATH_MSG_INFO ("VALERIO: registrering tree in stream: "<< m_stream);
@@ -1030,7 +1032,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     if (m_cleanJets)
     {
       const xAOD::Jet* jet_to_clean = jet;
-      if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0)
+      if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(m_jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0)
       {
         const xAOD::Jet* jet_parent = 0;
         jet_parent = GetParentJet(jet, "Parent");
@@ -1570,7 +1572,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     }
 
     // additions by nikola    
-    if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0)
+    if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(m_jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0)
     {
       ATH_MSG_INFO("this is a trimmed large-R jet collection, adding information (pt and mv2c00) of track jets associated to parent untrimmed jet collection");
       const xAOD::Jet* jet_parent = 0;
@@ -1582,6 +1584,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
       std::vector<const xAOD::Jet*> ghostTrackJet2;
       jet_parent->getAssociatedObjects<xAOD::Jet>("GhostAntiKt2TrackJet", ghostTrackJet2);
+
+      ATH_MSG_INFO("number of R = 0.2 track jet parents: " << ghostTrackJet2.size());
 
       for (unsigned int i = 0; i < ghostTrackJet2.size(); i++)
       {
