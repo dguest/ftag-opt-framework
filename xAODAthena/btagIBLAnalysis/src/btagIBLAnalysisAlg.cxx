@@ -161,7 +161,10 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_truthflav  =new std::vector<int>();
   v_jet_nBHadr     =new std::vector<int>();
   v_jet_nCHadr     =new std::vector<int>();
-  v_jet_nHBoso     =new std::vector<int>();
+  v_jet_nGhostBHadrFromParent     =new std::vector<int>();
+  v_jet_nGhostCHadrFromParent     =new std::vector<int>();
+  v_jet_nGhostTauFromParent     =new std::vector<int>();
+  v_jet_nGhostHBosoFromParent     =new std::vector<int>();
   v_jet_GhostL_q   =new std::vector<int>();
   v_jet_GhostL_HadI=new std::vector<int>();
   v_jet_GhostL_HadF=new std::vector<int>();
@@ -279,8 +282,10 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_msv_vtx_ndf  = new std::vector<std::vector<float> >();
 
   v_jet_ExKtbb_Hbb_DoubleMV2c20 = new std::vector<double>();
+  v_jet_ExKtbb_Hbb_SingleMV2c20 = new std::vector<double>();
   v_jet_ExKtbb_Hbb_MV2Only = new std::vector<double>();
   v_jet_ExKtbb_Hbb_MV2andJFDRSig = new std::vector<double>();
+  v_jet_ExKtbb_Hbb_MV2andTopos = new std::vector<double>();
 
   v_bH_pt   =new std::vector<float>();
   v_bH_eta  =new std::vector<float>();
@@ -354,12 +359,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_jf_ntrk  =new std::vector<int>();
 
   // additions by nikola
-  v_jet_trkjet2_pt     = new std::vector<std::vector<float> >();
-  v_jet_trkjet2_MV2c00 = new std::vector<std::vector<double> >();
-  v_jet_trkjet3_pt     = new std::vector<std::vector<float> >();
-  v_jet_trkjet3_MV2c00 = new std::vector<std::vector<double> >();
-  v_jet_trkjet4_pt     = new std::vector<std::vector<float> >();
-  v_jet_trkjet4_MV2c00 = new std::vector<std::vector<double> >();
+  v_jet_trkjet_pt     = new std::vector<std::vector<float> >();
+  v_jet_trkjet_MV2c20 = new std::vector<std::vector<double> >();
 
   // additions by andrea
   v_jet_mu_assJet_pt=new std::vector<float>();
@@ -419,7 +420,10 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_truthflav"  ,&v_jet_truthflav);
   tree->Branch("jet_nBHadr"     ,&v_jet_nBHadr);
   tree->Branch("jet_nCHadr"     ,&v_jet_nCHadr);
-  tree->Branch("jet_nHBoso"     ,&v_jet_nHBoso);
+  tree->Branch("jet_nGhostBHadrFromParent"     ,&v_jet_nGhostBHadrFromParent);
+  tree->Branch("jet_nGhostCHadrFromParent"     ,&v_jet_nGhostCHadrFromParent);
+  tree->Branch("jet_nGhostTauFromParent"     ,&v_jet_nGhostTauFromParent);
+  tree->Branch("jet_nGhostHBosoFromParent"     ,&v_jet_nGhostHBosoFromParent);
   tree->Branch("jet_GhostL_q"   ,&v_jet_GhostL_q);
   tree->Branch("jet_GhostL_HadI",&v_jet_GhostL_HadI);
   tree->Branch("jet_GhostL_HadF",&v_jet_GhostL_HadF);
@@ -549,8 +553,10 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   }
 
   tree->Branch("jet_ExKtbb_Hbb_DoubleMV2c20", &v_jet_ExKtbb_Hbb_DoubleMV2c20);
+  tree->Branch("jet_ExKtbb_Hbb_SingleMV2c20", &v_jet_ExKtbb_Hbb_SingleMV2c20);
   tree->Branch("jet_ExKtbb_Hbb_MV2Only", &v_jet_ExKtbb_Hbb_MV2Only);
   tree->Branch("jet_ExKtbb_Hbb_MV2andJFDRSig", &v_jet_ExKtbb_Hbb_MV2andJFDRSig);
+  tree->Branch("jet_ExKtbb_Hbb_MV2andTopos", &v_jet_ExKtbb_Hbb_MV2andTopos);
 
   tree->Branch("bH_pt",&v_bH_pt);
   tree->Branch("bH_eta",&v_bH_eta);
@@ -623,12 +629,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_jf_ntrk",&v_jet_jf_ntrk);
 
   // additions by nikola
-  tree->Branch("jet_trkjet2_pt"     , &v_jet_trkjet2_pt);
-  tree->Branch("jet_trkjet2_MV2c00", &v_jet_trkjet2_MV2c00);
-  tree->Branch("jet_trkjet3_pt"    , &v_jet_trkjet3_pt);
-  tree->Branch("jet_trkjet3_MV2c00", &v_jet_trkjet3_MV2c00);
-  tree->Branch("jet_trkjet4_pt"    , &v_jet_trkjet4_pt);
-  tree->Branch("jet_trkjet4_MV2c00", &v_jet_trkjet4_MV2c00);
+  tree->Branch("jet_trkjet_pt"     , &v_jet_trkjet_pt);
+  tree->Branch("jet_trkjet_MV2c20", &v_jet_trkjet_MV2c20);
 
   // additions by andrea
   if (m_SMT) {
@@ -950,6 +952,13 @@ StatusCode btagIBLAnalysisAlg::execute() {
   for (unsigned int j=0; j<selJets.size(); j++) {
     const xAOD::Jet* jet=selJets.at(j);
 
+
+    const xAOD::Jet* jet_parent = 0;
+    if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(m_jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0)
+    {
+      jet_parent = GetParentJet(jet, "Parent");
+    }
+
     // protection against not properly filled objects ... IT SHOULD NEVER HAPPEN THOUGH
     try {
       const std::vector<ElementLink<xAOD::VertexContainer > >    TMPvertices  = jet->btagging()->auxdata<std::vector<ElementLink<xAOD::VertexContainer > > >("SV0_vertices");
@@ -1034,8 +1043,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
       const xAOD::Jet* jet_to_clean = jet;
       if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(m_jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0)
       {
-        const xAOD::Jet* jet_parent = 0;
-        jet_parent = GetParentJet(jet, "Parent");
         jet_to_clean = jet_parent;
       }
 
@@ -1114,7 +1121,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     /////////////////////////////////////////////////////////////////////////////// ///////////////////////////////////////////////////////////////////////////////    
     // get B hadron quantities
     const xAOD::TruthParticle* matchedBH=NULL;
-    const std::string labelB = "ConeExclBHadronsFinal"; // "GhostBHadronsFinal"
+    const std::string labelB = "ConeExclBHadronsFinal";
     std::vector<const IParticle*> ghostB; ghostB.reserve(2);
     jet->getAssociatedObjects<IParticle>(labelB, ghostB);
     if (ghostB.size() >=1 ) {
@@ -1125,7 +1132,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     // get C hadron quantities
     const xAOD::TruthParticle* matchedCH=NULL;
-    const std::string labelC = "ConeExclCHadronsFinal"; // "GhostCHadronsFinal"
+    const std::string labelC = "ConeExclCHadronsFinal";
     std::vector<const IParticle*> ghostC; ghostC.reserve(2);
     jet->getAssociatedObjects<IParticle>(labelC, ghostC);
     if (ghostC.size() >=1 ) {
@@ -1134,16 +1141,26 @@ StatusCode btagIBLAnalysisAlg::execute() {
     } 
     v_jet_nCHadr->push_back(ghostC.size());
 
-    // get H boson quantities
-    const xAOD::TruthParticle* matchedHB=NULL;
-    const std::string labelH = "GhostHBosons";
-    std::vector<const IParticle*> ghostH; ghostH.reserve(2);
-    jet->getAssociatedObjects<IParticle>(labelH, ghostH);
-    if (ghostH.size() >=1 ) {
-       matchedHB=(const xAOD::TruthParticle*)(ghostH.at(0));
-       // to do: in case of 2, get the closest
-    } 
-    v_jet_nHBoso->push_back(ghostH.size());
+    // additions by nikola
+    if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(m_jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0)
+    {
+      std::vector<const IParticle*> ghostBFromParent; ghostBFromParent.reserve(2);
+      jet_parent->getAssociatedObjects<IParticle>("GhostBHadronsFinal", ghostBFromParent);
+      v_jet_nGhostBHadrFromParent->push_back(ghostBFromParent.size());
+
+      std::vector<const IParticle*> ghostCFromParent; ghostCFromParent.reserve(2);
+      jet_parent->getAssociatedObjects<IParticle>("GhostCHadronsFinal", ghostCFromParent);
+      v_jet_nGhostCHadrFromParent->push_back(ghostCFromParent.size());
+
+      std::vector<const IParticle*> ghostTauFromParent; ghostTauFromParent.reserve(2);
+      jet_parent->getAssociatedObjects<IParticle>("GhostTausFinal", ghostTauFromParent);
+      v_jet_nGhostTauFromParent->push_back(ghostTauFromParent.size());
+
+      // get H boson quantities
+      std::vector<const IParticle*> ghostHFromParent; ghostHFromParent.reserve(2);
+      jet_parent->getAssociatedObjects<IParticle>("GhostHBosons", ghostHFromParent);
+      v_jet_nGhostHBosoFromParent->push_back(ghostHFromParent.size());
+    }
 
     std::vector<const xAOD::TruthParticle*> tracksFromB; 
     std::vector<const xAOD::TruthParticle*> tracksFromC; 
@@ -1559,11 +1576,17 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_ExKtbb_Hbb_DoubleMV2c20->push_back(bjet->auxdata<double>("ExKtbb_Hbb_DoubleMV2c20"));
 
       // analysis mode
+      if(bjet->isAvailable<double>("ExKtbb_Hbb_SingleMV2c20")){
+        v_jet_ExKtbb_Hbb_SingleMV2c20->push_back(bjet->auxdata<double>("ExKtbb_Hbb_SingleMV2c20"));
+      }
       if(bjet->isAvailable<double>("ExKtbb_Hbb_MV2Only")){
         v_jet_ExKtbb_Hbb_MV2Only->push_back(bjet->auxdata<double>("ExKtbb_Hbb_MV2Only"));
       }
       if(bjet->isAvailable<double>("ExKtbb_Hbb_MV2andJFDRSig")){
         v_jet_ExKtbb_Hbb_MV2andJFDRSig->push_back(bjet->auxdata<double>("ExKtbb_Hbb_MV2andJFDRSig"));
+      }
+      if(bjet->isAvailable<double>("ExKtbb_Hbb_MV2andTopos")){
+        v_jet_ExKtbb_Hbb_MV2andTopos->push_back(bjet->auxdata<double>("ExKtbb_Hbb_MV2andTopos"));
       }
 
     }
@@ -1575,64 +1598,27 @@ StatusCode btagIBLAnalysisAlg::execute() {
     if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(m_jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0)
     {
       ATH_MSG_INFO("this is a trimmed large-R jet collection, adding information (pt and mv2c00) of track jets associated to parent untrimmed jet collection");
-      const xAOD::Jet* jet_parent = 0;
-      jet_parent = GetParentJet(jet, "Parent");
 
-      // R = 0.2
-      std::vector<float> trkjet2_pt;
-      std::vector<double> trkjet2_mv2c00;
+      std::vector<float> trkjet_pt;
+      std::vector<double> trkjet_MV2c20;
 
       std::vector<const xAOD::Jet*> ghostTrackJet2;
       jet_parent->getAssociatedObjects<xAOD::Jet>("GhostAntiKt2TrackJet", ghostTrackJet2);
 
-      ATH_MSG_INFO("number of R = 0.2 track jet parents: " << ghostTrackJet2.size());
-
       for (unsigned int i = 0; i < ghostTrackJet2.size(); i++)
       {
-        trkjet2_pt.push_back(ghostTrackJet2.at(i)->pt());
+        // apply track jet selection
+	if (ghostTrackJet2.at(i)->numConstituents() >= 2 && ghostTrackJet2.at(i)->pt() > 10000 && fabs(ghostTrackJet2.at(i)->eta()) < 2.5)
+        {
+          trkjet_pt.push_back(ghostTrackJet2.at(i)->pt());
 
-        const xAOD::BTagging* ghostTrackBJet = ghostTrackJet2.at(i)->btagging();
-        trkjet2_mv2c00.push_back(ghostTrackBJet->auxdata<double>("MV2c00_discriminant"));
+          const xAOD::BTagging* ghostTrackBJet = ghostTrackJet2.at(i)->btagging();
+          trkjet_MV2c20.push_back(ghostTrackBJet->auxdata<double>("MV2c20_discriminant"));
+        }
       }
 
-      v_jet_trkjet2_pt->push_back(trkjet2_pt);
-      v_jet_trkjet2_MV2c00->push_back(trkjet2_mv2c00);
-
-      // R = 0.3
-      std::vector<float> trkjet3_pt;
-      std::vector<double> trkjet3_mv2c00;
-
-      std::vector<const xAOD::Jet*> ghostTrackJet3;
-      jet_parent->getAssociatedObjects<xAOD::Jet>("GhostAntiKt3TrackJet", ghostTrackJet3);
-
-      for (unsigned int i = 0; i < ghostTrackJet3.size(); i++)
-      {
-        trkjet3_pt.push_back(ghostTrackJet3.at(i)->pt());
-
-        const xAOD::BTagging* ghostTrackBJet = ghostTrackJet3.at(i)->btagging();
-        trkjet3_mv2c00.push_back(ghostTrackBJet->auxdata<double>("MV2c00_discriminant"));
-      }
-
-      v_jet_trkjet3_pt->push_back(trkjet3_pt);
-      v_jet_trkjet3_MV2c00->push_back(trkjet3_mv2c00);
-
-      // R = 0.4
-      std::vector<float> trkjet4_pt;
-      std::vector<double> trkjet4_mv2c00;
-
-      std::vector<const xAOD::Jet*> ghostTrackJet4;
-      jet_parent->getAssociatedObjects<xAOD::Jet>("GhostAntiKt4TrackJet", ghostTrackJet4);
-
-      for (unsigned int i = 0; i < ghostTrackJet4.size(); i++)
-      {
-        trkjet4_pt.push_back(ghostTrackJet4.at(i)->pt());
-
-        const xAOD::BTagging* ghostTrackBJet = ghostTrackJet4.at(i)->btagging();
-        trkjet4_mv2c00.push_back(ghostTrackBJet->auxdata<double>("MV2c00_discriminant"));
-      }
-
-      v_jet_trkjet4_pt->push_back(trkjet4_pt);
-      v_jet_trkjet4_MV2c00->push_back(trkjet4_mv2c00);
+      v_jet_trkjet_pt->push_back(trkjet_pt);
+      v_jet_trkjet_MV2c20->push_back(trkjet_MV2c20);
     }
 
     /// now the tracking part: prepare all the tmpVectors
@@ -2272,7 +2258,10 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_truthflav->clear();
   v_jet_nBHadr->clear();
   v_jet_nCHadr->clear();
-  v_jet_nHBoso->clear();
+  v_jet_nGhostBHadrFromParent->clear();
+  v_jet_nGhostCHadrFromParent->clear();
+  v_jet_nGhostTauFromParent->clear();
+  v_jet_nGhostHBosoFromParent->clear();
   v_jet_GhostL_q->clear();
   v_jet_GhostL_HadI->clear();
   v_jet_GhostL_HadF->clear();
@@ -2393,8 +2382,10 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_msv_vtx_ndf->clear();
 
   v_jet_ExKtbb_Hbb_DoubleMV2c20->clear();
+  v_jet_ExKtbb_Hbb_SingleMV2c20->clear();
   v_jet_ExKtbb_Hbb_MV2Only->clear();
   v_jet_ExKtbb_Hbb_MV2andJFDRSig->clear();
+  v_jet_ExKtbb_Hbb_MV2andTopos->clear();
 
   v_bH_pt->clear();
   v_bH_eta->clear();
@@ -2462,12 +2453,8 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_jf_ntrk->clear();  
 
   // additions by nikola
-  v_jet_trkjet2_pt->clear();
-  v_jet_trkjet2_MV2c00->clear();
-  v_jet_trkjet3_pt->clear();
-  v_jet_trkjet3_MV2c00->clear();
-  v_jet_trkjet4_pt->clear();
-  v_jet_trkjet4_MV2c00->clear();
+  v_jet_trkjet_pt->clear();
+  v_jet_trkjet_MV2c20->clear();
 
   // additions by andrea
   v_jet_mu_pt->clear();

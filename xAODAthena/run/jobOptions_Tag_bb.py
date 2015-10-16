@@ -8,12 +8,12 @@ doSMT             =False   ## include variables for SMT tagger
 doRetag           =True    ##False    ## perform retagging
 doComputeReference=False
 JetCollections = [
-  ##"AntiKt10LCTopoJets"
-  'AntiKt4EMTopoJets', 
+  #"AntiKt10LCTopoJets"
+  #'AntiKt4EMTopoJets', 
   #'AntiKt3PV0TrackJets',
   #'AntiKt2PV0TrackJets',
-  # 'AntiKt4LCTopoJets', 
-  #'AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets',
+  #'AntiKt4LCTopoJets', 
+  'AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets'
   ]
 
 
@@ -24,7 +24,10 @@ import glob
 from AthenaCommon.AthenaCommonFlags import jobproperties as jp
 jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1)
 
+#jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/user/n/nwhallon/work/public/xAOD_samples/mc15_13TeV.361021.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ1W.merge.AOD.e3569_s2576_s2132_r6630_r6264_tid05403632_00/AOD.05403632._000098.pool.root.1" ]
 jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/user/n/nwhallon/work/public/xAOD_samples/mc15_13TeV.301523.MadGraphPythia8EvtGen_A14NNPDF23LO_RS_G_hh_bbbb_c20_M2000.merge.AOD.e3820_s2608_s2183_r6630_r6264_tid05471453_00/AOD.05471453._000002.pool.root.1" ]
+#jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/user/n/nwhallon/work/public/xAOD_samples/group.phys-exotics.361024.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ4W.DAOD_EXOT16.25nsFS.20171_v4_TrkVR50_EXT0.45345563/group.phys-exotics.6600896.EXT0._000639.DAOD_EXOT16.pool.root" ]
+#jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/w/wangwe/public/myDAODsample/user.wangwe.VRJM.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.DAOD.e3698_s2608_s2183_r6630_r6264_v2_EXT0/user.wangwe.6547504.EXT0._000431.DAOD_VRJM.output.pool.root" ]
 
 svcMgr += CfgMgr.THistSvc()
 for jet in JetCollections:
@@ -167,7 +170,7 @@ print "Fat Jet ExKt SubJet Collection:",JetCollectionExKtSubJetList
 from BTagging.BTaggingFlags import BTaggingFlags
 
 #### if the new file is already in the datatbase: simple edit the name
-#BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-07'
+BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-13'
 
 #### if you want to use your own calibration file use this part below
 #BTaggingFlags.CalibrationFromLocalReplica = True

@@ -98,7 +98,10 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<int> *v_jet_truthflav;
   std::vector<int> *v_jet_nBHadr;
   std::vector<int> *v_jet_nCHadr;
-  std::vector<int> *v_jet_nHBoso;
+  std::vector<int> *v_jet_nGhostBHadrFromParent;
+  std::vector<int> *v_jet_nGhostCHadrFromParent;
+  std::vector<int> *v_jet_nGhostTauFromParent;
+  std::vector<int> *v_jet_nGhostHBosoFromParent;
   std::vector<int> *v_jet_GhostL_q;
   std::vector<int> *v_jet_GhostL_HadI;
   std::vector<int> *v_jet_GhostL_HadF;
@@ -234,8 +237,10 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 
   // Exktbb
   std::vector<double> *v_jet_ExKtbb_Hbb_DoubleMV2c20;
+  std::vector<double> *v_jet_ExKtbb_Hbb_SingleMV2c20;
   std::vector<double> *v_jet_ExKtbb_Hbb_MV2Only;
   std::vector<double> *v_jet_ExKtbb_Hbb_MV2andJFDRSig;
+  std::vector<double> *v_jet_ExKtbb_Hbb_MV2andTopos;
 
   // B hadron
   std::vector<float> *v_bH_pt;
@@ -310,12 +315,8 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<int>   *v_jet_jf_ntrk;
 
   // additions by Nikola
-  std::vector<std::vector<float> >  *v_jet_trkjet2_pt;
-  std::vector<std::vector<double> > *v_jet_trkjet2_MV2c00;
-  std::vector<std::vector<float> >  *v_jet_trkjet3_pt;
-  std::vector<std::vector<double> > *v_jet_trkjet3_MV2c00;
-  std::vector<std::vector<float> >  *v_jet_trkjet4_pt;
-  std::vector<std::vector<double> > *v_jet_trkjet4_MV2c00;
+  std::vector<std::vector<float> >  *v_jet_trkjet_pt;
+  std::vector<std::vector<double> > *v_jet_trkjet_MV2c20;
 
   // additions by Andrea
   std::vector<float> *v_jet_mu_truthflav;
