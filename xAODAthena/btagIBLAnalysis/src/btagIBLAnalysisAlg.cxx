@@ -313,6 +313,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_trk_eta  =new std::vector<std::vector<float> >();
   v_jet_trk_theta=new std::vector<std::vector<float> >();
   v_jet_trk_phi  =new std::vector<std::vector<float> >();
+  v_jet_trk_dr  =new std::vector<std::vector<float> >();
   v_jet_trk_chi2 =new std::vector<std::vector<float> >();
   v_jet_trk_ndf  =new std::vector<std::vector<float> >();
   v_jet_trk_algo =new std::vector<std::vector<int> >();
@@ -585,6 +586,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     tree->Branch("jet_trk_eta",&v_jet_trk_eta);
     tree->Branch("jet_trk_theta",&v_jet_trk_theta);
     tree->Branch("jet_trk_phi",&v_jet_trk_phi);
+    tree->Branch("jet_trk_dr",&v_jet_trk_dr);
     tree->Branch("jet_trk_chi2",&v_jet_trk_chi2);
     tree->Branch("jet_trk_ndf",&v_jet_trk_ndf);
     tree->Branch("jet_trk_algo",&v_jet_trk_algo);
@@ -1115,42 +1117,47 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_dRminToB->push_back(mindRtoB);
     v_jet_dRminToC->push_back(mindRtoC);
     v_jet_dRminToT->push_back(mindRtoT);
-    
+
     ///continue;  //VALERIO !!!!!!!!
 
     /////////////////////////////////////////////////////////////////////////////// ///////////////////////////////////////////////////////////////////////////////    
-    // get B hadron quantities
+    // for single b tagging
     const xAOD::TruthParticle* matchedBH=NULL;
-    const std::string labelB = "ConeExclBHadronsFinal";
-    std::vector<const IParticle*> ghostB; ghostB.reserve(2);
-    jet->getAssociatedObjects<IParticle>(labelB, ghostB);
-    if (ghostB.size() >=1 ) {
-       matchedBH=(const xAOD::TruthParticle*)(ghostB.at(0));
-       // to do: in case of 2, get the closest
-    } 
-    v_jet_nBHadr->push_back(ghostB.size());
-
-    // get C hadron quantities
     const xAOD::TruthParticle* matchedCH=NULL;
-    const std::string labelC = "ConeExclCHadronsFinal";
-    std::vector<const IParticle*> ghostC; ghostC.reserve(2);
-    jet->getAssociatedObjects<IParticle>(labelC, ghostC);
-    if (ghostC.size() >=1 ) {
-       matchedCH=(const xAOD::TruthParticle*)(ghostC.at(0));
-       // to do: in case of 2, get the closest
-    } 
-    v_jet_nCHadr->push_back(ghostC.size());
 
     // additions by nikola
+    const xAOD::TruthParticle* matchedBH1=NULL;
+    const xAOD::TruthParticle* matchedBH2=NULL;
+    const xAOD::TruthParticle* matchedCH1=NULL;
+    const xAOD::TruthParticle* matchedCH2=NULL;
+    // double b-tagging
     if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(m_jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0)
     {
       std::vector<const IParticle*> ghostBFromParent; ghostBFromParent.reserve(2);
       jet_parent->getAssociatedObjects<IParticle>("GhostBHadronsFinal", ghostBFromParent);
       v_jet_nGhostBHadrFromParent->push_back(ghostBFromParent.size());
 
+      if (ghostBFromParent.size() >= 1)
+      {
+        matchedBH1=(const xAOD::TruthParticle*)(ghostBFromParent.at(0));
+        if (ghostBFromParent.size() >= 2)
+        {
+          matchedBH2=(const xAOD::TruthParticle*)(ghostBFromParent.at(1));
+        }
+      }
+
       std::vector<const IParticle*> ghostCFromParent; ghostCFromParent.reserve(2);
       jet_parent->getAssociatedObjects<IParticle>("GhostCHadronsFinal", ghostCFromParent);
       v_jet_nGhostCHadrFromParent->push_back(ghostCFromParent.size());
+
+      if (ghostCFromParent.size() >= 1)
+      {
+        matchedCH1=(const xAOD::TruthParticle*)(ghostCFromParent.at(0));
+        if (ghostCFromParent.size() >= 2)
+        {
+          matchedCH2=(const xAOD::TruthParticle*)(ghostCFromParent.at(1));
+        }
+      }
 
       std::vector<const IParticle*> ghostTauFromParent; ghostTauFromParent.reserve(2);
       jet_parent->getAssociatedObjects<IParticle>("GhostTausFinal", ghostTauFromParent);
@@ -1161,9 +1168,46 @@ StatusCode btagIBLAnalysisAlg::execute() {
       jet_parent->getAssociatedObjects<IParticle>("GhostHBosons", ghostHFromParent);
       v_jet_nGhostHBosoFromParent->push_back(ghostHFromParent.size());
     }
+    // single b-tagging
+    else {
+      // get B hadron quantities
+      const std::string labelB = "ConeExclBHadronsFinal";
+      std::vector<const IParticle*> ghostB; ghostB.reserve(2);
+      jet->getAssociatedObjects<IParticle>(labelB, ghostB);
+      if (ghostB.size() >=1 ) {
+         matchedBH=(const xAOD::TruthParticle*)(ghostB.at(0));
+         // to do: in case of 2, get the closest
+      }
+      v_jet_nBHadr->push_back(ghostB.size());
 
-    std::vector<const xAOD::TruthParticle*> tracksFromB; 
-    std::vector<const xAOD::TruthParticle*> tracksFromC; 
+      // get C hadron quantities
+      const std::string labelC = "ConeExclCHadronsFinal";
+      std::vector<const IParticle*> ghostC; ghostC.reserve(2);
+      jet->getAssociatedObjects<IParticle>(labelC, ghostC);
+      if (ghostC.size() >=1 ) {
+         matchedCH=(const xAOD::TruthParticle*)(ghostC.at(0));
+         // to do: in case of 2, get the closest
+      }
+      v_jet_nCHadr->push_back(ghostC.size());
+    }
+
+    // double b-tagging
+    std::vector<const xAOD::TruthParticle*> tracksFromB1;
+    std::vector<const xAOD::TruthParticle*> tracksFromB2;
+    std::vector<const xAOD::TruthParticle*> tracksFromC1;
+    std::vector<const xAOD::TruthParticle*> tracksFromC2;
+    if (matchedBH1!=NULL)
+    {
+      GetParentTracks(matchedBH1, tracksFromB1, tracksFromC1, false, "  ");
+    }
+    if (matchedBH2!=NULL)
+    {
+      GetParentTracks(matchedBH2, tracksFromB2, tracksFromC2, false, "  ");
+    }
+
+    // single b-tagging
+    std::vector<const xAOD::TruthParticle*> tracksFromB;
+    std::vector<const xAOD::TruthParticle*> tracksFromC;
     std::vector<const xAOD::TruthParticle*> tracksFromCc;
 
     if ( matchedBH!=NULL ) {
@@ -1191,7 +1235,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     }
     v_bH_nBtracks->push_back(tracksFromB.size()-tracksFromC.size());
     v_bH_nCtracks->push_back(tracksFromC.size());
-     
+
     if ( matchedCH!=NULL &&  matchedBH==NULL ) {
       v_cH_pt   ->push_back(matchedCH->pt());
       v_cH_eta  ->push_back(matchedCH->eta());
@@ -1630,6 +1674,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> j_trk_eta;
     std::vector<float> j_trk_theta;
     std::vector<float> j_trk_phi;
+    std::vector<float> j_trk_dr;
     std::vector<float> j_trk_chi2;
     std::vector<float> j_trk_ndf;
     std::vector<int> j_trk_algo;
@@ -1891,7 +1936,13 @@ StatusCode btagIBLAnalysisAlg::execute() {
       j_trk_phi.push_back(tmpTrk->phi());
       j_trk_chi2.push_back(tmpTrk->chiSquared());
       j_trk_ndf.push_back(tmpTrk->numberDoF());
-      
+
+      // addition by nikola
+      TLorentzVector jet4vector, trk4vector;
+      jet4vector.SetPtEtaPhiM(jet->pt(), jet->eta(), jet->phi(), jet->m());
+      trk4vector.SetPtEtaPhiM(tmpTrk->pt(), tmpTrk->eta(), tmpTrk->phi(), 0);
+      j_trk_dr.push_back(jet4vector.DeltaR(trk4vector));
+
       // algo
       unsigned int trackAlgo=0;
       int index=-1;
@@ -1940,6 +1991,11 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
       //origin
       int origin=PUFAKE;
+//      printf("nikola: PUFAKE = %d\n", PUFAKE); -1
+//      printf("nikola: GEANT = %d\n", GEANT); 3
+//      printf("nikola: FROMB = %d\n", FROMB); 0
+//      printf("nikola: FROMC = %d\n", FROMC); 1
+//      printf("nikola: FRAG = %d\n", FRAG); 2
       const xAOD::TruthParticle* truth = truthParticle( tmpTrk );
       float truthProb=-1; // need to check MCtruth classifier
       try {
@@ -1956,8 +2012,32 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	      break;
 	    }
 	  }
+	  for (unsigned int iT=0; iT<tracksFromB1.size(); iT++) {
+	    if (truth==tracksFromB1.at(iT)) {
+	      origin=FROMB;
+	      break;
+	    }
+	  }
+	  for (unsigned int iT=0; iT<tracksFromB2.size(); iT++) {
+	    if (truth==tracksFromB2.at(iT)) {
+	      origin=FROMB;
+	      break;
+	    }
+	  }
 	  for (unsigned int iT=0; iT<tracksFromC.size(); iT++) {
 	    if (truth==tracksFromC.at(iT)) {
+	      origin=FROMC;
+	      break;
+	    }
+	  }
+	  for (unsigned int iT=0; iT<tracksFromC1.size(); iT++) {
+	    if (truth==tracksFromC1.at(iT)) {
+	      origin=FROMC;
+	      break;
+	    }
+	  }
+	  for (unsigned int iT=0; iT<tracksFromC2.size(); iT++) {
+	    if (truth==tracksFromC2.at(iT)) {
 	      origin=FROMC;
 	      break;
 	    }
@@ -2085,6 +2165,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_trk_eta->push_back(j_trk_eta);
     v_jet_trk_theta->push_back(j_trk_theta);
     v_jet_trk_phi->push_back(j_trk_phi);
+    v_jet_trk_dr->push_back(j_trk_dr);
     v_jet_trk_chi2->push_back(j_trk_chi2);
     v_jet_trk_ndf->push_back(j_trk_ndf);
     v_jet_trk_algo->push_back(j_trk_algo);
@@ -2413,6 +2494,7 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_trk_eta->clear();
   v_jet_trk_theta->clear();
   v_jet_trk_phi->clear();
+  v_jet_trk_dr->clear();
   v_jet_trk_chi2->clear();
   v_jet_trk_ndf->clear();
   v_jet_trk_algo->clear();
