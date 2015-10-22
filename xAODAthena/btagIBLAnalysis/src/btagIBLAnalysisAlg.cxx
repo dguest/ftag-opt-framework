@@ -2,7 +2,7 @@
 // btagIBLAnalysisAlg.cxx
 ///////////////////////////////////////
 // Author(s): marx@cern.ch
-// Description: athena-based code to process xAODs 
+// Description: athena-based code to process xAODs
 ///////////////////////////////////////
 #include "GaudiKernel/ITHistSvc.h"
 #include "GaudiKernel/ServiceHandle.h"
@@ -40,26 +40,24 @@
 using xAOD::IParticle;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool particleInCollection( const xAOD::TrackParticle *trkPart,
-			   std::vector< ElementLink< xAOD::TrackParticleContainer > > trkColl) {
-  
-  for (unsigned int iT=0; iT<trkColl.size(); iT++) {
-    if ( trkPart==*(trkColl.at(iT)) ) return true;
+bool particleInCollection( const xAOD::TrackParticle *trkPart, std::vector< ElementLink< xAOD::TrackParticleContainer > > trkColl ) {
+  for (unsigned int iT = 0; iT < trkColl.size(); iT++) {
+    if (trkPart == *(trkColl.at(iT))) return true;
   }
   return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool xaodJetPtSorting(const xAOD::Jet *jet1, const xAOD::Jet *jet2) { 
-  return jet1->pt()>jet2->pt(); 
+bool xaodJetPtSorting(const xAOD::Jet *jet1, const xAOD::Jet *jet2) {
+  return jet1->pt() > jet2->pt();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pSvcLocator ) : 
-  AthHistogramAlgorithm( name, pSvcLocator ) ,  
+btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pSvcLocator ) :
+  AthHistogramAlgorithm(name, pSvcLocator),
   m_stream("BTAGSTREAM"),
-  m_jetCalibrationTool(""),  
-  m_jetCleaningTool("JetCleaningTool/JetCleaningTool",this),
+  m_jetCalibrationTool(""),
+  m_jetCleaningTool("JetCleaningTool/JetCleaningTool", this),
   m_InDetTrackSelectorTool(""),
   m_TightTrackVertexAssociationTool(""),
   m_tdt("Trig::TrigDecisionTool/TrigDecisionTool"),
@@ -68,23 +66,23 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pS
   m_SMT(false)
 {
   declareProperty( "Stream", m_stream );
-  
+
   declareProperty( "JetCleaningTool", m_jetCleaningTool );
   declareProperty( "JetCalibrationTool", m_jetCalibrationTool );
-  
-  declareProperty("InDetTrackSelectionTool"   , m_InDetTrackSelectorTool);
-  declareProperty("TrackVertexAssociationTool", m_TightTrackVertexAssociationTool);
-  declareProperty("TrackToVertexIPEstimator"  ,m_trackToVertexIPEstimator);
-  declareProperty("JVTtool",m_jvt);
+
+  declareProperty( "InDetTrackSelectionTool", m_InDetTrackSelectorTool );
+  declareProperty( "TrackVertexAssociationTool", m_TightTrackVertexAssociationTool );
+  declareProperty( "TrackToVertexIPEstimator", m_trackToVertexIPEstimator );
+  declareProperty( "JVTtool", m_jvt );
 
   declareProperty( "ReduceInfo", m_reduceInfo=false );
-  declareProperty( "Rel20", m_rel20=false );
-  declareProperty( "DoMSV", m_doMSV=false );
+  declareProperty( "Rel20", m_rel20 = false );
+  declareProperty( "DoMSV", m_doMSV = false );
   declareProperty( "doSMT", m_SMT);
   declareProperty( "CalibrateJets", m_calibrateJets = true );
   declareProperty( "CleanJets", m_cleanJets = true );
-  
-  declareProperty( "GRLname", m_GRLname="" );
+
+  declareProperty( "GRLname", m_GRLname = "" );
   declareProperty( "JetCollectionName", m_jetCollectionName = "AntiKt4LCTopoJets" );
   declareProperty( "JetPtCut", m_jetPtCut = 20.e3 );
 }
@@ -98,169 +96,172 @@ StatusCode btagIBLAnalysisAlg::initialize() {
 
   // Register histograms
   //ATH_CHECK( book( TH1F("hist_Lxy_denom", "Lxy", 200, 0.0, 100.0) ) );
- 
+
   // Register output tree
   ServiceHandle<ITHistSvc> histSvc("THistSvc",name());
   CHECK( histSvc.retrieve() );
-    
-  if (m_GRLname!="") ATH_CHECK(m_GRLSelectionTool.retrieve());
+
+  if (m_GRLname != "") ATH_CHECK(m_GRLSelectionTool.retrieve());
 
   ATH_MSG_INFO(m_jetCollectionName);
 
-  tree = new TTree( ("bTag_"+m_jetCollectionName).c_str(),
-		    ("bTag" +m_jetCollectionName).c_str() );
-  ATH_MSG_INFO ("VALERIO: registrering tree in stream: "<< m_stream);
-  CHECK( histSvc->regTree( "/"+m_stream+"/tree_"+m_jetCollectionName,tree) );
-  
+  tree = new TTree( ("bTag_" + m_jetCollectionName).c_str(),
+		    ("bTag"  + m_jetCollectionName).c_str() );
+  ATH_MSG_INFO ("VALERIO: registering tree in stream: " << m_stream);
+  CHECK( histSvc->regTree("/" + m_stream + "/tree_" + m_jetCollectionName, tree) );
+
   // Retrieve the jet cleaning tool
   CHECK( m_jetCleaningTool.retrieve() );
   CHECK( m_jvt.retrieve() );
 
   // Retrieve the jet calibration tool
-  m_jetCalibrationTool.setTypeAndName("JetCalibrationTool/BTagDumpAlg_"+m_jetCollectionName+"_JCalib");
+  m_jetCalibrationTool.setTypeAndName("JetCalibrationTool/BTagDumpAlg_" + m_jetCollectionName + "_JCalib");
   CHECK( m_jetCalibrationTool.retrieve() );
 
   // retrieve other special tools
-  if ( m_InDetTrackSelectorTool.retrieve().isFailure() )  {
-    ATH_MSG_FATAL("#BTAG# Failed to retrieve tool " <<  m_InDetTrackSelectorTool);
+  if (m_InDetTrackSelectorTool.retrieve().isFailure())  {
+    ATH_MSG_FATAL("#BTAG# Failed to retrieve tool " << m_InDetTrackSelectorTool);
     return StatusCode::FAILURE;
-  } else {
-    ATH_MSG_DEBUG("#BTAG# Retrieved tool " <<  m_InDetTrackSelectorTool);
   }
-  if ( m_TightTrackVertexAssociationTool.retrieve().isFailure() )  {
+  else {
+    ATH_MSG_DEBUG("#BTAG# Retrieved tool " << m_InDetTrackSelectorTool);
+  }
+  if (m_TightTrackVertexAssociationTool.retrieve().isFailure())  {
     ATH_MSG_FATAL("#BTAG# Failed to retrieve tool " <<  m_TightTrackVertexAssociationTool);
     return StatusCode::FAILURE;
   }
-  if (m_trackToVertexIPEstimator.retrieve().isFailure() ) {
+  if (m_trackToVertexIPEstimator.retrieve().isFailure()) {
     ATH_MSG_FATAL("#BTAG# Failed to retrieve tool " << m_trackToVertexIPEstimator);
     return StatusCode::FAILURE;
-  } else {
+  }
+  else {
     ATH_MSG_DEBUG("#BTAG# Retrieved tool " << m_trackToVertexIPEstimator);
   }
- 
+
   m_PUtool.setTypeAndName("CP::PileupReweightingTool/prw");
   CHECK( m_PUtool.retrieve() );
-  
+
   ATH_CHECK(m_tdt.retrieve());
- 
+
   // Setup branches
-  v_jet_pt =new std::vector<float>(); //v_jet_pt->reserve(15);
-  v_jet_eta=new std::vector<float>(); //v_jet_eta->reserve(15);
-  v_jet_phi=new std::vector<float>(); //v_jet_phi->reserve(15);
-  v_jet_pt_orig =new std::vector<float>(); 
-  v_jet_eta_orig=new std::vector<float>(); 
-  v_jet_phi_orig=new std::vector<float>(); 
-  v_jet_E_orig  =new std::vector<float>(); 
-  v_jet_sumtrkS_pt =new std::vector<float>(); 
-  v_jet_sumtrkV_pt =new std::vector<float>(); 
-  v_jet_sumtrkV_phi=new std::vector<float>(); 
-  v_jet_sumtrkV_eta=new std::vector<float>(); 
-  v_jet_sumtrk_ntrk=new std::vector<int>(); 
-  v_jet_E  =new std::vector<float>(); //v_jet_E->reserve(15);
-  v_jet_m  =new std::vector<float>(); //v_jet_m->reserve(15);
-  v_jet_truthflav  =new std::vector<int>();
-  v_jet_nBHadr     =new std::vector<int>();
-  v_jet_nCHadr     =new std::vector<int>();
-  v_jet_nGhostBHadrFromParent     =new std::vector<int>();
-  v_jet_nGhostCHadrFromParent     =new std::vector<int>();
-  v_jet_nGhostTauFromParent     =new std::vector<int>();
-  v_jet_nGhostHBosoFromParent     =new std::vector<int>();
-  v_jet_GhostL_q   =new std::vector<int>();
-  v_jet_GhostL_HadI=new std::vector<int>();
-  v_jet_GhostL_HadF=new std::vector<int>();
-  v_jet_LabDr_HadF =new std::vector<int>();
-  v_jet_aliveAfterOR =new std::vector<int>();
-  v_jet_truthMatch =new std::vector<int>();
-  v_jet_isPU       =new std::vector<int>();
-  v_jet_isBadMedium=new std::vector<int>();
-  v_jet_truthPt =new std::vector<float>();
-  v_jet_dRiso   =new std::vector<float>();
-  v_jet_JVT     =new std::vector<float>();
-  v_jet_JVF     =new std::vector<float>();
-  v_jet_dRminToB=new std::vector<float>();
-  v_jet_dRminToC=new std::vector<float>();
-  v_jet_dRminToT=new std::vector<float>();
+  v_jet_pt = new std::vector<float>(); //v_jet_pt->reserve(15);
+  v_jet_eta = new std::vector<float>(); //v_jet_eta->reserve(15);
+  v_jet_phi = new std::vector<float>(); //v_jet_phi->reserve(15);
+  v_jet_pt_orig =new std::vector<float>();
+  v_jet_eta_orig = new std::vector<float>();
+  v_jet_phi_orig = new std::vector<float>();
+  v_jet_E_orig = new std::vector<float>();
+  v_jet_sumtrkS_pt = new std::vector<float>();
+  v_jet_sumtrkV_pt = new std::vector<float>();
+  v_jet_sumtrkV_phi = new std::vector<float>();
+  v_jet_sumtrkV_eta = new std::vector<float>();
+  v_jet_sumtrk_ntrk = new std::vector<int>();
+  v_jet_E = new std::vector<float>(); //v_jet_E->reserve(15);
+  v_jet_m = new std::vector<float>(); //v_jet_m->reserve(15);
+  v_jet_truthflav = new std::vector<int>();
+  v_jet_nBHadr = new std::vector<int>();
+  v_jet_nCHadr = new std::vector<int>();
+  v_jet_nGhostBHadrFromParent = new std::vector<int>(); // mod nikola
+  v_jet_nGhostCHadrFromParent = new std::vector<int>(); // mod nikola
+  v_jet_nGhostCHadrFromParentNotFromB = new std::vector<int>(); // mod nikola
+  v_jet_nGhostTauFromParent = new std::vector<int>(); // mod nikola
+  v_jet_nGhostHBosoFromParent = new std::vector<int>(); // mod nikola
+  v_jet_GhostL_q = new std::vector<int>();
+  v_jet_GhostL_HadI = new std::vector<int>();
+  v_jet_GhostL_HadF = new std::vector<int>();
+  v_jet_LabDr_HadF = new std::vector<int>();
+  v_jet_aliveAfterOR = new std::vector<int>();
+  v_jet_truthMatch = new std::vector<int>();
+  v_jet_isPU = new std::vector<int>();
+  v_jet_isBadMedium = new std::vector<int>();
+  v_jet_truthPt = new std::vector<float>();
+  v_jet_dRiso = new std::vector<float>();
+  v_jet_JVT = new std::vector<float>();
+  v_jet_JVF = new std::vector<float>();
+  v_jet_dRminToB = new std::vector<float>();
+  v_jet_dRminToC = new std::vector<float>();
+  v_jet_dRminToT = new std::vector<float>();
 
-  v_jet_ip2d_pb   =new std::vector<float>();
-  v_jet_ip2d_pc   =new std::vector<float>();
-  v_jet_ip2d_pu   =new std::vector<float>();
-  v_jet_ip2d_llr  =new std::vector<float>();
-  v_jet_ip3d_pb   =new std::vector<float>();
-  v_jet_ip3d_pc   =new std::vector<float>();
-  v_jet_ip3d_pu   =new std::vector<float>();
-  v_jet_ip3d_llr  =new std::vector<float>();
-  v_jet_sv0_sig3d  =new std::vector<float>();
-  v_jet_sv0_ntrkj  =new std::vector<int>();
-  v_jet_sv0_ntrkv  =new std::vector<int>();
-  v_jet_sv0_n2t    =new std::vector<int>();
-  v_jet_sv0_m      =new std::vector<float>();
-  v_jet_sv0_efc    =new std::vector<float>();
-  v_jet_sv0_normdist    =new std::vector<float>();
-  v_jet_sv0_Nvtx        =new std::vector<int>();
-  v_jet_sv0_vtxx =new std::vector<std::vector<float> >();
-  v_jet_sv0_vtxy =new std::vector<std::vector<float> >();
-  v_jet_sv0_vtxz =new std::vector<std::vector<float> >();
-  v_jet_sv1_ntrkj  =new std::vector<int>();
-  v_jet_sv1_ntrkv  =new std::vector<int>();
-  v_jet_sv1_n2t    =new std::vector<int>();
-  v_jet_sv1_m      =new std::vector<float>();
-  v_jet_sv1_efc    =new std::vector<float>();
-  v_jet_sv1_normdist    =new std::vector<float>();
-  v_jet_sv1_Nvtx        =new std::vector<int>();
-  v_jet_sv1_pb   =new std::vector<float>();
-  v_jet_sv1_pc   =new std::vector<float>();
-  v_jet_sv1_pu   =new std::vector<float>();
-  v_jet_sv1_llr  =new std::vector<float>();
-  v_jet_sv1_sig3d=new std::vector<float>();
-  v_jet_sv1_vtxx =new std::vector<std::vector<float> >();
-  v_jet_sv1_vtxy =new std::vector<std::vector<float> >();
-  v_jet_sv1_vtxz =new std::vector<std::vector<float> >();
-  
-  v_jet_jf_pb=new std::vector<float>();
-  v_jet_jf_pc=new std::vector<float>();
-  v_jet_jf_pu=new std::vector<float>();
-  v_jet_jf_llr=new std::vector<float>();
-  v_jet_jf_m=new std::vector<float>();
-  v_jet_jf_efc=new std::vector<float>();
-  v_jet_jf_deta=new std::vector<float>();
-  v_jet_jf_dphi=new std::vector<float>();
-  v_jet_jf_ntrkAtVx=new std::vector<float>();
-  v_jet_jf_nvtx=new std::vector<int>();
-  v_jet_jf_sig3d=new std::vector<float>();
-  v_jet_jf_nvtx1t=new std::vector<int>();
-  v_jet_jf_n2t=new std::vector<int>();
-  v_jet_jf_VTXsize=new std::vector<int>();
-  v_jet_jf_vtx_chi2=new std::vector<std::vector<float> >(); //mod Remco
-  v_jet_jf_vtx_ndf=new std::vector<std::vector<float> >(); //mod Remco
-  v_jet_jf_vtx_ntrk=new std::vector<std::vector<int> >(); //mod Remco
-  v_jet_jf_vtx_L3d=new std::vector<std::vector<float> >(); //mod Remco
-  v_jet_jf_vtx_sig3d=new std::vector<std::vector<float> >(); //mod Remco
-  v_jet_jf_vtx_nvtx=new std::vector<std::vector<int> >(); //mod Remco
-  v_jet_jf_phi=new std::vector<float>(); //mod Remco
-  v_jet_jf_theta=new std::vector<float>(); //mod Remco
+  v_jet_ip2d_pb = new std::vector<float>();
+  v_jet_ip2d_pc = new std::vector<float>();
+  v_jet_ip2d_pu = new std::vector<float>();
+  v_jet_ip2d_llr = new std::vector<float>();
+  v_jet_ip3d_pb = new std::vector<float>();
+  v_jet_ip3d_pc = new std::vector<float>();
+  v_jet_ip3d_pu = new std::vector<float>();
+  v_jet_ip3d_llr = new std::vector<float>();
+  v_jet_sv0_sig3d = new std::vector<float>();
+  v_jet_sv0_ntrkj = new std::vector<int>();
+  v_jet_sv0_ntrkv = new std::vector<int>();
+  v_jet_sv0_n2t = new std::vector<int>();
+  v_jet_sv0_m = new std::vector<float>();
+  v_jet_sv0_efc = new std::vector<float>();
+  v_jet_sv0_normdist = new std::vector<float>();
+  v_jet_sv0_Nvtx = new std::vector<int>();
+  v_jet_sv0_vtxx = new std::vector<std::vector<float> >();
+  v_jet_sv0_vtxy = new std::vector<std::vector<float> >();
+  v_jet_sv0_vtxz = new std::vector<std::vector<float> >();
+  v_jet_sv1_ntrkj =new std::vector<int>();
+  v_jet_sv1_ntrkv = new std::vector<int>();
+  v_jet_sv1_n2t = new std::vector<int>();
+  v_jet_sv1_m = new std::vector<float>();
+  v_jet_sv1_efc = new std::vector<float>();
+  v_jet_sv1_normdist =new std::vector<float>();
+  v_jet_sv1_Nvtx = new std::vector<int>();
+  v_jet_sv1_pb = new std::vector<float>();
+  v_jet_sv1_pc = new std::vector<float>();
+  v_jet_sv1_pu = new std::vector<float>();
+  v_jet_sv1_llr = new std::vector<float>();
+  v_jet_sv1_sig3d = new std::vector<float>();
+  v_jet_sv1_vtxx = new std::vector<std::vector<float> >();
+  v_jet_sv1_vtxy = new std::vector<std::vector<float> >();
+  v_jet_sv1_vtxz = new std::vector<std::vector<float> >();
 
-  v_jet_jfcombnn_pb=new std::vector<float>();
-  v_jet_jfcombnn_pc=new std::vector<float>();
-  v_jet_jfcombnn_pu=new std::vector<float>();
-  v_jet_jfcombnn_llr=new std::vector<float>();
-  
-  v_jet_sv1ip3d=new std::vector<double>();
-  v_jet_mv1=new std::vector<double>();
-  v_jet_mv1c=new std::vector<double>();
-  v_jet_mv2c00=new std::vector<double>();
-  v_jet_mv2c10=new std::vector<double>();
-  v_jet_mv2c20=new std::vector<double>();
-  v_jet_mv2c100=new std::vector<double>();
-  v_jet_mv2m_pu=new std::vector<double>();
-  v_jet_mv2m_pc=new std::vector<double>();
-  v_jet_mv2m_pb=new std::vector<double>();
-  v_jet_mvb=new std::vector<double>();
+  v_jet_jf_pb = new std::vector<float>();
+  v_jet_jf_pc = new std::vector<float>();
+  v_jet_jf_pu = new std::vector<float>();
+  v_jet_jf_llr = new std::vector<float>();
+  v_jet_jf_m = new std::vector<float>();
+  v_jet_jf_efc = new std::vector<float>();
+  v_jet_jf_deta = new std::vector<float>();
+  v_jet_jf_dphi = new std::vector<float>();
+  v_jet_jf_ntrkAtVx = new std::vector<float>();
+  v_jet_jf_nvtx = new std::vector<int>();
+  v_jet_jf_sig3d = new std::vector<float>();
+  v_jet_jf_nvtx1t = new std::vector<int>();
+  v_jet_jf_n2t = new std::vector<int>();
+  v_jet_jf_VTXsize = new std::vector<int>();
+  v_jet_jf_vtx_chi2 = new std::vector<std::vector<float> >(); // mod Remco
+  v_jet_jf_vtx_ndf = new std::vector<std::vector<float> >(); // mod Remco
+  v_jet_jf_vtx_ntrk = new std::vector<std::vector<int> >(); // mod Remco
+  v_jet_jf_vtx_L3d = new std::vector<std::vector<float> >(); // mod Remco
+  v_jet_jf_vtx_sig3d = new std::vector<std::vector<float> >(); // mod Remco
+  v_jet_jf_vtx_nvtx = new std::vector<std::vector<int> >(); // mod Remco
+  v_jet_jf_phi = new std::vector<float>(); // mod Remco
+  v_jet_jf_theta = new std::vector<float>(); // mod Remco
 
-  v_jet_ip2dNT_llr =new std::vector<double>();
-  v_jet_ip3dNT_llr =new std::vector<double>();
-  v_jet_sv1flip_llr=new std::vector<double>();
-  v_jet_jfflip_llr =new std::vector<double>();
-  v_jet_mv2c20flip =new std::vector<double>();
+  v_jet_jfcombnn_pb = new std::vector<float>();
+  v_jet_jfcombnn_pc = new std::vector<float>();
+  v_jet_jfcombnn_pu = new std::vector<float>();
+  v_jet_jfcombnn_llr = new std::vector<float>();
+
+  v_jet_sv1ip3d = new std::vector<double>();
+  v_jet_mv1 = new std::vector<double>();
+  v_jet_mv1c = new std::vector<double>();
+  v_jet_mv2c00 = new std::vector<double>();
+  v_jet_mv2c10 = new std::vector<double>();
+  v_jet_mv2c20 = new std::vector<double>();
+  v_jet_mv2c100 = new std::vector<double>();
+  v_jet_mv2m_pu = new std::vector<double>();
+  v_jet_mv2m_pc = new std::vector<double>();
+  v_jet_mv2m_pb = new std::vector<double>();
+  v_jet_mvb = new std::vector<double>();
+
+  v_jet_ip2dNT_llr = new std::vector<double>();
+  v_jet_ip3dNT_llr = new std::vector<double>();
+  v_jet_sv1flip_llr = new std::vector<double>();
+  v_jet_jfflip_llr = new std::vector<double>();
+  v_jet_mv2c20flip = new std::vector<double>();
 
   v_jet_multisvbb1 = new std::vector<double>();
   v_jet_multisvbb2 = new std::vector<double>();
@@ -271,15 +272,15 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_msv_vtx_mass = new std::vector<std::vector<float> >();
   v_jet_msv_vtx_efrc = new std::vector<std::vector<float> >();
   v_jet_msv_vtx_ntrk = new std::vector<std::vector<float> >();
-  v_jet_msv_vtx_pt   = new std::vector<std::vector<float> >();
-  v_jet_msv_vtx_eta  = new std::vector<std::vector<float> >();
-  v_jet_msv_vtx_phi  = new std::vector<std::vector<float> >();
-  v_jet_msv_vtx_dls  = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_pt = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_eta = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_phi = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_dls = new std::vector<std::vector<float> >();
   v_jet_msv_vtx_x = new std::vector<std::vector<float> >();
-  v_jet_msv_vtx_y   = new std::vector<std::vector<float> >();
-  v_jet_msv_vtx_z  = new std::vector<std::vector<float> >();
-  v_jet_msv_vtx_chi  = new std::vector<std::vector<float> >();
-  v_jet_msv_vtx_ndf  = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_y = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_z = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_chi = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_ndf = new std::vector<std::vector<float> >();
 
   v_jet_ExKtbb_Hbb_DoubleMV2c20 = new std::vector<double>();
   v_jet_ExKtbb_Hbb_SingleMV2c20 = new std::vector<double>();
@@ -287,270 +288,270 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_ExKtbb_Hbb_MV2andJFDRSig = new std::vector<double>();
   v_jet_ExKtbb_Hbb_MV2andTopos = new std::vector<double>();
 
-  v_bH_pt   =new std::vector<float>();
-  v_bH_eta  =new std::vector<float>();
-  v_bH_phi  =new std::vector<float>();
-  v_bH_Lxy  =new std::vector<float>();
-  v_bH_dRjet=new std::vector<float>();
-  v_bH_x=new std::vector<float>();
-  v_bH_y=new std::vector<float>();
-  v_bH_z=new std::vector<float>();
-  v_bH_nBtracks=new std::vector<int>();
-  v_bH_nCtracks=new std::vector<int>();
+  v_bH_pt = new std::vector<float>();
+  v_bH_eta = new std::vector<float>();
+  v_bH_phi = new std::vector<float>();
+  v_bH_Lxy = new std::vector<float>();
+  v_bH_dRjet = new std::vector<float>();
+  v_bH_x = new std::vector<float>();
+  v_bH_y = new std::vector<float>();
+  v_bH_z = new std::vector<float>();
+  v_bH_nBtracks = new std::vector<int>();
+  v_bH_nCtracks = new std::vector<int>();
 
-  v_cH_pt   =new std::vector<float>();
-  v_cH_eta  =new std::vector<float>();
-  v_cH_phi  =new std::vector<float>();
-  v_cH_Lxy  =new std::vector<float>();
-  v_cH_dRjet=new std::vector<float>();
-  v_cH_x=new std::vector<float>();
-  v_cH_y=new std::vector<float>();
-  v_cH_z=new std::vector<float>();
-  v_cH_nCtracks=new std::vector<int>();
+  v_cH_pt = new std::vector<float>();
+  v_cH_eta = new std::vector<float>();
+  v_cH_phi = new std::vector<float>();
+  v_cH_Lxy = new std::vector<float>();
+  v_cH_dRjet = new std::vector<float>();
+  v_cH_x = new std::vector<float>();
+  v_cH_y = new std::vector<float>();
+  v_cH_z = new std::vector<float>();
+  v_cH_nCtracks = new std::vector<int>();
 
-  v_jet_btag_ntrk=new std::vector<int>();
-  v_jet_trk_pt   =new std::vector<std::vector<float> >();
-  v_jet_trk_eta  =new std::vector<std::vector<float> >();
-  v_jet_trk_theta=new std::vector<std::vector<float> >();
-  v_jet_trk_phi  =new std::vector<std::vector<float> >();
-  v_jet_trk_dr  =new std::vector<std::vector<float> >();
-  v_jet_trk_chi2 =new std::vector<std::vector<float> >();
-  v_jet_trk_ndf  =new std::vector<std::vector<float> >();
-  v_jet_trk_algo =new std::vector<std::vector<int> >();
-  v_jet_trk_orig =new std::vector<std::vector<int> >();
+  v_jet_btag_ntrk = new std::vector<int>();
+  v_jet_trk_pt = new std::vector<std::vector<float> >();
+  v_jet_trk_eta = new std::vector<std::vector<float> >();
+  v_jet_trk_theta = new std::vector<std::vector<float> >();
+  v_jet_trk_phi = new std::vector<std::vector<float> >();
+  v_jet_trk_dr = new std::vector<std::vector<float> >();
+  v_jet_trk_chi2 = new std::vector<std::vector<float> >();
+  v_jet_trk_ndf = new std::vector<std::vector<float> >();
+  v_jet_trk_algo = new std::vector<std::vector<int> >();
+  v_jet_trk_orig = new std::vector<std::vector<int> >();
 
-  v_jet_trk_vtx_X =new std::vector<std::vector<float> >();
-  v_jet_trk_vtx_Y =new std::vector<std::vector<float> >();
-  v_jet_trk_vtx_dx=new std::vector<std::vector<float> >();
-  v_jet_trk_vtx_dy=new std::vector<std::vector<float> >();
+  v_jet_trk_vtx_X = new std::vector<std::vector<float> >();
+  v_jet_trk_vtx_Y = new std::vector<std::vector<float> >();
+  v_jet_trk_vtx_dx = new std::vector<std::vector<float> >();
+  v_jet_trk_vtx_dy = new std::vector<std::vector<float> >();
 
-  v_jet_trk_nNextToInnHits=new std::vector<std::vector<int> >();
-  v_jet_trk_nInnHits=new std::vector<std::vector<int> >();
-  v_jet_trk_nBLHits=new std::vector<std::vector<int> >();
-  v_jet_trk_nsharedBLHits=new std::vector<std::vector<int> >();
-  v_jet_trk_nsplitBLHits=new std::vector<std::vector<int> >();
-  v_jet_trk_nPixHits=new std::vector<std::vector<int> >();
-  v_jet_trk_nsharedPixHits=new std::vector<std::vector<int> >();
-  v_jet_trk_nsplitPixHits=new std::vector<std::vector<int> >();
-  v_jet_trk_nSCTHits=new std::vector<std::vector<int> >();
-  v_jet_trk_nsharedSCTHits=new std::vector<std::vector<int> >();
-  v_jet_trk_expectBLayerHit=new std::vector<std::vector<int> >();
-  v_jet_trk_d0=new std::vector<std::vector<float> >();
-  v_jet_trk_z0=new std::vector<std::vector<float> >();
-  // v_jet_trk_d0sig=new std::vector<std::vector<float> >();
-  // v_jet_trk_z0sig=new std::vector<std::vector<float> >();
-  
-  v_jet_trk_d0_truth=new std::vector<std::vector<float> >();
-  v_jet_trk_z0_truth=new std::vector<std::vector<float> >();
+  v_jet_trk_nNextToInnHits = new std::vector<std::vector<int> >();
+  v_jet_trk_nInnHits = new std::vector<std::vector<int> >();
+  v_jet_trk_nBLHits = new std::vector<std::vector<int> >();
+  v_jet_trk_nsharedBLHits = new std::vector<std::vector<int> >();
+  v_jet_trk_nsplitBLHits = new std::vector<std::vector<int> >();
+  v_jet_trk_nPixHits = new std::vector<std::vector<int> >();
+  v_jet_trk_nsharedPixHits = new std::vector<std::vector<int> >();
+  v_jet_trk_nsplitPixHits = new std::vector<std::vector<int> >();
+  v_jet_trk_nSCTHits = new std::vector<std::vector<int> >();
+  v_jet_trk_nsharedSCTHits = new std::vector<std::vector<int> >();
+  v_jet_trk_expectBLayerHit = new std::vector<std::vector<int> >();
+  v_jet_trk_d0 = new std::vector<std::vector<float> >();
+  v_jet_trk_z0 = new std::vector<std::vector<float> >();
+  // v_jet_trk_d0sig = new std::vector<std::vector<float> >();
+  // v_jet_trk_z0sig = new std::vector<std::vector<float> >();
 
-  v_jet_trk_IP3D_grade=new std::vector<std::vector<int> >();
-  v_jet_trk_IP3D_d0   =new std::vector<std::vector<float> >();
-  v_jet_trk_IP3D_d02D =new std::vector<std::vector<float> >();
-  v_jet_trk_IP3D_z0   =new std::vector<std::vector<float> >();
-  v_jet_trk_IP3D_d0sig=new std::vector<std::vector<float> >();
-  v_jet_trk_IP3D_z0sig=new std::vector<std::vector<float> >();  
-  v_jet_trk_IP2D_llr=new std::vector<std::vector<float> >();
-  v_jet_trk_IP3D_llr=new std::vector<std::vector<float> >();
+  v_jet_trk_d0_truth = new std::vector<std::vector<float> >();
+  v_jet_trk_z0_truth = new std::vector<std::vector<float> >();
 
-  v_jet_trk_jf_Vertex=new std::vector<std::vector<int> >(); //mod Remco
+  v_jet_trk_IP3D_grade = new std::vector<std::vector<int> >();
+  v_jet_trk_IP3D_d0 = new std::vector<std::vector<float> >();
+  v_jet_trk_IP3D_d02D = new std::vector<std::vector<float> >();
+  v_jet_trk_IP3D_z0 = new std::vector<std::vector<float> >();
+  v_jet_trk_IP3D_d0sig = new std::vector<std::vector<float> >();
+  v_jet_trk_IP3D_z0sig = new std::vector<std::vector<float> >();
+  v_jet_trk_IP2D_llr = new std::vector<std::vector<float> >();
+  v_jet_trk_IP3D_llr = new std::vector<std::vector<float> >();
+
+  v_jet_trk_jf_Vertex = new std::vector<std::vector<int> >(); // mod Remco
 
   // those are just quick accessors
-  v_jet_sv1_ntrk =new std::vector<int>();
-  v_jet_ip3d_ntrk=new std::vector<int>();
-  v_jet_jf_ntrk  =new std::vector<int>();
+  v_jet_sv1_ntrk = new std::vector<int>();
+  v_jet_ip3d_ntrk = new std::vector<int>();
+  v_jet_jf_ntrk = new std::vector<int>();
 
   // additions by nikola
-  v_jet_trkjet_pt     = new std::vector<std::vector<float> >();
-  v_jet_trkjet_MV2c20 = new std::vector<std::vector<double> >();
+  v_jet_trkjet_pt = new std::vector<std::vector<float> >();
+  v_jet_trkjet_mv2c20 = new std::vector<std::vector<double> >();
 
   // additions by andrea
-  v_jet_mu_assJet_pt=new std::vector<float>();
-  v_jet_mu_truthflav=new std::vector<float>();
-  v_jet_mu_dR =new std::vector<float>();
-  v_jet_mu_pTrel=new std::vector<float>();;
-  v_jet_mu_qOverPratio=new std::vector<float>();
-  v_jet_mu_mombalsignif=new std::vector<float>();
-  v_jet_mu_scatneighsignif=new std::vector<float>();
-  v_jet_mu_VtxTyp=new std::vector<float>();
-  v_jet_mu_pt=new std::vector<float>();
-  v_jet_mu_eta=new std::vector<float>();
-  v_jet_mu_phi=new std::vector<float>();
-  v_jet_mu_d0=new std::vector<float>();
-  v_jet_mu_z0=new std::vector<float>();
-  v_jet_mu_parent_pdgid=new std::vector<float>();
-  v_jet_mu_ID_qOverP_var=new std::vector<float>();
-  v_jet_mu_muonType=new std::vector<float>(); 
-  
-  tree->Branch("runnb",&runnumber);
-  tree->Branch("eventnb",&eventnumber);
-  tree->Branch("mcchan",&mcchannel);
-  tree->Branch("mcwg",&mcweight);
-  tree->Branch("lbn",&lbn);
-  tree->Branch("coreFlag" , &coreFlag);
-  tree->Branch("larError" , &larError);
+  v_jet_mu_assJet_pt = new std::vector<float>();
+  v_jet_mu_truthflav = new std::vector<float>();
+  v_jet_mu_dR = new std::vector<float>();
+  v_jet_mu_pTrel = new std::vector<float>();;
+  v_jet_mu_qOverPratio = new std::vector<float>();
+  v_jet_mu_mombalsignif = new std::vector<float>();
+  v_jet_mu_scatneighsignif = new std::vector<float>();
+  v_jet_mu_VtxTyp = new std::vector<float>();
+  v_jet_mu_pt = new std::vector<float>();
+  v_jet_mu_eta = new std::vector<float>();
+  v_jet_mu_phi = new std::vector<float>();
+  v_jet_mu_d0 = new std::vector<float>();
+  v_jet_mu_z0 = new std::vector<float>();
+  v_jet_mu_parent_pdgid = new std::vector<float>();
+  v_jet_mu_ID_qOverP_var = new std::vector<float>();
+  v_jet_mu_muonType = new std::vector<float>();
+
+  tree->Branch("runnb", &runnumber);
+  tree->Branch("eventnb", &eventnumber);
+  tree->Branch("mcchan", &mcchannel);
+  tree->Branch("mcwg", &mcweight);
+  tree->Branch("lbn", &lbn);
+  tree->Branch("coreFlag", &coreFlag);
+  tree->Branch("larError", &larError);
   tree->Branch("tileError", &tileError);
-  tree->Branch("nPV",&npv);
-  tree->Branch("avgmu",&mu);
-  tree->Branch("PVx",&PV_x);
-  tree->Branch("PVy",&PV_y);
-  tree->Branch("PVz",&PV_z);
-  tree->Branch("truth_PVx",&truth_PV_x);
-  tree->Branch("truth_PVy",&truth_PV_y);
-  tree->Branch("truth_PVz",&truth_PV_z);
-  tree->Branch("truth_LeadJet_pt",&truth_LeadJet_pt);
+  tree->Branch("nPV", &npv);
+  tree->Branch("avgmu", &mu);
+  tree->Branch("PVx", &PV_x);
+  tree->Branch("PVy", &PV_y);
+  tree->Branch("PVz", &PV_z);
+  tree->Branch("truth_PVx", &truth_PV_x);
+  tree->Branch("truth_PVy", &truth_PV_y);
+  tree->Branch("truth_PVz", &truth_PV_z);
+  tree->Branch("truth_LeadJet_pt", &truth_LeadJet_pt);
 
-  tree->Branch("njets",&njets);
-  tree->Branch("nbjets"     ,&nbjets);
-  tree->Branch("nbjets_q"   ,&nbjets_q);
-  tree->Branch("nbjets_HadI",&nbjets_HadI);
-  tree->Branch("nbjets_HadF",&nbjets_HadF);
-  tree->Branch("jet_pt",&v_jet_pt);
-  tree->Branch("jet_eta",&v_jet_eta);
-  tree->Branch("jet_phi",&v_jet_phi);
-  tree->Branch("jet_pt_orig" ,&v_jet_pt_orig);
-  tree->Branch("jet_eta_orig",&v_jet_eta_orig);
-  tree->Branch("jet_phi_orig",&v_jet_phi_orig);
-  tree->Branch("jet_E_orig"  ,&v_jet_E_orig);
-  tree->Branch("jet_sumtrkS_pt" ,&v_jet_sumtrkS_pt);
-  tree->Branch("jet_sumtrkV_pt" ,&v_jet_sumtrkV_pt);
-  tree->Branch("jet_sumtrkV_eta",&v_jet_sumtrkV_eta);
-  tree->Branch("jet_sumtrkV_phi",&v_jet_sumtrkV_phi);
-  tree->Branch("jet_sumtrk_ntrk",&v_jet_sumtrk_ntrk);
-  tree->Branch("jet_E",&v_jet_E);
-  tree->Branch("jet_m",&v_jet_m);
-  tree->Branch("jet_truthflav"  ,&v_jet_truthflav);
-  tree->Branch("jet_nBHadr"     ,&v_jet_nBHadr);
-  tree->Branch("jet_nCHadr"     ,&v_jet_nCHadr);
-  tree->Branch("jet_nGhostBHadrFromParent"     ,&v_jet_nGhostBHadrFromParent);
-  tree->Branch("jet_nGhostCHadrFromParent"     ,&v_jet_nGhostCHadrFromParent);
-  tree->Branch("jet_nGhostTauFromParent"     ,&v_jet_nGhostTauFromParent);
-  tree->Branch("jet_nGhostHBosoFromParent"     ,&v_jet_nGhostHBosoFromParent);
-  tree->Branch("jet_GhostL_q"   ,&v_jet_GhostL_q);
-  tree->Branch("jet_GhostL_HadI",&v_jet_GhostL_HadI);
-  tree->Branch("jet_GhostL_HadF",&v_jet_GhostL_HadF);
-  tree->Branch("jet_LabDr_HadF" ,&v_jet_LabDr_HadF);
-  tree->Branch("jet_aliveAfterOR" ,&v_jet_aliveAfterOR);
-  tree->Branch("jet_truthMatch" ,&v_jet_truthMatch);
-  tree->Branch("jet_isPU" ,&v_jet_isPU);
-  tree->Branch("jet_isBadMedium" ,&v_jet_isBadMedium);
-  tree->Branch("jet_truthPt" ,&v_jet_truthPt);
-  tree->Branch("jet_dRiso" ,&v_jet_dRiso);
-  tree->Branch("jet_JVT" ,&v_jet_JVT);
-  tree->Branch("jet_JVF" ,&v_jet_JVF);
-  tree->Branch("jet_dRminToB" ,&v_jet_dRminToB);
-  tree->Branch("jet_dRminToC" ,&v_jet_dRminToC);
-  tree->Branch("jet_dRminToT" ,&v_jet_dRminToT);
+  tree->Branch("njets", &njets);
+  tree->Branch("nbjets", &nbjets);
+  tree->Branch("nbjets_q", &nbjets_q);
+  tree->Branch("nbjets_HadI", &nbjets_HadI);
+  tree->Branch("nbjets_HadF", &nbjets_HadF);
+  tree->Branch("jet_pt", &v_jet_pt);
+  tree->Branch("jet_eta", &v_jet_eta);
+  tree->Branch("jet_phi", &v_jet_phi);
+  tree->Branch("jet_pt_orig", &v_jet_pt_orig);
+  tree->Branch("jet_eta_orig", &v_jet_eta_orig);
+  tree->Branch("jet_phi_orig", &v_jet_phi_orig);
+  tree->Branch("jet_E_orig", &v_jet_E_orig);
+  tree->Branch("jet_sumtrkS_pt", &v_jet_sumtrkS_pt);
+  tree->Branch("jet_sumtrkV_pt", &v_jet_sumtrkV_pt);
+  tree->Branch("jet_sumtrkV_eta", &v_jet_sumtrkV_eta);
+  tree->Branch("jet_sumtrkV_phi", &v_jet_sumtrkV_phi);
+  tree->Branch("jet_sumtrk_ntrk", &v_jet_sumtrk_ntrk);
+  tree->Branch("jet_E", &v_jet_E);
+  tree->Branch("jet_m", &v_jet_m);
+  tree->Branch("jet_truthflav", &v_jet_truthflav);
+  tree->Branch("jet_nBHadr", &v_jet_nBHadr);
+  tree->Branch("jet_nCHadr", &v_jet_nCHadr);
+  tree->Branch("jet_nGhostBHadrFromParent", &v_jet_nGhostBHadrFromParent); // mod nikola
+  tree->Branch("jet_nGhostCHadrFromParent", &v_jet_nGhostCHadrFromParent); // mod nikola
+  tree->Branch("jet_nGhostCHadrFromParentNotFromB", &v_jet_nGhostCHadrFromParentNotFromB); // mod nikola
+  tree->Branch("jet_nGhostTauFromParent", &v_jet_nGhostTauFromParent); // mod nikola
+  tree->Branch("jet_nGhostHBosoFromParent", &v_jet_nGhostHBosoFromParent); // mod nikola
+  tree->Branch("jet_GhostL_q", &v_jet_GhostL_q);
+  tree->Branch("jet_GhostL_HadI", &v_jet_GhostL_HadI);
+  tree->Branch("jet_GhostL_HadF", &v_jet_GhostL_HadF);
+  tree->Branch("jet_LabDr_HadF", &v_jet_LabDr_HadF);
+  tree->Branch("jet_aliveAfterOR", &v_jet_aliveAfterOR);
+  tree->Branch("jet_truthMatch", &v_jet_truthMatch);
+  tree->Branch("jet_isPU", &v_jet_isPU);
+  tree->Branch("jet_isBadMedium", &v_jet_isBadMedium);
+  tree->Branch("jet_truthPt", &v_jet_truthPt);
+  tree->Branch("jet_dRiso", &v_jet_dRiso);
+  tree->Branch("jet_JVT", &v_jet_JVT);
+  tree->Branch("jet_JVF", &v_jet_JVF);
+  tree->Branch("jet_dRminToB", &v_jet_dRminToB);
+  tree->Branch("jet_dRminToC", &v_jet_dRminToC);
+  tree->Branch("jet_dRminToT", &v_jet_dRminToT);
 
-  tree->Branch("jet_ip2d_pb",&v_jet_ip2d_pb);
-  tree->Branch("jet_ip2d_pc",&v_jet_ip2d_pc);
-  tree->Branch("jet_ip2d_pu",&v_jet_ip2d_pu);
-  tree->Branch("jet_ip2d_llr",&v_jet_ip2d_llr);
+  tree->Branch("jet_ip2d_pb", &v_jet_ip2d_pb);
+  tree->Branch("jet_ip2d_pc", &v_jet_ip2d_pc);
+  tree->Branch("jet_ip2d_pu", &v_jet_ip2d_pu);
+  tree->Branch("jet_ip2d_llr", &v_jet_ip2d_llr);
 
-  tree->Branch("jet_ip3d_pb",&v_jet_ip3d_pb);
-  tree->Branch("jet_ip3d_pc",&v_jet_ip3d_pc);
-  tree->Branch("jet_ip3d_pu",&v_jet_ip3d_pu);
-  tree->Branch("jet_ip3d_llr",&v_jet_ip3d_llr);
+  tree->Branch("jet_ip3d_pb", &v_jet_ip3d_pb);
+  tree->Branch("jet_ip3d_pc", &v_jet_ip3d_pc);
+  tree->Branch("jet_ip3d_pu", &v_jet_ip3d_pu);
+  tree->Branch("jet_ip3d_llr", &v_jet_ip3d_llr);
 
-  tree->Branch("jet_sv0_sig3d",&v_jet_sv0_sig3d);
-  tree->Branch("jet_sv0_ntrkj",&v_jet_sv0_ntrkj);
-  tree->Branch("jet_sv0_ntrkv",&v_jet_sv0_ntrkv);
-  tree->Branch("jet_sv0_n2t",&v_jet_sv0_n2t);
-  tree->Branch("jet_sv0_m",&v_jet_sv0_m);
-  tree->Branch("jet_sv0_efc",&v_jet_sv0_efc);
-  tree->Branch("jet_sv0_normdist",&v_jet_sv0_normdist);
-  tree->Branch("jet_sv0_Nvtx",&v_jet_sv0_Nvtx);
-  tree->Branch("jet_sv0_vtx_x",&v_jet_sv0_vtxx);
-  tree->Branch("jet_sv0_vtx_y",&v_jet_sv0_vtxy);
-  tree->Branch("jet_sv0_vtx_z",&v_jet_sv0_vtxz);
+  tree->Branch("jet_sv0_sig3d", &v_jet_sv0_sig3d);
+  tree->Branch("jet_sv0_ntrkj", &v_jet_sv0_ntrkj);
+  tree->Branch("jet_sv0_ntrkv", &v_jet_sv0_ntrkv);
+  tree->Branch("jet_sv0_n2t", &v_jet_sv0_n2t);
+  tree->Branch("jet_sv0_m", &v_jet_sv0_m);
+  tree->Branch("jet_sv0_efc", &v_jet_sv0_efc);
+  tree->Branch("jet_sv0_normdist", &v_jet_sv0_normdist);
+  tree->Branch("jet_sv0_Nvtx", &v_jet_sv0_Nvtx);
+  tree->Branch("jet_sv0_vtx_x", &v_jet_sv0_vtxx);
+  tree->Branch("jet_sv0_vtx_y", &v_jet_sv0_vtxy);
+  tree->Branch("jet_sv0_vtx_z", &v_jet_sv0_vtxz);
 
-  tree->Branch("jet_sv1_ntrkj",&v_jet_sv1_ntrkj);
-  tree->Branch("jet_sv1_ntrkv",&v_jet_sv1_ntrkv);
-  tree->Branch("jet_sv1_n2t",&v_jet_sv1_n2t);
-  tree->Branch("jet_sv1_m",&v_jet_sv1_m);
-  tree->Branch("jet_sv1_efc",&v_jet_sv1_efc);
-  tree->Branch("jet_sv1_normdist",&v_jet_sv1_normdist);
-  tree->Branch("jet_sv1_pb",&v_jet_sv1_pb);
-  tree->Branch("jet_sv1_pc",&v_jet_sv1_pc);
-  tree->Branch("jet_sv1_pu",&v_jet_sv1_pu);
-  tree->Branch("jet_sv1_llr",&v_jet_sv1_llr);
-  tree->Branch("jet_sv1_Nvtx",&v_jet_sv1_Nvtx);
-  tree->Branch("jet_sv1_sig3d",&v_jet_sv1_sig3d);
-  tree->Branch("jet_sv1_vtx_x",&v_jet_sv1_vtxx);
-  tree->Branch("jet_sv1_vtx_y",&v_jet_sv1_vtxy);
-  tree->Branch("jet_sv1_vtx_z",&v_jet_sv1_vtxz);
+  tree->Branch("jet_sv1_ntrkj", &v_jet_sv1_ntrkj);
+  tree->Branch("jet_sv1_ntrkv", &v_jet_sv1_ntrkv);
+  tree->Branch("jet_sv1_n2t", &v_jet_sv1_n2t);
+  tree->Branch("jet_sv1_m", &v_jet_sv1_m);
+  tree->Branch("jet_sv1_efc", &v_jet_sv1_efc);
+  tree->Branch("jet_sv1_normdist", &v_jet_sv1_normdist);
+  tree->Branch("jet_sv1_pb", &v_jet_sv1_pb);
+  tree->Branch("jet_sv1_pc", &v_jet_sv1_pc);
+  tree->Branch("jet_sv1_pu", &v_jet_sv1_pu);
+  tree->Branch("jet_sv1_llr", &v_jet_sv1_llr);
+  tree->Branch("jet_sv1_Nvtx", &v_jet_sv1_Nvtx);
+  tree->Branch("jet_sv1_sig3d", &v_jet_sv1_sig3d);
+  tree->Branch("jet_sv1_vtx_x", &v_jet_sv1_vtxx);
+  tree->Branch("jet_sv1_vtx_y", &v_jet_sv1_vtxy);
+  tree->Branch("jet_sv1_vtx_z", &v_jet_sv1_vtxz);
 
-  tree->Branch("PV_jf_x",&PV_jf_x); //mod Remco
-  tree->Branch("PV_jf_y",&PV_jf_y); //mod Remco
-  tree->Branch("PV_jf_z",&PV_jf_z); //mod Remco
+  tree->Branch("PV_jf_x", &PV_jf_x); // mod Remco
+  tree->Branch("PV_jf_y", &PV_jf_y); // mod Remco
+  tree->Branch("PV_jf_z", &PV_jf_z); // mod Remco
 
-  tree->Branch("jet_jf_pb",&v_jet_jf_pb);
-  tree->Branch("jet_jf_pc",&v_jet_jf_pc);
-  tree->Branch("jet_jf_pu",&v_jet_jf_pu);
-  tree->Branch("jet_jf_llr",&v_jet_jf_llr);
-  tree->Branch("jet_jf_m",&v_jet_jf_m);
-  tree->Branch("jet_jf_efc",&v_jet_jf_efc);
-  tree->Branch("jet_jf_deta",&v_jet_jf_deta);
-  tree->Branch("jet_jf_dphi",&v_jet_jf_dphi);
-  tree->Branch("jet_jf_ntrkAtVx",&v_jet_jf_ntrkAtVx);
-  tree->Branch("jet_jf_nvtx",&v_jet_jf_nvtx);
-  tree->Branch("jet_jf_sig3d",&v_jet_jf_sig3d);
-  tree->Branch("jet_jf_nvtx1t",&v_jet_jf_nvtx1t);
-  tree->Branch("jet_jf_n2t",&v_jet_jf_n2t);
-  tree->Branch("jet_jf_VTXsize",&v_jet_jf_VTXsize);
-  tree->Branch("jet_jf_vtx_chi2",&v_jet_jf_vtx_chi2); //mod Remco
-  tree->Branch("jet_jf_vtx_ndf",&v_jet_jf_vtx_ndf); //mod Remco
-  tree->Branch("jet_jf_vtx_ntrk",&v_jet_jf_vtx_ntrk); //mod Remco
-  tree->Branch("jet_jf_vtx_L3D",&v_jet_jf_vtx_L3d); //mod Remco
-  tree->Branch("jet_jf_vtx_sig3D",&v_jet_jf_vtx_sig3d); //mod Remco
-  //tree->Branch("jet_jf_vtx_nvtx",&v_jet_jf_vtx_nvtx); //mod Remco
-  tree->Branch("jet_jf_phi",&v_jet_jf_phi); //mod Remco
-  tree->Branch("jet_jf_theta",&v_jet_jf_theta); //mod Remco
+  tree->Branch("jet_jf_pb", &v_jet_jf_pb);
+  tree->Branch("jet_jf_pc", &v_jet_jf_pc);
+  tree->Branch("jet_jf_pu", &v_jet_jf_pu);
+  tree->Branch("jet_jf_llr", &v_jet_jf_llr);
+  tree->Branch("jet_jf_m", &v_jet_jf_m);
+  tree->Branch("jet_jf_efc", &v_jet_jf_efc);
+  tree->Branch("jet_jf_deta", &v_jet_jf_deta);
+  tree->Branch("jet_jf_dphi", &v_jet_jf_dphi);
+  tree->Branch("jet_jf_ntrkAtVx", &v_jet_jf_ntrkAtVx);
+  tree->Branch("jet_jf_nvtx", &v_jet_jf_nvtx);
+  tree->Branch("jet_jf_sig3d", &v_jet_jf_sig3d);
+  tree->Branch("jet_jf_nvtx1t", &v_jet_jf_nvtx1t);
+  tree->Branch("jet_jf_n2t", &v_jet_jf_n2t);
+  tree->Branch("jet_jf_VTXsize", &v_jet_jf_VTXsize);
+  tree->Branch("jet_jf_vtx_chi2", &v_jet_jf_vtx_chi2); // mod Remco
+  tree->Branch("jet_jf_vtx_ndf", &v_jet_jf_vtx_ndf); // mod Remco
+  tree->Branch("jet_jf_vtx_ntrk", &v_jet_jf_vtx_ntrk); // mod Remco
+  tree->Branch("jet_jf_vtx_L3D", &v_jet_jf_vtx_L3d); // mod Remco
+  tree->Branch("jet_jf_vtx_sig3D", &v_jet_jf_vtx_sig3d); // mod Remco
+  //tree->Branch("jet_jf_vtx_nvtx", &v_jet_jf_vtx_nvtx); // mod Remco
+  tree->Branch("jet_jf_phi", &v_jet_jf_phi); // mod Remco
+  tree->Branch("jet_jf_theta", &v_jet_jf_theta); // mod Remco
 
+  tree->Branch("jet_jfcombnn_pb", &v_jet_jfcombnn_pb);
+  tree->Branch("jet_jfcombnn_pc", &v_jet_jfcombnn_pc);
+  tree->Branch("jet_jfcombnn_pu", &v_jet_jfcombnn_pu);
+  tree->Branch("jet_jfcombnn_llr", &v_jet_jfcombnn_llr);
 
-  tree->Branch("jet_jfcombnn_pb",&v_jet_jfcombnn_pb);
-  tree->Branch("jet_jfcombnn_pc",&v_jet_jfcombnn_pc);
-  tree->Branch("jet_jfcombnn_pu",&v_jet_jfcombnn_pu);
-  tree->Branch("jet_jfcombnn_llr",&v_jet_jfcombnn_llr);
-
-  tree->Branch("jet_sv1ip3d",&v_jet_sv1ip3d);
-  tree->Branch("jet_mv1",&v_jet_mv1);
-  tree->Branch("jet_mv1c",&v_jet_mv1c);
-  tree->Branch("jet_mv2c00",&v_jet_mv2c00);
-  tree->Branch("jet_mv2c10",&v_jet_mv2c10);
-  tree->Branch("jet_mv2c20",&v_jet_mv2c20);
-  tree->Branch("jet_mv2c100",&v_jet_mv2c100);
-  tree->Branch("jet_mv2m_pu",&v_jet_mv2m_pu);
-  tree->Branch("jet_mv2m_pc",&v_jet_mv2m_pc);
-  tree->Branch("jet_mv2m_pb",&v_jet_mv2m_pb);
-  tree->Branch("jet_mvb",&v_jet_mvb);
+  tree->Branch("jet_sv1ip3d", &v_jet_sv1ip3d);
+  tree->Branch("jet_mv1", &v_jet_mv1);
+  tree->Branch("jet_mv1c", &v_jet_mv1c);
+  tree->Branch("jet_mv2c00", &v_jet_mv2c00);
+  tree->Branch("jet_mv2c10", &v_jet_mv2c10);
+  tree->Branch("jet_mv2c20", &v_jet_mv2c20);
+  tree->Branch("jet_mv2c100", &v_jet_mv2c100);
+  tree->Branch("jet_mv2m_pu", &v_jet_mv2m_pu);
+  tree->Branch("jet_mv2m_pc", &v_jet_mv2m_pc);
+  tree->Branch("jet_mv2m_pb", &v_jet_mv2m_pb);
+  tree->Branch("jet_mvb", &v_jet_mvb);
 
   /*
-  tree->Branch("jet_ip2dNT_llr" ,&v_jet_ip2dNT_llr);
-  tree->Branch("jet_ip3dNT_llr" ,&v_jet_ip3dNT_llr);
-  tree->Branch("jet_sv1Flip_llr",&v_jet_sv1flip_llr);
-  tree->Branch("jet_jfFlip_llr" ,&v_jet_jfflip_llr);
-  tree->Branch("jet_mv2c20Flip" ,&v_jet_mv2c20flip);
+  tree->Branch("jet_ip2dNT_llr", &v_jet_ip2dNT_llr);
+  tree->Branch("jet_ip3dNT_llr", &v_jet_ip3dNT_llr);
+  tree->Branch("jet_sv1Flip_llr", &v_jet_sv1flip_llr);
+  tree->Branch("jet_jfFlip_llr", &v_jet_jfflip_llr);
+  tree->Branch("jet_mv2c20Flip", &v_jet_mv2c20flip);
   */
 
   if (!m_reduceInfo && m_doMSV) {
-    tree->Branch("jet_multisvbb1",&v_jet_multisvbb1);
-    tree->Branch("jet_multisvbb2",&v_jet_multisvbb2);
-    tree->Branch("jet_msv_N2Tpair",&v_jet_msv_N2Tpair);
-    tree->Branch("jet_msv_energyTrkInJet",&v_jet_msv_energyTrkInJet);
-    tree->Branch("jet_msv_nvsec",&v_jet_msv_nvsec);
-    tree->Branch("jet_msv_normdist",&v_jet_msv_normdist);
-    tree->Branch("jet_msv_vtx_mass",&v_jet_msv_vtx_mass);
-    tree->Branch("jet_msv_vtx_efrc",&v_jet_msv_vtx_efrc);
-    tree->Branch("jet_msv_vtx_ntrk",&v_jet_msv_vtx_ntrk);
-    tree->Branch("jet_msv_vtx_pt",&v_jet_msv_vtx_pt);
-    tree->Branch("jet_msv_vtx_eta",&v_jet_msv_vtx_eta);
-    tree->Branch("jet_msv_vtx_phi",&v_jet_msv_vtx_phi);
-    tree->Branch("jet_msv_vtx_dls",&v_jet_msv_vtx_dls);
-    tree->Branch("jet_msv_vtx_x",&v_jet_msv_vtx_x);
-    tree->Branch("jet_msv_vtx_y",&v_jet_msv_vtx_y);
-    tree->Branch("jet_msv_vtx_z",&v_jet_msv_vtx_z);
-    tree->Branch("jet_msv_vtx_chi",&v_jet_msv_vtx_chi);
-    tree->Branch("jet_msv_vtx_ndf",&v_jet_msv_vtx_ndf);
+    tree->Branch("jet_multisvbb1", &v_jet_multisvbb1);
+    tree->Branch("jet_multisvbb2", &v_jet_multisvbb2);
+    tree->Branch("jet_msv_N2Tpair", &v_jet_msv_N2Tpair);
+    tree->Branch("jet_msv_energyTrkInJet", &v_jet_msv_energyTrkInJet);
+    tree->Branch("jet_msv_nvsec", &v_jet_msv_nvsec);
+    tree->Branch("jet_msv_normdist", &v_jet_msv_normdist);
+    tree->Branch("jet_msv_vtx_mass", &v_jet_msv_vtx_mass);
+    tree->Branch("jet_msv_vtx_efrc", &v_jet_msv_vtx_efrc);
+    tree->Branch("jet_msv_vtx_ntrk", &v_jet_msv_vtx_ntrk);
+    tree->Branch("jet_msv_vtx_pt", &v_jet_msv_vtx_pt);
+    tree->Branch("jet_msv_vtx_eta", &v_jet_msv_vtx_eta);
+    tree->Branch("jet_msv_vtx_phi", &v_jet_msv_vtx_phi);
+    tree->Branch("jet_msv_vtx_dls", &v_jet_msv_vtx_dls);
+    tree->Branch("jet_msv_vtx_x", &v_jet_msv_vtx_x);
+    tree->Branch("jet_msv_vtx_y", &v_jet_msv_vtx_y);
+    tree->Branch("jet_msv_vtx_z", &v_jet_msv_vtx_z);
+    tree->Branch("jet_msv_vtx_chi", &v_jet_msv_vtx_chi);
+    tree->Branch("jet_msv_vtx_ndf", &v_jet_msv_vtx_ndf);
   }
 
   tree->Branch("jet_ExKtbb_Hbb_DoubleMV2c20", &v_jet_ExKtbb_Hbb_DoubleMV2c20);
@@ -559,101 +560,101 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_ExKtbb_Hbb_MV2andJFDRSig", &v_jet_ExKtbb_Hbb_MV2andJFDRSig);
   tree->Branch("jet_ExKtbb_Hbb_MV2andTopos", &v_jet_ExKtbb_Hbb_MV2andTopos);
 
-  tree->Branch("bH_pt",&v_bH_pt);
-  tree->Branch("bH_eta",&v_bH_eta);
-  tree->Branch("bH_phi",&v_bH_phi);
-  tree->Branch("bH_Lxy",&v_bH_Lxy);
-  tree->Branch("bH_x",&v_bH_x);
-  tree->Branch("bH_y",&v_bH_y);
-  tree->Branch("bH_z",&v_bH_z);
-  tree->Branch("bH_dRjet",&v_bH_dRjet);
-  tree->Branch("bH_nBtracks",&v_bH_nBtracks);
-  tree->Branch("bH_nCtracks",&v_bH_nCtracks);
+  tree->Branch("bH_pt", &v_bH_pt);
+  tree->Branch("bH_eta", &v_bH_eta);
+  tree->Branch("bH_phi", &v_bH_phi);
+  tree->Branch("bH_Lxy", &v_bH_Lxy);
+  tree->Branch("bH_x", &v_bH_x);
+  tree->Branch("bH_y", &v_bH_y);
+  tree->Branch("bH_z", &v_bH_z);
+  tree->Branch("bH_dRjet", &v_bH_dRjet);
+  tree->Branch("bH_nBtracks", &v_bH_nBtracks);
+  tree->Branch("bH_nCtracks", &v_bH_nCtracks);
 
-  tree->Branch("cH_pt",&v_cH_pt);
-  tree->Branch("cH_eta",&v_cH_eta);
-  tree->Branch("cH_phi",&v_cH_phi);
-  tree->Branch("cH_Lxy",&v_cH_Lxy);
-  tree->Branch("cH_x",&v_cH_x);
-  tree->Branch("cH_y",&v_cH_y);
-  tree->Branch("cH_z",&v_cH_z);
-  tree->Branch("cH_dRjet",&v_cH_dRjet);
-  tree->Branch("cH_nCtracks",&v_cH_nCtracks);
+  tree->Branch("cH_pt", &v_cH_pt);
+  tree->Branch("cH_eta", &v_cH_eta);
+  tree->Branch("cH_phi", &v_cH_phi);
+  tree->Branch("cH_Lxy", &v_cH_Lxy);
+  tree->Branch("cH_x", &v_cH_x);
+  tree->Branch("cH_y", &v_cH_y);
+  tree->Branch("cH_z", &v_cH_z);
+  tree->Branch("cH_dRjet", &v_cH_dRjet);
+  tree->Branch("cH_nCtracks", &v_cH_nCtracks);
 
-  tree->Branch("jet_btag_ntrk",&v_jet_btag_ntrk);
+  tree->Branch("jet_btag_ntrk", &v_jet_btag_ntrk);
   if (!m_reduceInfo) {
-    tree->Branch("jet_trk_pt",&v_jet_trk_pt);
-    tree->Branch("jet_trk_eta",&v_jet_trk_eta);
-    tree->Branch("jet_trk_theta",&v_jet_trk_theta);
-    tree->Branch("jet_trk_phi",&v_jet_trk_phi);
-    tree->Branch("jet_trk_dr",&v_jet_trk_dr);
-    tree->Branch("jet_trk_chi2",&v_jet_trk_chi2);
-    tree->Branch("jet_trk_ndf",&v_jet_trk_ndf);
-    tree->Branch("jet_trk_algo",&v_jet_trk_algo);
-    tree->Branch("jet_trk_orig",&v_jet_trk_orig);
-    
-    tree->Branch("jet_trk_vtx_X",&v_jet_trk_vtx_X);
-    tree->Branch("jet_trk_vtx_Y",&v_jet_trk_vtx_Y);
-    //tree->Branch("jet_trk_vtx_dx",&v_jet_trk_vtx_dx);
-    //tree->Branch("jet_trk_vtx_dy",&v_jet_trk_vtx_dy);
-    
-    tree->Branch("jet_trk_nInnHits",&v_jet_trk_nInnHits);
-    tree->Branch("jet_trk_nNextToInnHits",&v_jet_trk_nNextToInnHits);
-    tree->Branch("jet_trk_nBLHits",&v_jet_trk_nBLHits);
-    tree->Branch("jet_trk_nsharedBLHits",&v_jet_trk_nsharedBLHits);
-    tree->Branch("jet_trk_nsplitBLHits",&v_jet_trk_nsplitBLHits);
-    tree->Branch("jet_trk_nPixHits",&v_jet_trk_nPixHits);
-    tree->Branch("jet_trk_nsharedPixHits",&v_jet_trk_nsharedPixHits);
-    tree->Branch("jet_trk_nsplitPixHits",&v_jet_trk_nsplitPixHits);
-    tree->Branch("jet_trk_nSCTHits",&v_jet_trk_nSCTHits);
-    tree->Branch("jet_trk_nsharedSCTHits",&v_jet_trk_nsharedSCTHits);
-    tree->Branch("jet_trk_expectBLayerHit",&v_jet_trk_expectBLayerHit);
-    
-    tree->Branch("jet_trk_d0",&v_jet_trk_d0);
-    tree->Branch("jet_trk_z0",&v_jet_trk_z0);
-    tree->Branch("jet_trk_d0_truth",&v_jet_trk_d0_truth);
-    tree->Branch("jet_trk_z0_truth",&v_jet_trk_z0_truth);  
-    tree->Branch("jet_trk_ip3d_grade",&v_jet_trk_IP3D_grade);
-    tree->Branch("jet_trk_ip3d_d0",&v_jet_trk_IP3D_d0);
-    tree->Branch("jet_trk_ip3d_d02D",&v_jet_trk_IP3D_d02D);
-    tree->Branch("jet_trk_ip3d_z0",&v_jet_trk_IP3D_z0);
-    tree->Branch("jet_trk_ip3d_d0sig",&v_jet_trk_IP3D_d0sig);
-    tree->Branch("jet_trk_ip3d_z0sig",&v_jet_trk_IP3D_z0sig);
-    
-    tree->Branch("jet_trk_ip2d_llr",&v_jet_trk_IP2D_llr);
-    tree->Branch("jet_trk_ip3d_llr",&v_jet_trk_IP3D_llr);
-    
-    tree->Branch("jet_trk_jf_Vertex",&v_jet_trk_jf_Vertex); //mod Remco
-  }    
-  
+    tree->Branch("jet_trk_pt", &v_jet_trk_pt);
+    tree->Branch("jet_trk_eta", &v_jet_trk_eta);
+    tree->Branch("jet_trk_theta", &v_jet_trk_theta);
+    tree->Branch("jet_trk_phi", &v_jet_trk_phi);
+    tree->Branch("jet_trk_dr", &v_jet_trk_dr);
+    tree->Branch("jet_trk_chi2", &v_jet_trk_chi2);
+    tree->Branch("jet_trk_ndf", &v_jet_trk_ndf);
+    tree->Branch("jet_trk_algo", &v_jet_trk_algo);
+    tree->Branch("jet_trk_orig", &v_jet_trk_orig);
+
+    tree->Branch("jet_trk_vtx_X", &v_jet_trk_vtx_X);
+    tree->Branch("jet_trk_vtx_Y", &v_jet_trk_vtx_Y);
+    //tree->Branch("jet_trk_vtx_dx", &v_jet_trk_vtx_dx);
+    //tree->Branch("jet_trk_vtx_dy", &v_jet_trk_vtx_dy);
+
+    tree->Branch("jet_trk_nInnHits", &v_jet_trk_nInnHits);
+    tree->Branch("jet_trk_nNextToInnHits", &v_jet_trk_nNextToInnHits);
+    tree->Branch("jet_trk_nBLHits", &v_jet_trk_nBLHits);
+    tree->Branch("jet_trk_nsharedBLHits", &v_jet_trk_nsharedBLHits);
+    tree->Branch("jet_trk_nsplitBLHits", &v_jet_trk_nsplitBLHits);
+    tree->Branch("jet_trk_nPixHits", &v_jet_trk_nPixHits);
+    tree->Branch("jet_trk_nsharedPixHits", &v_jet_trk_nsharedPixHits);
+    tree->Branch("jet_trk_nsplitPixHits", &v_jet_trk_nsplitPixHits);
+    tree->Branch("jet_trk_nSCTHits", &v_jet_trk_nSCTHits);
+    tree->Branch("jet_trk_nsharedSCTHits", &v_jet_trk_nsharedSCTHits);
+    tree->Branch("jet_trk_expectBLayerHit", &v_jet_trk_expectBLayerHit);
+
+    tree->Branch("jet_trk_d0", &v_jet_trk_d0);
+    tree->Branch("jet_trk_z0", &v_jet_trk_z0);
+    tree->Branch("jet_trk_d0_truth", &v_jet_trk_d0_truth);
+    tree->Branch("jet_trk_z0_truth", &v_jet_trk_z0_truth);
+    tree->Branch("jet_trk_ip3d_grade", &v_jet_trk_IP3D_grade);
+    tree->Branch("jet_trk_ip3d_d0", &v_jet_trk_IP3D_d0);
+    tree->Branch("jet_trk_ip3d_d02D", &v_jet_trk_IP3D_d02D);
+    tree->Branch("jet_trk_ip3d_z0", &v_jet_trk_IP3D_z0);
+    tree->Branch("jet_trk_ip3d_d0sig", &v_jet_trk_IP3D_d0sig);
+    tree->Branch("jet_trk_ip3d_z0sig", &v_jet_trk_IP3D_z0sig);
+
+    tree->Branch("jet_trk_ip2d_llr", &v_jet_trk_IP2D_llr);
+    tree->Branch("jet_trk_ip3d_llr", &v_jet_trk_IP3D_llr);
+
+    tree->Branch("jet_trk_jf_Vertex", &v_jet_trk_jf_Vertex); // mod Remco
+  }
+
   tree->Branch("jet_sv1_ntrk",&v_jet_sv1_ntrk);
   tree->Branch("jet_ip3d_ntrk",&v_jet_ip3d_ntrk);
   tree->Branch("jet_jf_ntrk",&v_jet_jf_ntrk);
 
   // additions by nikola
-  tree->Branch("jet_trkjet_pt"     , &v_jet_trkjet_pt);
-  tree->Branch("jet_trkjet_MV2c20", &v_jet_trkjet_MV2c20);
+  tree->Branch("jet_trkjet_pt", &v_jet_trkjet_pt);
+  tree->Branch("jet_trkjet_mv2c20", &v_jet_trkjet_mv2c20);
 
   // additions by andrea
   if (m_SMT) {
-    tree->Branch("jet_mu_assJet_pt",&v_jet_mu_assJet_pt);
-    tree->Branch("jet_mu_truthflav",&v_jet_mu_truthflav);
-    tree->Branch("jet_mu_dR",&v_jet_mu_dR);
-    tree->Branch("jet_mu_pTrel",&v_jet_mu_pTrel);
-    tree->Branch("jet_mu_qOverPratio",&v_jet_mu_qOverPratio);
-    tree->Branch("jet_mu_mombalsignif",&v_jet_mu_mombalsignif);
-    tree->Branch("jet_mu_scatneighsignif",&v_jet_mu_scatneighsignif);
-    tree->Branch("jet_mu_VtxTyp",&v_jet_mu_VtxTyp);
-    tree->Branch("jet_mu_pt",&v_jet_mu_pt);
-    tree->Branch("jet_mu_eta",&v_jet_mu_eta);
-    tree->Branch("jet_mu_phi",&v_jet_mu_phi);
-    tree->Branch("jet_mu_d0",&v_jet_mu_d0);
-    tree->Branch("jet_mu_z0",&v_jet_mu_z0);
-    tree->Branch("jet_mu_parent_pdgid",&v_jet_mu_parent_pdgid);
-    tree->Branch("jet_mu_ID_qOverP_var",&v_jet_mu_ID_qOverP_var);
-    tree->Branch("jet_mu_muonType",&v_jet_mu_muonType);
+    tree->Branch("jet_mu_assJet_pt", &v_jet_mu_assJet_pt);
+    tree->Branch("jet_mu_truthflav", &v_jet_mu_truthflav);
+    tree->Branch("jet_mu_dR", &v_jet_mu_dR);
+    tree->Branch("jet_mu_pTrel", &v_jet_mu_pTrel);
+    tree->Branch("jet_mu_qOverPratio", &v_jet_mu_qOverPratio);
+    tree->Branch("jet_mu_mombalsignif", &v_jet_mu_mombalsignif);
+    tree->Branch("jet_mu_scatneighsignif", &v_jet_mu_scatneighsignif);
+    tree->Branch("jet_mu_VtxTyp", &v_jet_mu_VtxTyp);
+    tree->Branch("jet_mu_pt", &v_jet_mu_pt);
+    tree->Branch("jet_mu_eta", &v_jet_mu_eta);
+    tree->Branch("jet_mu_phi", &v_jet_mu_phi);
+    tree->Branch("jet_mu_d0", &v_jet_mu_d0);
+    tree->Branch("jet_mu_z0", &v_jet_mu_z0);
+    tree->Branch("jet_mu_parent_pdgid", &v_jet_mu_parent_pdgid);
+    tree->Branch("jet_mu_ID_qOverP_var", &v_jet_mu_ID_qOverP_var);
+    tree->Branch("jet_mu_muonType", &v_jet_mu_muonType);
   }
-  
+
   clearvectors();
   return StatusCode::SUCCESS;
 }
@@ -673,36 +674,36 @@ StatusCode btagIBLAnalysisAlg::finalize() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
-StatusCode btagIBLAnalysisAlg::execute() {  
+StatusCode btagIBLAnalysisAlg::execute() {
   ATH_MSG_DEBUG ("Executing " << name() << "...");
-  
-  std::string triggerLogic="HLT_j[0-9]+|L1_MBTS_1_1|L1_RD0_FILLED";
 
-  if (v_L1triggerNames.size()==0 && m_tdt!=0) {
+  std::string triggerLogic = "HLT_j[0-9]+|L1_MBTS_1_1|L1_RD0_FILLED";
+
+  if (v_L1triggerNames.size() == 0 && m_tdt != 0) {
     ATH_MSG_INFO ("Setting up trigger informations " << name() << "...");
     auto chainGroup = m_tdt->getChainGroup(triggerLogic);
-    v_L1trigger=new bool[chainGroup->getListOfTriggers().size()];
-    int count=-1;
-    for (auto & trig : chainGroup->getListOfTriggers() ) {
+    v_L1trigger = new bool[chainGroup->getListOfTriggers().size()];
+    int count = -1;
+    for (auto & trig : chainGroup->getListOfTriggers()) {
       count++;
       std::cout << trig << std::endl;
-      v_L1trigger[count]=0;
+      v_L1trigger[count] = 0;
       v_L1triggerNames.push_back(trig);
-      tree->Branch( trig.c_str(), &(v_L1trigger[count]) );
+      tree->Branch(trig.c_str(), &(v_L1trigger[count]));
     }
   }
   clearvectors();
+
   //-------------------------
   // Event information
-  //--------------------------- 
- 
+  //---------------------------
   const xAOD::EventInfo* eventInfo = 0;
   CHECK( evtStore()->retrieve(eventInfo) );
-	 
+
   // check if data or MC
-  bool isData=!eventInfo->eventType(xAOD::EventInfo::IS_SIMULATION );
-  
-  if (m_GRLname!="") {
+  bool isData = !eventInfo->eventType(xAOD::EventInfo::IS_SIMULATION);
+
+  if (m_GRLname != "") {
     bool eventPasses = m_GRLSelectionTool->passRunLB(*eventInfo);
     if (!eventPasses) {
       ATH_MSG_DEBUG( " .... Event not passing GRL!!!");
@@ -710,252 +711,253 @@ StatusCode btagIBLAnalysisAlg::execute() {
     }
   }
 
-  runnumber   = eventInfo->runNumber();
+  runnumber = eventInfo->runNumber();
   eventnumber = eventInfo->eventNumber();
-  mcchannel   = (isData ? 0 : eventInfo->mcChannelNumber() );
-  mcweight    = (isData ? 1 : eventInfo->mcEventWeight() );
-  mu          = eventInfo->averageInteractionsPerCrossing();
-  lbn         = (!isData ? 0 : eventInfo->lumiBlock() );
-  
-  larError =eventInfo->errorState(xAOD::EventInfo::LAr)==xAOD::EventInfo::Error; 
-  tileError=eventInfo->errorState(xAOD::EventInfo::Tile)==xAOD::EventInfo::Error;
-  coreFlag =eventInfo->isEventFlagBitSet(xAOD::EventInfo::Core, 18); 
+  mcchannel = ( isData ? 0 : eventInfo->mcChannelNumber() );
+  mcweight = ( isData ? 1 : eventInfo->mcEventWeight() );
+  mu = eventInfo->averageInteractionsPerCrossing();
+  lbn = ( !isData ? 0 : eventInfo->lumiBlock() );
 
-  // PUrw for mc:
+  larError = eventInfo->errorState(xAOD::EventInfo::LAr) == xAOD::EventInfo::Error;
+  tileError = eventInfo->errorState(xAOD::EventInfo::Tile) == xAOD::EventInfo::Error;
+  coreFlag = eventInfo->isEventFlagBitSet(xAOD::EventInfo::Core, 18);
+
+  // Pileup reweighting for mc:
 //  if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets"))
 //  {
-    /////////puweight=1;
-    ///puweight=m_tool->getCombinedWeight( *eventInfo );
-    float tmpMu=m_PUtool->getLumiBlockMu( *eventInfo );
-    //std::cout << " origMu: " << mu << "  newValue: " <<  tmpMu << std::endl;
-    if (isData) mu=tmpMu;
+//    puweight = 1;
+//    puweight = m_tool->getCombinedWeight( *eventInfo );
+    float tmpMu = m_PUtool->getLumiBlockMu( *eventInfo );
+    // std::cout << " origMu: " << mu << " newValue: " <<  tmpMu << std::endl;
+    if (isData) mu = tmpMu;
 //  }
 
-  const xAOD::VertexContainer* vertices = 0;
-  CHECK( evtStore()->retrieve(vertices,"PrimaryVertices") );
+  // primary vertex
+  const xAOD::VertexContainer *vertices = 0;
+  CHECK( evtStore()->retrieve(vertices, "PrimaryVertices") );
   npv = 0;
-  int m_indexPV=-1;
+  int m_indexPV = -1;
   xAOD::VertexContainer::const_iterator vtx_itr = vertices->begin();
   xAOD::VertexContainer::const_iterator vtx_end = vertices->end();
-  int count=-1;
-  for ( ; vtx_itr != vtx_end; ++vtx_itr ){
+  int count = -1;
+  for (; vtx_itr != vtx_end; ++vtx_itr) {
     count++;
-    if ( (*vtx_itr)->nTrackParticles() >= 2 ){
+    if ((*vtx_itr)->nTrackParticles() >= 2) {
       npv++;
-      if( (*vtx_itr)->vertexType() == 1 ){
-	if (PV_x!=-999) ATH_MSG_WARNING( ".... second PV in the events ...!!!!!!");
-	m_indexPV=count;
-	PV_x =  (*vtx_itr)->x(); //VALERIO !!!!!!!!
- 	PV_y =  (*vtx_itr)->y(); //VALERIO !!!!!!!!
-	PV_z =  (*vtx_itr)->z();
+      if ((*vtx_itr)->vertexType() == 1) {
+	if (PV_x != -999) ATH_MSG_WARNING( ".... second PV in the events ...!!!!!!");
+	m_indexPV = count;
+	PV_x = (*vtx_itr)->x(); // VALERIO !!!!!!!!
+ 	PV_y = (*vtx_itr)->y(); // VALERIO !!!!!!!!
+	PV_z = (*vtx_itr)->z();
       }
     }
   }
-  if (m_indexPV==-1) {
+  if (m_indexPV == -1) {
     ATH_MSG_WARNING( ".... rejecting the event due to missing PV!!!!");
     return StatusCode::SUCCESS;
   }
-  const xAOD::Vertex* myVertex=vertices->at(m_indexPV);
+  const xAOD::Vertex *myVertex = vertices->at(m_indexPV); // the (reco?) primary vertex
 
-  
   //---------------------------------------------------------------------------------------------
   // Trigger part
   //---------------------------------------------------------------------------------------------
-  if ( m_tdt!=0 ) {
-    bool passTrigger=false;
-    for (unsigned int it=0; it<v_L1triggerNames.size(); it++) {
-      v_L1trigger[it]=m_tdt->isPassed(v_L1triggerNames[it]);
-      if ( v_L1trigger[it] ) passTrigger=true;
+  if (m_tdt != 0) {
+    bool passTrigger = false;
+    for (unsigned int it = 0; it < v_L1triggerNames.size(); it++) {
+      v_L1trigger[it] = m_tdt->isPassed(v_L1triggerNames[it]);
+      if (v_L1trigger[it]) passTrigger = true;
 
-      //auto cg = m_tdt->getChainGroup(v_L1triggerNames[it]);
-      //auto fc = cg->features();
-      //auto L1jetFeatureContainers = fc.containerFeature<xAOD::JetRoIContainer>();
-      //for(auto jLV1 : *L1jetFeatureContainers.cptr() ) {
-      //  std::cout << " L1ROI: " << jLV1->pt()/1e3 << " : " << jLV1->pt() << std::endl;
-      //}
+//      auto cg = m_tdt->getChainGroup(v_L1triggerNames[it]);
+//      auto fc = cg->features();
+//      auto L1jetFeatureContainers = fc.containerFeature<xAOD::JetRoIContainer>();
+//      for (auto jLV1 : *L1jetFeatureContainers.cptr()) {
+//        std::cout << " L1ROI: " << jLV1->pt() / 1e3 << " : " << jLV1->pt() << std::endl;
+//      }
     }
-    
+
     if (isData) {
       if (!passTrigger) {
-	//ATH_MSG_WARNING( " .... Event not passing any of the selected triggers!");
-	return StatusCode::SUCCESS;
+//        ATH_MSG_WARNING(" .... Event not passing any of the selected triggers!");
+        return StatusCode::SUCCESS;
       }
     }
   }
 
-
-  const xAOD::TrackParticleContainer* trackParticles = 0;
-  CHECK( evtStore()->retrieve(trackParticles,"InDetTrackParticles") );
+  const xAOD::TrackParticleContainer *trackParticles = 0;
+  CHECK( evtStore()->retrieve(trackParticles, "InDetTrackParticles") );
   int n_putracks = 0;
   for (const auto* trk : *trackParticles) {
-    if ( m_InDetTrackSelectorTool->accept(*trk,myVertex) && trk->vertex() && trk->vertex()!=myVertex && trk->pt()<30e3) n_putracks++;
+    if ( m_InDetTrackSelectorTool->accept(*trk, myVertex) && trk->vertex() && trk->vertex() != myVertex && trk->pt() < 30e3) n_putracks++;
   }
   if (!n_putracks) n_putracks++;
 
   if (!isData) {
-    const xAOD::TruthVertexContainer* truthVertices = 0;
-    CHECK( evtStore()->retrieve(truthVertices,"TruthVertices") );
+    const xAOD::TruthVertexContainer *truthVertices = 0;
+    CHECK( evtStore()->retrieve(truthVertices, "TruthVertices") );
     for ( const auto* truthV : *truthVertices ) {
-      truth_PV_x= truthV->x();
-      truth_PV_y= truthV->y();
-      truth_PV_z= truthV->z();
+      // record the truth primary vertex position
+      truth_PV_x = truthV->x();
+      truth_PV_y = truthV->y();
+      truth_PV_z = truthV->z();
       break;
-      //std::cout << " truthV: z " << truthV->z() << "   while PV: " << PV_z << std::endl;
+      // std::cout << " truthV: z " << truthV->z() << " while PV: " << PV_z << std::endl;
     }
   }
+
   //---------------------------
   // Truth stuff
-  //--------------------------- 
-  const xAOD::TruthEventContainer* xTruthEventContainer = NULL;
+  //---------------------------
+  const xAOD::TruthEventContainer *xTruthEventContainer = NULL;
   std::string truthevt = "TruthEvent";
   if (m_rel20) truthevt = "TruthEvents";
-  if (!isData) CHECK( evtStore()->retrieve( xTruthEventContainer, truthevt) );
-  
+  if (!isData) CHECK( evtStore()->retrieve(xTruthEventContainer, truthevt) );
+
   std::vector<const xAOD::TruthParticle* > m_partonB;
   std::vector<const xAOD::TruthParticle* > m_partonC;
   std::vector<const xAOD::TruthParticle* > m_partonT;
   std::vector<TLorentzVector> truth_electrons;
-  
+
   if (!isData) {
     // select truth electrons for electron-jet overlap removal
-    for ( const auto* truth : *xTruthEventContainer ) {  
-      const xAOD::TruthVertex* newTruthVertex=truth->signalProcessVertex();
-      if (newTruthVertex!=0) {
-	std::cout << "  mah: " <<  newTruthVertex << std::endl;
-	truth_PV_x= newTruthVertex->x();
-	truth_PV_y= newTruthVertex->y();
-	truth_PV_z= newTruthVertex->z();
+    for ( const auto* truth : *xTruthEventContainer ) {
+      const xAOD::TruthVertex *newTruthVertex = truth->signalProcessVertex();
+      if (newTruthVertex != 0) {
+//	std::cout << " mah: " << newTruthVertex << std::endl;
+        // rewrite the truth primary vertex position
+	truth_PV_x = newTruthVertex->x();
+	truth_PV_y = newTruthVertex->y();
+	truth_PV_z = newTruthVertex->z();
       }
 
-      for(unsigned int i = 0; i < truth->nTruthParticles(); i++){
-	const xAOD::TruthParticle* particle = truth->truthParticle(i);
-	
-	//VALERIO !!!!!!!!
+      // loop over truth particles in the truth event container
+      for(unsigned int i = 0; i < truth->nTruthParticles(); i++) {
+	const xAOD::TruthParticle *particle = truth->truthParticle(i);
+	// VALERIO !!!!!!!!
 	if (particle->pt() > 3e3) {
-	  if ( fabs(particle->pdgId())==15 ) m_partonT.push_back(particle);
-	  //if ( fabs(particle->pdgId())==4  ) m_partonC.push_back(particle);
-	  //if ( fabs(particle->pdgId())==5  ) m_partonB.push_back(particle);
-	  if ( particle->isCharmHadron() )  m_partonC.push_back(particle);
-	  if ( particle->isBottomHadron() ) m_partonB.push_back(particle);
+	  if (fabs(particle->pdgId()) == 15) m_partonT.push_back(particle);
+	  // if (fabs(particle->pdgId()) == 4) m_partonC.push_back(particle);
+	  // if (fabs(particle->pdgId()) == 5) m_partonB.push_back(particle);
+	  if (particle->isCharmHadron()) m_partonC.push_back(particle);
+	  if (particle->isBottomHadron()) m_partonB.push_back(particle);
 	}
 	if (particle->pt() < 15e3) continue;
 	if (particle->status() != 1) continue;
 	if (particle->barcode() > 2e5) continue;
-	if (fabs(particle->pdgId()) != 11) continue;
-	// see if this electron is coming from a W boson decay
+	if (fabs(particle->pdgId()) != 11) continue; // picks out only electrons
+	// see if this electron is coming from a W boson decay (common in ttbar)
 	bool isfromW = false;
-	const xAOD::TruthVertex* prodvtx = particle->prodVtx();
-	for(unsigned j = 0; j < prodvtx->nIncomingParticles(); j++){
-	  if( fabs( (prodvtx->incomingParticle(j))->pdgId() ) == 24 ) isfromW = true;
+	const xAOD::TruthVertex *prodvtx = particle->prodVtx();
+	for (unsigned j = 0; j < prodvtx->nIncomingParticles(); j++) {
+          if (fabs((prodvtx->incomingParticle(j))->pdgId()) == 24) isfromW = true;
 	}
-	if(!isfromW) continue;
-	TLorentzVector telec;
-	telec.SetPtEtaPhiM(particle->pt(), particle->eta(), particle->phi(), particle->m());
-	truth_electrons.push_back(telec);
+        if (!isfromW) continue;
+        TLorentzVector telec;
+        telec.SetPtEtaPhiM(particle->pt(), particle->eta(), particle->phi(), particle->m());
+        truth_electrons.push_back(telec);
       }
     }
   }
 
   //---------------------------
   // Jets
-  //--------------------------- 
-  const xAOD::JetContainer* jets = 0;
-  CHECK( evtStore()->retrieve( jets, m_jetCollectionName) ); 
-  const xAOD::JetContainer* truthjets = 0;
+  //---------------------------
+  const xAOD::JetContainer *jets = 0;
+  CHECK( evtStore()->retrieve(jets, m_jetCollectionName) );
+  const xAOD::JetContainer *truthjets = 0;
   if (!isData) {
-    CHECK( evtStore()->retrieve( truthjets, "AntiKt4TruthJets") );
-    truth_LeadJet_pt=(truthjets->at(0))->pt();
+    CHECK( evtStore()->retrieve(truthjets, "AntiKt4TruthJets") );
+    truth_LeadJet_pt = (truthjets->at(0))->pt();
   }
-  else  truthjets=new xAOD::JetContainer(); 
-  njets=0;
-  nbjets=0;
-  nbjets_q=0;
-  nbjets_HadI=0;
-  nbjets_HadF=0;
-  
-  float etaCut=3.0;
-  if (isData) etaCut=2.5;
+  else truthjets = new xAOD::JetContainer();
+  njets = 0;
+  nbjets = 0;
+  nbjets_q = 0;
+  nbjets_HadI = 0;
+  nbjets_HadF = 0;
 
-  // Loop over jets, apply calibration and only keep the ones with pT>XX
+  // keep in mind, jets will not have tracks if their eta is greater than 2.5
+  float etaCut = 3.0;
+  if (isData) etaCut = 2.5;
+
+  // Loop over jets, apply calibration and only keep the ones with pT > XX
   std::vector<const xAOD::Jet*> selJets; selJets.reserve(10);
 
-  bool badCleaning=false;
-  for ( const auto* jet : *jets ) {
-    xAOD::Jet * newjet = 0;
+  bool badCleaning = false;
+  for (const auto* jet : *jets) {
+    xAOD::Jet *newjet = 0;
 
     if (m_calibrateJets) m_jetCalibrationTool->calibratedCopy(*jet, newjet);
     else newjet = new xAOD::Jet(*jet);
-   
+
     // jet cleaning - should be done after lepton overlap removal
     /*
-    if(m_cleanJets) {
-      if( (!m_jetCleaningTool->keep( *newjet )) && (newjet->pt() > 20e3) ) {
+    if (m_cleanJets) {
+      if ( (!m_jetCleaningTool->keep(*newjet)) && (newjet->pt() > 20e3) ) {
         delete newjet;
-        badCleaning=true;
+        badCleaning = true;
         return StatusCode::SUCCESS;
         break;
       }
     }
     */
 
-    if ( newjet->pt() < m_jetPtCut )  {
+    if (newjet->pt() < m_jetPtCut) {
       delete newjet;
       continue;
     }
-    if ( fabs( newjet->eta() ) > etaCut ) { 
+    if ( fabs(newjet->eta()) > etaCut ) {
       delete newjet;
       continue;
     }
-    v_jet_pt_orig ->push_back( jet->pt() );
-    v_jet_eta_orig->push_back( jet->eta() );
-    v_jet_phi_orig->push_back( jet->phi() );
-    v_jet_E_orig  ->push_back( jet->e() );
+    v_jet_pt_orig->push_back(jet->pt());
+    v_jet_eta_orig->push_back(jet->eta());
+    v_jet_phi_orig->push_back(jet->phi());
+    v_jet_E_orig ->push_back(jet->e());
     selJets.push_back(newjet);
   }
   if (badCleaning) {
-    for (unsigned int j=0; j<selJets.size(); j++) {
+    for (unsigned int j = 0; j < selJets.size(); j++) {
       delete selJets.at(j);
     }
     return StatusCode::SUCCESS;
   }
-  std::vector<const xAOD::Jet*> selJetsTMP=selJets;
-  std::sort( selJets.begin(), selJets.end(), xaodJetPtSorting); 
-  std::vector<float> tmpPt =std::vector<float>( *v_jet_pt_orig  );
-  std::vector<float> tmpEta=std::vector<float>( *v_jet_eta_orig );
-  std::vector<float> tmpPhi=std::vector<float>( *v_jet_phi_orig );
-  std::vector<float> tmpE  =std::vector<float>( *v_jet_E_orig   );
-  v_jet_pt_orig ->clear();
+  std::vector<const xAOD::Jet*> selJetsTMP = selJets;
+  std::sort(selJets.begin(), selJets.end(), xaodJetPtSorting);
+  std::vector<float> tmpPt = std::vector<float>(*v_jet_pt_orig);
+  std::vector<float> tmpEta = std::vector<float>(*v_jet_eta_orig);
+  std::vector<float> tmpPhi = std::vector<float>(*v_jet_phi_orig);
+  std::vector<float> tmpE = std::vector<float>(*v_jet_E_orig);
+  v_jet_pt_orig->clear();
   v_jet_eta_orig->clear();
   v_jet_phi_orig->clear();
-  v_jet_E_orig  ->clear();
-  for (unsigned int j=0; j<selJets.size(); j++) {
-    const xAOD::Jet* jet=selJets.at(j);
-    int oIndex=-1;
-    for (unsigned int j2=0; j2<selJets.size(); j2++) {
-      if ( selJetsTMP.at(j2)->pt() == jet->pt() ) {
-	oIndex=j2;
+  v_jet_E_orig->clear();
+  for (unsigned int j = 0; j < selJets.size(); j++) {
+    const xAOD::Jet *jet = selJets.at(j);
+    int oIndex = -1;
+    for (unsigned int j2 = 0; j2 < selJets.size(); j2++) {
+      if (selJetsTMP.at(j2)->pt() == jet->pt()) {
+	oIndex = j2;
 	break;
       }
     }
-    v_jet_pt_orig ->push_back(tmpPt[oIndex]);
+    v_jet_pt_orig->push_back(tmpPt[oIndex]);
     v_jet_eta_orig->push_back(tmpEta[oIndex]);
     v_jet_phi_orig->push_back(tmpPhi[oIndex]);
-    v_jet_E_orig  ->push_back(tmpE[oIndex]);
+    v_jet_E_orig->push_back(tmpE[oIndex]);
   }
 
   njets = selJets.size();
-  ATH_MSG_DEBUG( "Total number of jets is: "<< njets );
-  uint8_t getInt(0);   // for accessing summary information
- 
-  
+  ATH_MSG_DEBUG( "Total number of jets is: " << njets );
+  uint8_t getInt(0); // for accessing summary information
+
   /////////////////////////////////////////////////////////////////////////////////
-  /// MAIN JET LOOP
+  // MAIN JET LOOP
   // Now run over the selected jets and do whatever else needs doing
-  for (unsigned int j=0; j<selJets.size(); j++) {
-    const xAOD::Jet* jet=selJets.at(j);
+  for (unsigned int j = 0; j < selJets.size(); j++) {
+    const xAOD::Jet *jet = selJets.at(j);
 
-
-    const xAOD::Jet* jet_parent = 0;
+    const xAOD::Jet *jet_parent = 0;
     if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(m_jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0)
     {
       jet_parent = GetParentJet(jet, "Parent");
@@ -963,10 +965,10 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     // protection against not properly filled objects ... IT SHOULD NEVER HAPPEN THOUGH
     try {
-      const std::vector<ElementLink<xAOD::VertexContainer > >    TMPvertices  = jet->btagging()->auxdata<std::vector<ElementLink<xAOD::VertexContainer > > >("SV0_vertices");
+      const std::vector<ElementLink<xAOD::VertexContainer > > TMPvertices = jet->btagging()->auxdata<std::vector<ElementLink<xAOD::VertexContainer > > >("SV0_vertices");
     } catch(...) {
-      ATH_MSG_WARNING(" THIS JET IS NOT FILLED PROPERLY!!!!!!!!!!!!!  .... PLEASE CHECK");
-      njets-=1;
+      ATH_MSG_WARNING("THIS JET IS NOT FILLED PROPERLY!!!!!!!!!!!!! .... PLEASE CHECK");
+      njets -= 1;
       continue;
     }
 
@@ -974,16 +976,16 @@ StatusCode btagIBLAnalysisAlg::execute() {
     // flagging jets that overlap with electron
     bool iseljetoverlap = false;
 
-    for(unsigned int i= 0; i < truth_electrons.size(); i++){
-      float dr =deltaR(jet->eta(), truth_electrons.at(i).Eta(),jet->phi(), truth_electrons.at(i).Phi());
-      if(dr < 0.3) iseljetoverlap = true;
+    for(unsigned int i = 0; i < truth_electrons.size(); i++) {
+      float dr = deltaR(jet->eta(), truth_electrons.at(i).Eta(), jet->phi(), truth_electrons.at(i).Phi());
+      if (dr < 0.3) iseljetoverlap = true;
     }
 
-    if ( iseljetoverlap ) v_jet_aliveAfterOR->push_back(0);
+    if (iseljetoverlap) v_jet_aliveAfterOR->push_back(0);
     else v_jet_aliveAfterOR->push_back(1);
 
     // jet cleaning - should be done after lepton overlap removal
-    // if( (!m_jetCleaningTool->keep( *jet )) && (jet->pt() > 20e3) ) return StatusCode::SUCCESS;
+    // if( (!m_jetCleaningTool->keep(*jet)) && (jet->pt() > 20e3) ) return StatusCode::SUCCESS;
 
     /////////////////////////////////////////////////////////////////////////////// ///////////////////////////////////////////////////////////////////////////////
     // simple kinematic quantities + PUinfo + JVF/JVT
@@ -1120,50 +1122,76 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     ///continue;  //VALERIO !!!!!!!!
 
-    /////////////////////////////////////////////////////////////////////////////// ///////////////////////////////////////////////////////////////////////////////    
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // for single b tagging
-    const xAOD::TruthParticle* matchedBH=NULL;
-    const xAOD::TruthParticle* matchedCH=NULL;
+    const xAOD::TruthParticle* matchedBH = NULL;
+    const xAOD::TruthParticle* matchedCH = NULL;
 
     // additions by nikola
-    const xAOD::TruthParticle* matchedBH1=NULL;
-    const xAOD::TruthParticle* matchedBH2=NULL;
-    const xAOD::TruthParticle* matchedCH1=NULL;
-    const xAOD::TruthParticle* matchedCH2=NULL;
-    // double b-tagging
-    if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(m_jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0)
-    {
+    const xAOD::TruthParticle* matchedBH1 = NULL;
+    const xAOD::TruthParticle* matchedBH2 = NULL;
+    const xAOD::TruthParticle* matchedCH1 = NULL;
+    const xAOD::TruthParticle* matchedCH2 = NULL;
+    // double b-tagging (on trimmed large-R jets, AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets)
+    if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(m_jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0) {
+      // get ghost B Hadrons from parent jet
       std::vector<const IParticle*> ghostBFromParent; ghostBFromParent.reserve(2);
       jet_parent->getAssociatedObjects<IParticle>("GhostBHadronsFinal", ghostBFromParent);
-      v_jet_nGhostBHadrFromParent->push_back(ghostBFromParent.size());
+      v_jet_nGhostBHadrFromParent->push_back(ghostBFromParent.size());    // the number of ghost B Hadrons from parent jet
 
-      if (ghostBFromParent.size() >= 1)
-      {
-        matchedBH1=(const xAOD::TruthParticle*)(ghostBFromParent.at(0));
-        if (ghostBFromParent.size() >= 2)
-        {
+      // use LEADING 2 ghost B Hadrons from parent jet to later label b-tagging tracks
+      if (ghostBFromParent.size() >= 1) {
+        matchedBH1 = (const xAOD::TruthParticle*)(ghostBFromParent.at(0));
+        if (ghostBFromParent.size() >= 2) {
           matchedBH2=(const xAOD::TruthParticle*)(ghostBFromParent.at(1));
         }
       }
 
+      // get ghost C Hadrons from parent jet
       std::vector<const IParticle*> ghostCFromParent; ghostCFromParent.reserve(2);
       jet_parent->getAssociatedObjects<IParticle>("GhostCHadronsFinal", ghostCFromParent);
-      v_jet_nGhostCHadrFromParent->push_back(ghostCFromParent.size());
+      v_jet_nGhostCHadrFromParent->push_back(ghostCFromParent.size());    // the number of ghost C Hadrons from parent jet
 
-      if (ghostCFromParent.size() >= 1)
-      {
-        matchedCH1=(const xAOD::TruthParticle*)(ghostCFromParent.at(0));
-        if (ghostCFromParent.size() >= 2)
-        {
-          matchedCH2=(const xAOD::TruthParticle*)(ghostCFromParent.at(1));
-        }
+      // get ghost C Hadrons from parent jet which are NOT children of ghost B Hadrons from parent jet
+      int nGhostCHadrFromParentNotFromB = 0;
+      // loop over C Hadrons
+      for (int c = 0; c < ghostCFromParent.size(); c++) {
+         const xAOD::TruthParticle* cHadron = (const xAOD::TruthParticle*)(ghostCFromParent.at(c));
+         int cHadronComesFromB = 0;
+
+         // loop over B Hadrons
+         for (int b = 0; b < ghostBFromParent.size(); b++) {
+           const xAOD::TruthParticle* bHadron = (const xAOD::TruthParticle*)(ghostBFromParent.at(b));
+
+           // loop over C Hadron parents
+           const xAOD::TruthParticle* cHadronParent = cHadron->parent(0);
+           while (cHadronParent != NULL) {
+             if (bHadron == cHadronParent) {
+               ATH_MSG_INFO ("nikola: C Hadron has B Hadron parent");
+               cHadronComesFromB = 1;
+               break;
+             }
+             if (cHadronComesFromB) break;
+             else cHadronParent = cHadronParent->parent(0);
+           }
+         }
+
+         // use LEADING 2 ghost C Hadrons from parent jet which are NOT children of ghost B Hadrons from parent jet to later label b-tagging tracks
+         if (!cHadronComesFromB) {
+           nGhostCHadrFromParentNotFromB += 1;
+           if (matchedCH1 == NULL) matchedCH1 = cHadron;
+           else if (matchedCH2 == NULL) matchedCH2 = cHadron;
+           else ATH_MSG_INFO ("nikola: more than 2 C Hadrons which do not come from a B Hadron have been found...");
+         }
       }
+      v_jet_nGhostCHadrFromParentNotFromB->push_back(nGhostCHadrFromParentNotFromB);    // the number of ghost C Hadrons from parent jet which are NOT children of ghost B Hadrons from parent jet
 
+      // ghost Tau
       std::vector<const IParticle*> ghostTauFromParent; ghostTauFromParent.reserve(2);
       jet_parent->getAssociatedObjects<IParticle>("GhostTausFinal", ghostTauFromParent);
       v_jet_nGhostTauFromParent->push_back(ghostTauFromParent.size());
 
-      // get H boson quantities
+      // ghost H
       std::vector<const IParticle*> ghostHFromParent; ghostHFromParent.reserve(2);
       jet_parent->getAssociatedObjects<IParticle>("GhostHBosons", ghostHFromParent);
       v_jet_nGhostHBosoFromParent->push_back(ghostHFromParent.size());
@@ -1191,11 +1219,14 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_nCHadr->push_back(ghostC.size());
     }
 
+    // additions by nikola
     // double b-tagging
     std::vector<const xAOD::TruthParticle*> tracksFromB1;
     std::vector<const xAOD::TruthParticle*> tracksFromB2;
     std::vector<const xAOD::TruthParticle*> tracksFromC1;
     std::vector<const xAOD::TruthParticle*> tracksFromC2;
+    std::vector<const xAOD::TruthParticle*> tracksFromCNotFromB1;
+    std::vector<const xAOD::TruthParticle*> tracksFromCNotFromB2;
     if (matchedBH1!=NULL)
     {
       GetParentTracks(matchedBH1, tracksFromB1, tracksFromC1, false, "  ");
@@ -1203,6 +1234,14 @@ StatusCode btagIBLAnalysisAlg::execute() {
     if (matchedBH2!=NULL)
     {
       GetParentTracks(matchedBH2, tracksFromB2, tracksFromC2, false, "  ");
+    }
+    if (matchedCH1!=NULL)
+    {
+      GetParentTracks(matchedCH1, tracksFromCNotFromB1, tracksFromCNotFromB1, false, "  ");
+    }
+    if (matchedCH2!=NULL)
+    {
+      GetParentTracks(matchedCH2, tracksFromCNotFromB2, tracksFromCNotFromB2, false, "  ");
     }
 
     // single b-tagging
@@ -1644,13 +1683,13 @@ StatusCode btagIBLAnalysisAlg::execute() {
       std::cout << "WARNING! No ExKtbbTag run on " << m_jetCollectionName.c_str() << std::endl;
     }
 
-    // additions by nikola    
+    // additions by nikola for ghost associated track jets
     if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(m_jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0)
     {
       ATH_MSG_INFO("this is a trimmed large-R jet collection, adding information (pt and mv2c00) of track jets associated to parent untrimmed jet collection");
 
       std::vector<float> trkjet_pt;
-      std::vector<double> trkjet_MV2c20;
+      std::vector<double> trkjet_mv2c20;
 
       std::vector<const xAOD::Jet*> ghostTrackJet2;
       jet_parent->getAssociatedObjects<xAOD::Jet>("GhostAntiKt2TrackJet", ghostTrackJet2);
@@ -1663,12 +1702,12 @@ StatusCode btagIBLAnalysisAlg::execute() {
           trkjet_pt.push_back(ghostTrackJet2.at(i)->pt());
 
           const xAOD::BTagging* ghostTrackBJet = ghostTrackJet2.at(i)->btagging();
-          trkjet_MV2c20.push_back(ghostTrackBJet->auxdata<double>("MV2c20_discriminant"));
+          trkjet_mv2c20.push_back(ghostTrackBJet->auxdata<double>("MV2c20_discriminant"));
         }
       }
 
       v_jet_trkjet_pt->push_back(trkjet_pt);
-      v_jet_trkjet_MV2c20->push_back(trkjet_MV2c20);
+      v_jet_trkjet_mv2c20->push_back(trkjet_mv2c20);
     }
 
     /// now the tracking part: prepare all the tmpVectors
@@ -1680,7 +1719,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> j_trk_eta;
     std::vector<float> j_trk_theta;
     std::vector<float> j_trk_phi;
-    std::vector<float> j_trk_dr;
+    std::vector<float> j_trk_dr; // mod nikola
     std::vector<float> j_trk_chi2;
     std::vector<float> j_trk_ndf;
     std::vector<int> j_trk_algo;
@@ -1719,13 +1758,13 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> j_sv1_vtxx;
     std::vector<float> j_sv1_vtxy;
     std::vector<float> j_sv1_vtxz;
-    std::vector<float> j_jf_vtx_chi2; //mod Remco
-    std::vector<float> j_jf_vtx_ndf; //mod Remco
-    std::vector<int> j_jf_vtx_ntrk; //mod Remco
-    std::vector<float> j_jf_vtx_L3d; //mod Remco
-    std::vector<float> j_jf_vtx_sig3d; //mod Remco
-    std::vector<int> j_jf_vtx_nvtx; //mod Remco
-    std::vector<int> j_trk_jf_Vertex; //mod Remco
+    std::vector<float> j_jf_vtx_chi2; // mod Remco
+    std::vector<float> j_jf_vtx_ndf; // mod Remco
+    std::vector<int> j_jf_vtx_ntrk; // mod Remco
+    std::vector<float> j_jf_vtx_L3d; // mod Remco
+    std::vector<float> j_jf_vtx_sig3d; // mod Remco
+    std::vector<int> j_jf_vtx_nvtx; // mod Remco
+    std::vector<int> j_trk_jf_Vertex; // mod Remco
     //if (m_reduceInfo) continue;
 
     bool is8TeV= true;
@@ -1845,30 +1884,30 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> fittedPosition = bjet->auxdata<std::vector<float> >("JetFitter_fittedPosition"); // mod Remco
     std::vector<float> fittedCov = bjet->auxdata<std::vector<float> >("JetFitter_fittedCov"); // mod Remco
     
-    //if (PV_jf_x != fittedPosition[0]) {std::cout << "PV_jf_x is set for the first time (this may happen only once!)" << std::endl;} //mod Remco
-    //if (PV_jf_y != fittedPosition[0]) {std::cout << "PV_jf_y is set for the first time (this may happen only once!)" << std::endl;} //mod Remco
-    //if (PV_jf_z != fittedPosition[0]) {std::cout << "PV_jf_z is set for the first time (this may happen only once!)" << std::endl;} //mod Remco
+    //if (PV_jf_x != fittedPosition[0]) {std::cout << "PV_jf_x is set for the first time (this may happen only once!)" << std::endl;} // mod Remco
+    //if (PV_jf_y != fittedPosition[0]) {std::cout << "PV_jf_y is set for the first time (this may happen only once!)" << std::endl;} // mod Remco
+    //if (PV_jf_z != fittedPosition[0]) {std::cout << "PV_jf_z is set for the first time (this may happen only once!)" << std::endl;} // mod Remco
     if (fittedPosition.size()>0) {
-      PV_jf_x = fittedPosition[0]; //mod Remco
-      PV_jf_y = fittedPosition[1]; //mod Remco 
-      PV_jf_z = fittedPosition[2]; //mod Remco
-      v_jet_jf_phi->push_back(fittedPosition[3]); //mod Remco
-      v_jet_jf_theta->push_back(fittedPosition[4]); //mod Remco
+      PV_jf_x = fittedPosition[0]; // mod Remco
+      PV_jf_y = fittedPosition[1]; // mod Remco 
+      PV_jf_z = fittedPosition[2]; // mod Remco
+      v_jet_jf_phi->push_back(fittedPosition[3]); // mod Remco
+      v_jet_jf_theta->push_back(fittedPosition[4]); // mod Remco
     } else {
-      v_jet_jf_phi->push_back(-999); //mod Remco
-      v_jet_jf_theta->push_back(-999); //mod Remco
+      v_jet_jf_phi->push_back(-999); // mod Remco
+      v_jet_jf_theta->push_back(-999); // mod Remco
     }
 
     //std::cout << " VALERIO: " << jfvertices.size() << " , " << jfnvtx << " , " << jfnvtx1t << " ..... and: " << fittedPosition.size() << std::endl;
     for (unsigned int jfv=0; jfv< jfvertices.size(); jfv++) {
       if (!jfvertices.at(jfv).isValid()) continue;
       const xAOD::BTagVertex*  tmpVertex=*(jfvertices.at(jfv)); 
-      const std::vector< ElementLink<xAOD::TrackParticleContainer> > tmpVect = tmpVertex->track_links(); //mod Remco
-      JFTracks.insert(JFTracks.end(), tmpVect.begin(), tmpVect.end()); //mod Remco
+      const std::vector< ElementLink<xAOD::TrackParticleContainer> > tmpVect = tmpVertex->track_links(); // mod Remco
+      JFTracks.insert(JFTracks.end(), tmpVect.begin(), tmpVect.end()); // mod Remco
       
-      j_jf_vtx_chi2.push_back(tmpVertex->chi2()); //mod Remco
-      j_jf_vtx_ndf.push_back(tmpVertex->NDF()); //mod Remco
-      j_jf_vtx_ntrk.push_back(tmpVect.size()); //mod Remco
+      j_jf_vtx_chi2.push_back(tmpVertex->chi2()); // mod Remco
+      j_jf_vtx_ndf.push_back(tmpVertex->NDF()); // mod Remco
+      j_jf_vtx_ntrk.push_back(tmpVect.size()); // mod Remco
       if (jfv<3) {
 	j_jf_vtx_L3d.push_back(fittedPosition[jfv+5]); // mod Remco
 	j_jf_vtx_sig3d.push_back(sqrt(fittedCov[jfv+5])); // mod Remco
@@ -1876,14 +1915,14 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	j_jf_vtx_L3d.push_back(-999); // mod Remco
 	j_jf_vtx_sig3d.push_back(-999); // mod Remco
       }
-      //j_jf_vtx_nvtx.push_back(jfvertices.size()); //mod Remco
+      //j_jf_vtx_nvtx.push_back(jfvertices.size()); // mod Remco
     }
-    v_jet_jf_vtx_chi2->push_back(j_jf_vtx_chi2); //mod Remco
-    v_jet_jf_vtx_ndf->push_back(j_jf_vtx_ndf); //mod Remco
-    v_jet_jf_vtx_ntrk->push_back(j_jf_vtx_ntrk); //mod Remco
-    v_jet_jf_vtx_L3d->push_back(j_jf_vtx_L3d); //mod Remco
-    v_jet_jf_vtx_sig3d->push_back(j_jf_vtx_sig3d); //mod Remco
-    //v_jet_jf_vtx_nvtx->push_back(j_jf_vtx_nvtx); //mod Remco
+    v_jet_jf_vtx_chi2->push_back(j_jf_vtx_chi2); // mod Remco
+    v_jet_jf_vtx_ndf->push_back(j_jf_vtx_ndf); // mod Remco
+    v_jet_jf_vtx_ntrk->push_back(j_jf_vtx_ntrk); // mod Remco
+    v_jet_jf_vtx_L3d->push_back(j_jf_vtx_L3d); // mod Remco
+    v_jet_jf_vtx_sig3d->push_back(j_jf_vtx_sig3d); // mod Remco
+    //v_jet_jf_vtx_nvtx->push_back(j_jf_vtx_nvtx); // mod Remco
     
     j_btag_ntrk=0;//assocTracks.size();
     j_sv1_ntrk = SV1Tracks.size();
@@ -1982,16 +2021,16 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
       if (particleInCollection( tmpTrk, SV0Tracks))  trackAlgo+=1<<SV0;
       if (particleInCollection( tmpTrk, SV1Tracks))  trackAlgo+=1<<SV1;
-      if (particleInCollection( tmpTrk, JFTracks))   trackAlgo+=1<<JF; //mod Remco	   
+      if (particleInCollection( tmpTrk, JFTracks))   trackAlgo+=1<<JF; // mod Remco	   
       j_trk_algo.push_back(trackAlgo);
 
-      int myVtx=-1; //mod Remco
-      for (unsigned int jfv=0; jfv< jfvertices.size(); jfv++) { //mod Remco
+      int myVtx=-1; // mod Remco
+      for (unsigned int jfv=0; jfv< jfvertices.size(); jfv++) { // mod Remco
 	if (!jfvertices.at(jfv).isValid()) continue;
-	const xAOD::BTagVertex*  tmpVertex=*(jfvertices.at(jfv)); //mod Remco
-        const std::vector< ElementLink<xAOD::TrackParticleContainer> > tmpVect = tmpVertex->track_links(); //mod Remco
-        if (particleInCollection( tmpTrk, tmpVect)) myVtx=jfv;//mod Remco
-      } //mod Remco
+	const xAOD::BTagVertex*  tmpVertex=*(jfvertices.at(jfv)); // mod Remco
+        const std::vector< ElementLink<xAOD::TrackParticleContainer> > tmpVect = tmpVertex->track_links(); // mod Remco
+        if (particleInCollection( tmpTrk, tmpVect)) myVtx=jfv;// mod Remco
+      } // mod Remco
       j_trk_jf_Vertex.push_back(myVtx); // mod Remco
       //std::cout << " ..... after Remco" << std::endl;
 
@@ -2018,38 +2057,51 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	      break;
 	    }
 	  }
-	  for (unsigned int iT=0; iT<tracksFromB1.size(); iT++) {
-	    if (truth==tracksFromB1.at(iT)) {
-	      origin=FROMB;
-	      break;
-	    }
-	  }
-	  for (unsigned int iT=0; iT<tracksFromB2.size(); iT++) {
-	    if (truth==tracksFromB2.at(iT)) {
-	      origin=FROMB;
-	      break;
-	    }
-	  }
 	  for (unsigned int iT=0; iT<tracksFromC.size(); iT++) {
 	    if (truth==tracksFromC.at(iT)) {
 	      origin=FROMC;
 	      break;
 	    }
 	  }
+          // additions by nikola
+	  for (unsigned int iT=0; iT<tracksFromB1.size(); iT++) {
+	    if (truth==tracksFromB1.at(iT)) {
+	      origin=10;
+	      break;
+	    }
+	  }
+	  for (unsigned int iT=0; iT<tracksFromB2.size(); iT++) {
+	    if (truth==tracksFromB2.at(iT)) {
+	      origin=11;
+	      break;
+	    }
+	  }
 	  for (unsigned int iT=0; iT<tracksFromC1.size(); iT++) {
 	    if (truth==tracksFromC1.at(iT)) {
-	      origin=FROMC;
+	      origin=12;
 	      break;
 	    }
 	  }
 	  for (unsigned int iT=0; iT<tracksFromC2.size(); iT++) {
 	    if (truth==tracksFromC2.at(iT)) {
-	      origin=FROMC;
+	      origin=13;
+	      break;
+	    }
+	  }
+	  for (unsigned int iT=0; iT<tracksFromCNotFromB1.size(); iT++) {
+	    if (truth==tracksFromCNotFromB1.at(iT)) {
+	      origin=14;
+	      break;
+	    }
+	  }
+	  for (unsigned int iT=0; iT<tracksFromCNotFromB2.size(); iT++) {
+	    if (truth==tracksFromCNotFromB2.at(iT)) {
+	      origin=15;
 	      break;
 	    }
 	  }
 	}
-      } 
+      }
       if (truth){
 	if (truth->prodVtx()) {
 	  j_trk_vtx_X.push_back(truth->prodVtx()->x());
@@ -2203,7 +2255,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_trk_IP2D_llr->push_back(j_trk_ip2d_llr);
     v_jet_trk_IP3D_llr->push_back(j_trk_ip3d_llr);
     
-    v_jet_trk_jf_Vertex->push_back(j_trk_jf_Vertex); //mod Remco
+    v_jet_trk_jf_Vertex->push_back(j_trk_jf_Vertex); // mod Remco
 
     if (m_SMT) {
        v_jet_mu_assJet_pt->push_back(jet_mu_dRmin_assJet_pt);
@@ -2279,40 +2331,36 @@ const xAOD::TruthParticle*  btagIBLAnalysisAlg :: truthParticle(const xAOD::Trac
   return *link;
 }
 
-bool GoesIntoC(const xAOD::TruthParticle* part) {
-  if ( !part ) return false;
-  if ( !part->hasDecayVtx() ) return false;
-  const xAOD::TruthVertex* decayVtx=part->decayVtx();
-  for (unsigned int ch=0; ch<decayVtx->nOutgoingParticles(); ch++) {
-    const xAOD::TruthParticle* tmpPart= decayVtx->outgoingParticle(ch);
-    if ( tmpPart->isCharmHadron() ) return true;
+bool GoesIntoC(const xAOD::TruthParticle *part) {
+  if (!part) return false;
+  if (!part->hasDecayVtx()) return false;
+  const xAOD::TruthVertex* decayVtx = part->decayVtx();
+  for (unsigned int ch = 0; ch < decayVtx->nOutgoingParticles(); ch++) {
+    const xAOD::TruthParticle *tmpPart = decayVtx->outgoingParticle(ch);
+    if (tmpPart->isCharmHadron()) return true;
   }
   return false;
 }
 
-
 // saving recursively only charged particle
-void btagIBLAnalysisAlg :: GetParentTracks(const xAOD::TruthParticle* part, 
-					   std::vector<const xAOD::TruthParticle*> &tracksFromB, 
-					   std::vector<const xAOD::TruthParticle*> &tracksFromC, 
-					   bool isfromC, std::string indent) {
-  
-  if ( !part->hasDecayVtx() ) return;
-  const xAOD::TruthVertex* decayVtx=part->decayVtx();
-  indent+="  ";
-  for (unsigned int ch=0; ch<decayVtx->nOutgoingParticles(); ch++) {
-    const xAOD::TruthParticle* tmpPart= decayVtx->outgoingParticle(ch);
-    if ( tmpPart->barcode()>200e3 ) continue;
-    
-    if ( !tmpPart->isCharmHadron() && !(const_cast< xAOD::TruthParticle* >(tmpPart))->isBottomHadron() ) {
-      if ( tmpPart->isCharged() ) tracksFromB.push_back(tmpPart);
-      if (isfromC &&  tmpPart->isCharged() ) tracksFromC.push_back(tmpPart);
+void btagIBLAnalysisAlg :: GetParentTracks(const xAOD::TruthParticle *particle,
+					   std::vector<const xAOD::TruthParticle*> &tracksFromB,
+					   std::vector<const xAOD::TruthParticle*> &tracksFromC,
+					   bool isFromC, std::string indent) {
+  if (!particle->hasDecayVtx()) return;
+  const xAOD::TruthVertex *decayVtx = particle->decayVtx();
+  indent += "  ";
+  for (unsigned int ch = 0; ch < decayVtx->nOutgoingParticles(); ch++) {
+    const xAOD::TruthParticle *tmpParticle = decayVtx->outgoingParticle(ch);
+    if (tmpParticle->barcode() > 200e3) continue;
+    if (!tmpParticle->isCharmHadron() && !(const_cast< xAOD::TruthParticle* >(tmpParticle))->isBottomHadron() ) {
+      if (tmpParticle->isCharged()) tracksFromB.push_back(tmpParticle);
+      if (isFromC && tmpParticle->isCharged()) tracksFromC.push_back(tmpParticle);
     }
-    
-    if (isfromC) GetParentTracks(tmpPart, tracksFromB,tracksFromC,true,indent);
-    else         GetParentTracks(tmpPart, tracksFromB,tracksFromC,tmpPart->isCharmHadron() && ! GoesIntoC(tmpPart),indent);
+
+    if (isFromC) GetParentTracks(tmpParticle, tracksFromB, tracksFromC, true, indent);
+    else GetParentTracks(tmpParticle, tracksFromB, tracksFromC, tmpParticle->isCharmHadron() && !GoesIntoC(tmpParticle), indent);
   }
-  
 }
 
 void btagIBLAnalysisAlg :: clearvectors(){
@@ -2345,8 +2393,9 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_truthflav->clear();
   v_jet_nBHadr->clear();
   v_jet_nCHadr->clear();
-  v_jet_nGhostBHadrFromParent->clear();
-  v_jet_nGhostCHadrFromParent->clear();
+  v_jet_nGhostBHadrFromParent->clear(); // mod nikola
+  v_jet_nGhostCHadrFromParent->clear(); // mod nikola
+  v_jet_nGhostCHadrFromParentNotFromB->clear(); // mod nikola
   v_jet_nGhostTauFromParent->clear();
   v_jet_nGhostHBosoFromParent->clear();
   v_jet_GhostL_q->clear();
@@ -2417,14 +2466,14 @@ void btagIBLAnalysisAlg :: clearvectors(){
   v_jet_jf_nvtx1t->clear();
   v_jet_jf_n2t->clear();
   v_jet_jf_VTXsize->clear();
-  v_jet_jf_vtx_chi2->clear(); //mod Remco
-  v_jet_jf_vtx_ndf->clear(); //mod Remco
-  v_jet_jf_vtx_ntrk->clear(); //mod Remco
+  v_jet_jf_vtx_chi2->clear(); // mod Remco
+  v_jet_jf_vtx_ndf->clear(); // mod Remco
+  v_jet_jf_vtx_ntrk->clear(); // mod Remco
   v_jet_jf_vtx_L3d->clear(); // mod Remco
   v_jet_jf_vtx_sig3d->clear(); // mod Remco
-  v_jet_jf_vtx_nvtx->clear(); //mod Remco
-  v_jet_jf_phi->clear(); //mod Remco
-  v_jet_jf_theta->clear(); //mod Remco
+  v_jet_jf_vtx_nvtx->clear(); // mod Remco
+  v_jet_jf_phi->clear(); // mod Remco
+  v_jet_jf_theta->clear(); // mod Remco
 
   v_jet_jfcombnn_pb->clear();
   v_jet_jfcombnn_pc->clear();
@@ -2542,7 +2591,7 @@ void btagIBLAnalysisAlg :: clearvectors(){
 
   // additions by nikola
   v_jet_trkjet_pt->clear();
-  v_jet_trkjet_MV2c20->clear();
+  v_jet_trkjet_mv2c20->clear();
 
   // additions by andrea
   v_jet_mu_pt->clear();

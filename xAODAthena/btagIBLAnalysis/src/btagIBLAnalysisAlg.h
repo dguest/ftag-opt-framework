@@ -100,6 +100,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<int> *v_jet_nCHadr;
   std::vector<int> *v_jet_nGhostBHadrFromParent;
   std::vector<int> *v_jet_nGhostCHadrFromParent;
+  std::vector<int> *v_jet_nGhostCHadrFromParentNotFromB;
   std::vector<int> *v_jet_nGhostTauFromParent;
   std::vector<int> *v_jet_nGhostHBosoFromParent;
   std::vector<int> *v_jet_GhostL_q;
@@ -317,7 +318,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 
   // additions by Nikola
   std::vector<std::vector<float> >  *v_jet_trkjet_pt;
-  std::vector<std::vector<double> > *v_jet_trkjet_MV2c20;
+  std::vector<std::vector<double> > *v_jet_trkjet_mv2c20;
 
   // additions by Andrea
   std::vector<float> *v_jet_mu_truthflav;
