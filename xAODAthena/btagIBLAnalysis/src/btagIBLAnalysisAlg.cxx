@@ -1321,8 +1321,14 @@ StatusCode btagIBLAnalysisAlg::execute() {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // getting manual distribution on the number of tracks per jet with the selection
-    std::vector< ElementLink< xAOD::TrackParticleContainer > > assocTracks =
-      bjet->auxdata<std::vector<ElementLink<xAOD::TrackParticleContainer> > >("BTagTrackToJetAssociator");
+    std::vector< ElementLink< xAOD::TrackParticleContainer > > assocTracks;
+
+    if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(m_jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0) {
+      assocTracks = bjet->auxdata<std::vector<ElementLink<xAOD::TrackParticleContainer> > >("BTagTrackToJetAssociatorBB");
+    }
+    else {
+      assocTracks = bjet->auxdata<std::vector<ElementLink<xAOD::TrackParticleContainer> > >("BTagTrackToJetAssociator");
+    }
 
     // temporary track loop
     TLorentzVector pseudoTrackJet(0,0,0,0);
