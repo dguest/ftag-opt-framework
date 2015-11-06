@@ -197,6 +197,10 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_jet_jfcombnn_pu;
   std::vector<float> *v_jet_jfcombnn_llr;
 
+  std::vector<float> *v_jet_dl1_pb;
+  std::vector<float> *v_jet_dl1_pc;
+  std::vector<float> *v_jet_dl1_pu;
+
   // Other
   std::vector<double> *v_jet_sv1ip3d;
   std::vector<double> *v_jet_mv1;

@@ -245,6 +245,10 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_jfcombnn_pu = new std::vector<float>();
   v_jet_jfcombnn_llr = new std::vector<float>();
 
+  v_jet_dl1_pb=new std::vector<float>();
+  v_jet_dl1_pc=new std::vector<float>();
+  v_jet_dl1_pu=new std::vector<float>();
+
   v_jet_sv1ip3d = new std::vector<double>();
   v_jet_mv1 = new std::vector<double>();
   v_jet_mv1c = new std::vector<double>();
@@ -512,6 +516,10 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_jfcombnn_pc", &v_jet_jfcombnn_pc);
   tree->Branch("jet_jfcombnn_pu", &v_jet_jfcombnn_pu);
   tree->Branch("jet_jfcombnn_llr", &v_jet_jfcombnn_llr);
+
+  tree->Branch("jet_dl1_pb",&v_jet_dl1_pb);
+  tree->Branch("jet_dl1_pc",&v_jet_dl1_pc);
+  tree->Branch("jet_dl1_pu",&v_jet_dl1_pu);
 
   tree->Branch("jet_sv1ip3d", &v_jet_sv1ip3d);
   tree->Branch("jet_mv1", &v_jet_mv1);
@@ -1519,6 +1527,13 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_jfcombnn_pu->push_back(bjet->JetFitterCombNN_pu());
     v_jet_jfcombnn_llr->push_back(bjet->JetFitterCombNN_loglikelihoodratio());
 
+    // DL1
+    try {
+      v_jet_dl1_pb->push_back(bjet->auxdata<double>("DL1_pb"));
+      v_jet_dl1_pc->push_back(bjet->auxdata<double>("DL1_pc"));
+      v_jet_dl1_pu->push_back(bjet->auxdata<double>("DL1_pu"));
+    } catch(...) {}
+
     // Other
     v_jet_sv1ip3d->push_back(bjet->SV1plusIP3D_discriminant());
     v_jet_mv1->push_back(bjet->MV1_discriminant());
@@ -2470,6 +2485,10 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_jfcombnn_pc->clear();
   v_jet_jfcombnn_pu->clear();
   v_jet_jfcombnn_llr->clear();
+
+  v_jet_dl1_pb->clear();
+  v_jet_dl1_pc->clear();
+  v_jet_dl1_pu->clear();
 
   v_jet_sv1ip3d->clear();
   v_jet_mv1->clear();
