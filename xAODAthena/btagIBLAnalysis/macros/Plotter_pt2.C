@@ -223,7 +223,7 @@ void GetComparison(string file1, string cutBase, string effCut,
       dir = opendir( file1.c_str() );     // open current directory
       while (pdir = readdir(dir))  {
 	string foldName=pdir->d_name;
-	if (foldName.find("mc")==string::npos) continue;
+	if (foldName.find("mc")==string::npos && foldName.find("valid")==string::npos) continue;
 	cout << pdir->d_name << endl;
 	DIR*     dir2;
 	dirent*  pdir2;
@@ -466,11 +466,13 @@ void PrintTagger(string tagger, string file1)  {
   GetComparison(file1,CutBase, effCut,
 		Cut1, Cut2, Cut3,
 	        "bH_Lxy", "b-hadron transverse decay length (mm)", yLabel,  
-		40,  0, 100);
+		10,  0, 100); //was 40
+ 
   GetComparison(file1,CutBase, effCut,
 		Cut1, Cut2, Cut3,
 	        "jet_pt/1e3", "jet p_{T} (GeV)", yLabel,  
-		30,  25, 800);
+		//30,  25, 800);
+		10,20,400);
 
   /*
   GetComparison(file1,CutBase, effCut,
@@ -506,10 +508,9 @@ void Plotter_pt2(const char* infile,
   //PrintTagger("MV2c10",file1);
   PrintTagger("MV2c20",file1);
   //PrintTagger("MVb",file1);
-//  PrintTagger("IP3D",file1);
-  //PrintTagger("IP3D+SV1",file1);
-//  PrintTagger("SV1",file1);
-//  PrintTagger("JetFitter",file1);
+  PrintTagger("IP3D",file1);
+  PrintTagger("SV1",file1);
+  PrintTagger("JetFitter",file1);
 
   outF->Close();
 }

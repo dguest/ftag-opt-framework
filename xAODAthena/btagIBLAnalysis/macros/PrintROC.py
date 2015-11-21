@@ -60,6 +60,7 @@ if ".root" in second:
         sys.exit(1)
     fileList.append(second)
 else:
+    print "ls -la "+second+"/*/*.root*"
     fileList=glob(second+"/*/*.root*")
     
 if len(fileList)==0:
@@ -96,14 +97,14 @@ elif isXAOD:
 #        ["MV2c10"  , "mv2c10"  ,  -0.5 ,  0.5    ,  3000, 4 ],
 #        ["MV2c20"  , "mv2c20"  ,  -0.5 ,  0.5    ,  3000, 7 ],
 #        ["MV2c00"  , "mv2c00"  ,  -1.01 ,  1.01    ,  1000, 2 ],
-#        ["MV2c10"  , "mv2c10"  ,  -1.01 ,  1.01    ,  1000, 4 ],
+        ["MV2c10"  , "mv2c10"  ,  -1.01 ,  1.01    ,  1000, 4 ],
         ["MV2c20"  , "mv2c20"  ,  -1.01 ,  1.01    ,  1000, 7 ],
         ["IP3D"    , "ip3d_llr", -12.  ,   30    ,  1000, 8 ],
         ["IP2D"    , "ip2d_llr", -12.  ,   30    ,  1000, 10 ],
         ["SV1"     , "sv1_llr" ,  -4.  ,   13    ,  1000, 6 ],
 #        ["IP3D+SV1", "sv1ip3d" , -10.  ,   35    ,  3000, 797 ],
-##        ["MVb"     , "mvb"     ,  -1.05,  0.8    ,  3000, 920 ],
-#        ["JetFitter"     , "jf_llr"     ,  -15,  10    ,  1000, 40 ]
+        ["MVb"     , "mvb"     ,  -1.01,  1.01   ,  1000, 920 ],
+        ["JetFitter"     , "jf_llr"     ,  -15,  10    ,  1000, 40 ]
         ]
 else:
     taggers=[ ["MV1"     , "mv1"     ,   0.0  ,  0.9945  , 20000, 1 ],   #20000
@@ -123,15 +124,17 @@ def GetHisto(tag, intree, val):
     tmpH.Sumw2()
     var="jet_"+tag[1]+">>"+tmpH.GetName()
     cut=""
- 
-    cut=" abs(jet_eta)<2.5 && jet_pt>25e3 &&  jet_truthMatch==1 && jet_truthflav=="+str(val)
+    
+    ####cut=" abs(jet_eta)<2.5 && jet_pt>25e3 &&  jet_truthMatch==1 && jet_truthflav=="+str(val)
+
+    cut=" jet_LabDr_HadF=="+str(val)+" && abs(jet_eta)<2.5 && jet_pt>20e3  &&  (jet_JVT>0.641 || jet_pt>50e3 || abs(jet_eta)>2.4) "
 
     ##if not is8T: cut="jet_truthflav=="+str(val)+" && jet_pt>25e3  &&  (jet_JVT>0.2 || jet_pt>50e3 || abs(jet_eta)>2.4) "
     ##             cut="jet_LabDr_HadF=="+str(val)+" && jet_pt>25e3  &&  (jet_JVT>0.2 || jet_pt>50e3 || abs(jet_eta)>2.4) "
     ##             cut="jet_GhostL_HadF=="+str(val)+" && jet_pt>25e3  && jet_truthMatch==1 "
     ##             cut="jet_GhostL_HadF=="+str(val)+" && jet_pt>25e3  && jet_truthMatch==1 && jet_ip3d_ntrk>=2 "
     ##             cut="jet_trueFlav=="+str(val)+" && jet_pt>25e3 && jet_truthmatched==1 "
-    intree.Draw( var, cut,"goof",50000000)
+    intree.Draw( var, cut,"goof") ##,1000000)
     tmpH.SetBinContent(1,tmpH.GetBinContent(1)+tmpH.GetBinContent(0))
     tmpH.SetBinError(1,sqrt(pow(tmpH.GetBinError(1),2)+pow(tmpH.GetBinError(0),2)))
     tmpH.SetBinContent(0,0.0)
@@ -193,8 +196,9 @@ def GetROC(tag,intree, bVSlight):
 gSystem.Exec("mkdir -p "+odir)
 
 intree=None
-if "EM" in odir: intree=TChain("bTag_AntiKt4EMTopoJets")
-else           : intree=TChain("bTag_AntiKt4LCTopoJets")
+intree=TChain("bTag_AntiKt4EMTopoJets")
+##if "EM" in odir: intree=TChain("bTag_AntiKt4EMTopoJets")
+##else           : intree=TChain("bTag_AntiKt4LCTopoJets")
 for file in fileList:
     intree.Add(file)
 

@@ -26,8 +26,9 @@ float workpoint=0.70;
 string outputFolder;
 
 TFile* outF;
+TGraphAsymmErrors* graTMP;
 
-Double_t bins[] = {20,40,60,80,100,120,140,160,180,220,260,300,400 };
+Double_t bins[] = {20,40,60,80,100,120,140,160,180,220,260,300,1000000 };
 Int_t  binnum = 12;
 
 /////////////////////////////////////////////////
@@ -46,7 +47,7 @@ float getLowBin(string tagger) {
   if (tagger=="IP3D")      return  -12.; 
   if (tagger=="IP2D")      return  -12.; 
   if (tagger=="IP3D+SV1")  return  -10.;
-  if (tagger=="MVb")       return  -1.05;
+  if (tagger=="MVb")       return  -1;
   if (tagger=="SV1")       return  -4.;
   if (tagger=="JetFitter") return  -15;
   cout << "NOT SUPPORTED!!! " << endl;
@@ -105,6 +106,37 @@ string getVariable(string tagger, bool a8TeV) {
 
 
 
+TH1D* GetHisto1(string varName, string cutBase, 
+	       string varLabel,string yLabel, 
+	       int nBin, float Max, float Min,
+	       bool normalize=false) {
+  
+  TString tmpName=varName+cutBase;
+  tmpName=tmpName.ReplaceAll(" ","").ReplaceAll("&","").ReplaceAll("(","").ReplaceAll(")","").ReplaceAll("=","").ReplaceAll(">","").ReplaceAll("<","").ReplaceAll("/1e3","").ReplaceAll(".","").ReplaceAll("+","");
+  string theName=string(tmpName);
+
+  TH1D* den  =new TH1D( theName.c_str(), theName.c_str(), nBin, Max, Min); den->Sumw2();
+  string fullVar=varName+">>"+den->GetName();
+  myT_1->Draw( fullVar.c_str(), cutBase.c_str(),"goff");//,1000000)
+  den->SetBinContent(1, den->GetBinContent(0)+den->GetBinContent(1));
+  den->SetBinError(1, sqrt(pow(den->GetBinError(0),2)+pow(den->GetBinError(1),2)));
+  den->SetBinContent(0, 0.0);
+  den->SetBinError(0, 0.0);
+  den->SetBinContent(den->GetNbinsX(), den->GetBinContent(den->GetNbinsX())+den->GetBinContent(den->GetNbinsX()+1));
+  den->SetBinError(den->GetNbinsX(), sqrt(pow(den->GetBinError(den->GetNbinsX()),2)+pow(den->GetBinError(den->GetNbinsX()+1),2)));
+  den->SetBinContent(den->GetNbinsX()+1, 0.0);
+  den->SetBinError(den->GetNbinsX()+1, 0.0);
+  den->SetLineWidth(3);
+  den->SetLineColor(2);
+  den->SetMarkerStyle(20);
+  den->SetMarkerSize(0.6);
+  den->SetMarkerColor(2);
+ 
+  if (normalize) den->Scale(1./den->Integral());
+  return den;
+}
+
+
 TH2D* GetHisto(string varName, string cutBase, 
 	       string varLabel,string tagger, 
 	       int nBin, float Max, float Min,
@@ -116,22 +148,24 @@ TH2D* GetHisto(string varName, string cutBase,
   string theName=string(tmpName);
 
   TH2D* den  =NULL;
-  if (varName.find("pt")!=string::npos){
+  /*
+  if (varName.find("pt11111111")!=string::npos){
     den=new TH2D( theName.c_str(), theName.c_str(),
                   binnum, bins,
                   1000, getLowBin(tagger), getHighBin(tagger) );
   } else {
+  */
     den=new TH2D( theName.c_str(), theName.c_str(),
                   nBin, Max, Min,
                   1000, getLowBin(tagger), getHighBin(tagger) );
-  }
+    // }
 
 
   den->Sumw2();
   string fullVar=getVariable(tagger, false)+":"+varName+">>"+den->GetName();
   cout << "fullVar: " << fullVar << endl;
   cout << "cutBase: " << cutBase << endl;
-  myT_1->Draw( fullVar.c_str(), cutBase.c_str(),"goff");//,2000000);
+  myT_1->Draw( fullVar.c_str(), cutBase.c_str(),"goff"); //,4000000);
   cout << nBin << " , " << Max << " , " << Min << endl;
   cout << "Int: " << den->Integral() << endl; 
 
@@ -147,10 +181,10 @@ TGraphAsymmErrors* GetEfficiency(string varName,
 				 string varLabel,string yLabel, 
 				 int nBin, float Max, float Min, float &numC) {
   
-  TH2D* bjets=GetHisto(varName, cutBase+" && jet_truthflav==5", 
+  TH2D* bjets=GetHisto(varName, cutBase+" && jet_LabDr_HadF==5", 
 		       varLabel, tagger, nBin, Max, Min);
 
-  TH2D* ljets=GetHisto(varName, cutBase+" && (jet_truthflav!=4 && jet_truthflav!=5 && jet_truthflav!=15) ", 
+  TH2D* ljets=GetHisto(varName, cutBase+" && (jet_LabDr_HadF!=4 && jet_LabDr_HadF!=5 && jet_LabDr_HadF!=15) ", 
 		       varLabel, tagger, nBin, Max, Min);
 
   /*
@@ -169,13 +203,15 @@ TGraphAsymmErrors* GetEfficiency(string varName,
 
   TH1D* den  =NULL;
   TH1D* num  =NULL;
-  if (varName.find("pt")!=string::npos){
-    num  =new TH1D("num","num",binnum, bins); num->Sumw2();
-    den  =new TH1D("den","den",binnum, bins); den->Sumw2();
+  if (varName.find("pt111111111")!=string::npos){
+    //num  =new TH1D("num","num",binnum, bins); num->Sumw2();
+    //den  =new TH1D("den","den",binnum, bins); den->Sumw2();
   }else{
     num  =new TH1D("num","num",nBin, Max, Min); num->Sumw2();
     den  =new TH1D("den","den",nBin, Max, Min); den->Sumw2();
   }
+  TH1D* num2  =new TH1D("num2","num2",nBin, Max, Min);// num2->Sumw2();
+  TH1D* den2  =new TH1D("den2","den2",nBin, Max, Min);// den2->Sumw2();
 
   int masterBin=1000;;
   for (int bin=1; bin<=nBin; bin++) {
@@ -192,7 +228,8 @@ TGraphAsymmErrors* GetEfficiency(string varName,
     //cout << "Full integrals: " << bInt << " , " << lInt << endl;
     den->SetBinContent(bin,lInt);
     den->SetBinError(bin,sqrt(lInt));
-    
+    den2->SetBinContent(bin,bInt);
+
     int binCut=-1;
     float prevEff=0;
     for (int bin2=1; bin2<=masterBin; bin2++) {
@@ -211,7 +248,8 @@ TGraphAsymmErrors* GetEfficiency(string varName,
 	 << " .... and fakeRate of: " << lIntCut/lInt << endl ;
     num->SetBinContent(bin,lIntCut);
     num->SetBinError(bin,sqrt(lIntCut));
-  
+    num2->SetBinContent(bin,prevEff*bInt);
+    
   } // bin loop
 
   TGraphAsymmErrors* graphHisto= new TGraphAsymmErrors(num,den);
@@ -220,6 +258,13 @@ TGraphAsymmErrors* GetEfficiency(string varName,
   graphHisto->SetMarkerStyle(20);
   graphHisto->SetMarkerSize(0.6);
   graphHisto->SetMarkerColor(2);
+
+  graTMP= new TGraphAsymmErrors(num2,den2);
+  graTMP->SetLineWidth(3);
+  graTMP->SetLineColor(4);
+  graTMP->SetMarkerStyle(20);
+  graTMP->SetMarkerSize(0.6);
+  graTMP->SetMarkerColor(4);
 
   return graphHisto;
 }
@@ -242,7 +287,7 @@ void GetComparison(string file1, string cutBase, string tagger,
 
 
   TH1D* mainH=NULL;
-  if (varName.find("pt")!=string::npos){
+  if (varName.find("pt1111")!=string::npos){
     mainH=new TH1D("histo_den", "2", binnum, bins);
   }else{
     mainH=new TH1D("histo_den", "2", nBin, Max, Min);
@@ -267,7 +312,7 @@ void GetComparison(string file1, string cutBase, string tagger,
       dir = opendir( file1.c_str() );     // open current directory
       while (pdir = readdir(dir))  {
 	string foldName=pdir->d_name;
-	if (foldName.find("mc")==string::npos) continue;
+	if (foldName.find("mc")==string::npos && foldName.find("valid")==string::npos ) continue;
 	cout << pdir->d_name << endl;
 	DIR*     dir2;
 	dirent*  pdir2;
@@ -280,9 +325,10 @@ void GetComparison(string file1, string cutBase, string tagger,
 	  myT_1->Add( (file1+"/"+foldName+"/"+fName).c_str() );
 	}
       }
-    }
+    }     
+    cout << "TOTAL number of events is: " << myT_1->GetEntries() << endl;
   }
-  cout << "TOTAL number of events is: " << myT_1->GetEntries() << endl;
+  
  
   TGraphAsymmErrors* gra1=GetEfficiency( varName, 
 					 (cutBase+" ").c_str(),  tagger, 
@@ -364,6 +410,10 @@ void GetComparison(string file1, string cutBase, string tagger,
   TString lEff="Eff_l__"+plotName;
   gra1->SetName(bEff);
   gra1->Write();
+
+  graTMP->SetName( ("Eff_TMP__"+plotName) );
+  graTMP->Write();
+
   //gra2->SetName(cEff);
   //gra2->Write();
   //gra3->SetName(lEff);
@@ -382,25 +432,66 @@ void GetComparison(string file1, string cutBase, string tagger,
 }
 
 
+void plotKine(string file1, string cutBase, 
+	      string Cut1 , string Cut2 , string Cut3 , 
+	      string varName, string varLabel,string yLabel, 
+	      int nBin, float Max, float Min) {
+  
+  TCanvas* can=new TCanvas( (varLabel+"  KINE").c_str(), (varLabel+"  KINE").c_str(), 800, 600);
+  
+  float numC;
+  
+  TH1D* histoB=GetHisto1(varName,  cutBase+Cut1, 
+			varLabel, yLabel, 
+			nBin, Max, Min, true);
+  histoB->SetLineColor(2);
+  histoB->SetMarkerColor(2);
+  histoB->Draw("HIST");
+
+  
+  TH1D* histoC=GetHisto1(varName,  cutBase+Cut2, 
+			varLabel, yLabel, 
+			nBin, Max, Min, true);
+  histoC->SetLineColor(8);
+  histoC->SetMarkerColor(8);
+  histoC->Draw("HISTSAME");
+
+  TH1D* histoL=GetHisto1(varName,  cutBase+Cut3, 
+			varLabel, yLabel, 
+			nBin, Max, Min, true);
+  histoL->SetLineColor(4);
+  histoL->SetMarkerColor(4);
+  histoL->Draw("HISTSAME");
+
+  outF->cd();
+  TString baseName=varName;
+  baseName= baseName.ReplaceAll("/1e3","").ReplaceAll("abs(","").ReplaceAll(")","").ReplaceAll("jet_","");
+  
+  outF->WriteObject(histoB, ("b_"+baseName) );
+  outF->WriteObject(histoC, ("c_"+baseName) );
+  outF->WriteObject(histoL, ("u_"+baseName) );
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void PrintTagger(string tagger, string file1)  {
   /// even more ugly
   
   string CutBase="";
-  if (isXAOD) CutBase=" abs(jet_eta)<2.5 && jet_pt>25e3 && jet_truthMatch==1 ";
-  else        CutBase=" abs(jet_eta)<2.5 && jet_pt>25e3 && jet_truthmatched==1 ";
+  if (isXAOD) CutBase=" abs(jet_eta)<2.5 && jet_pt>20e3 && (jet_JVT>0.641 || jet_pt>50e3 || abs(jet_eta)>2.4) ";
+  else        CutBase=" abs(jet_eta)<2.5 && jet_pt>20e3 && (jet_JVT>0.641 || jet_pt>50e3 || abs(jet_eta)>2.4) "; //jet_truthmatched==1 ";
 
   string Cut1=" "; 
   string Cut2=" "; 
   string Cut3=" ";  
   if (isXAOD) {
-    Cut1=" && jet_truthflav==5 "; 
-    Cut2=" && jet_truthflav==4 "; 
-    Cut3=" && (jet_truthflav!=4 && jet_truthflav!=5 && jet_truthflav!=15) "; 
+    Cut1=" && jet_LabDr_HadF==5 "; 
+    Cut2=" && jet_LabDr_HadF==4 "; 
+    Cut3=" && (jet_LabDr_HadF!=4 && jet_LabDr_HadF!=5 && jet_LabDr_HadF!=15) "; 
   } else {
     Cut1=" && jet_trueFlav==5 "; 
     Cut2=" && jet_trueFlav==4 "; 
-    Cut3=" && (jet_trueFlav!=4 && jet_trueFlav!=5 && jet_trueFlav!=15) "; 
+    Cut3=" && (jet_LabDr_HadF!=4 && jet_LabDr_HadF!=5 && jet_LabDr_HadF!=15) "; 
   }
   
   // MV1: quite detailed info
@@ -416,20 +507,31 @@ void PrintTagger(string tagger, string file1)  {
 
   GetComparison(file1,CutBase, tagger,
 		Cut1, Cut2, Cut3,
-	        "jet_pt/1e3", "jet p_{T} (GeV)", yLabel,  
-		39,  20, 800);
+	        "jet_pt/1e3", "jet p_{T} (GeV)", yLabel,
+		10,20,400);
+		//19,20,400);
+  //39,  20, 1000);
 
+  if (tagger=="IP3D") {
+    plotKine( file1,CutBase, Cut1, Cut2, Cut3,
+	      "jet_pt/1e3", "jet p_{T} (GeV)", yLabel,  
+	      39,  20, 1000);
+    plotKine( file1,CutBase, Cut1, Cut2, Cut3,
+	      "abs(jet_eta)", "jet #eta", yLabel,  
+	      20, 0, 2.5); 
+  }
 
   GetComparison(file1,CutBase, tagger,
 		Cut1, Cut2, Cut3,
 	        "abs(jet_eta)", "jet #eta", yLabel,  
-		10, 0, 2.5);
-  
+		20, 0, 2.5); // was 10
+
+  /*
   GetComparison(file1, CutBase, tagger,
                 Cut1, Cut2, Cut3,
                 "avgmu", "<#mu>", yLabel,
                 10,  0, 40);
-
+  */
 }
   
 
@@ -447,23 +549,24 @@ void Plotter_pt3(const char* infile,
   if (outputFolder.find("8TeV")!=string::npos) is8TeV=true;
   if (outputFolder.find("XAOD")!=string::npos) isXAOD=true;
   
+  gSystem->Exec( ("mkdir -p "+outputFolder).c_str());
+  
   outF=new TFile( (outputFolder+"/effPlotsFix.root").c_str(),"RECREATE");
   cout << "Created file: " << outF->GetName() << endl;
 
   string file1=infile;
-  gSystem->Exec( ("mkdir -p "+outputFolder).c_str());
 
-  //PrintTagger("MV1",file1);
-  ////////////////////////////PrintTagger("MV1c",file1);
-  //PrintTagger("MV2c00",file1);
-  ////////////////////////////PrintTagger("MV2c10",file1);
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////PrintTagger("MV1",file1);
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////PrintTagger("MV1c",file1);
+  ///////////////////////////////////////////////////////////////////////////PrintTagger("MV2c00",file1);
+  /////////////////////////////////PrintTagger("MV2c10",file1);
   PrintTagger("MV2c20",file1);
-  ////////////////////////////PrintTagger("MVb",file1);
+  /////////////////////////////////PrintTagger("MVb",file1);
   PrintTagger("IP3D",file1);
-  PrintTagger("IP2D",file1);
-  ////////////////////////////PrintTagger("IP3D+SV1",file1);
+  /////////////////////////////////PrintTagger("IP2D",file1);
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////PrintTagger("IP3D+SV1",file1);
   PrintTagger("SV1",file1);
-  //PrintTagger("JetFitter",file1);
+  PrintTagger("JetFitter",file1);
 
   outF->Close();
 }

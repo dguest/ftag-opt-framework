@@ -64,6 +64,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   int tileError;
   int npv;
   double mu;
+  int Act_mu;
   double PV_x;
   double PV_y;
   double PV_z;
@@ -71,6 +72,8 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   double truth_PV_y;
   double truth_PV_z;
   float  truth_LeadJet_pt;
+
+  std::vector<float> *v_PVz;
 
   bool* v_L1trigger;
   std::vector<std::string> v_L1triggerNames;
@@ -95,6 +98,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_jet_phi;
   std::vector<float> *v_jet_E;
   std::vector<float> *v_jet_m;
+  std::vector<int> *v_jet_nConst;
   std::vector<int> *v_jet_truthflav;
   std::vector<int> *v_jet_nBHadr;
   std::vector<int> *v_jet_nCHadr;
@@ -108,6 +112,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<int> *v_jet_GhostL_HadF;
   std::vector<int> *v_jet_LabDr_HadF;
   std::vector<int> *v_jet_aliveAfterOR;
+  std::vector<int> *v_jet_aliveAfterORmu;
   std::vector<int> *v_jet_truthMatch;
   std::vector<int> *v_jet_isPU;
   std::vector<int> *v_jet_isBadMedium;
@@ -361,6 +366,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 
   /// from outside
   bool m_reduceInfo;               // if set to true is allows to run over xAOD and not crashing when info are missing
+  bool m_essentialInfo;            // basically as slim as possible ntuple which will only allow to make efficiency plots
   bool m_doMSV;                    // if set to true it includes variables from multi SV tagger
   bool m_rel20;                    // if set to true code works for rel20, if set to false it will work for rel19
   bool m_SMT;
@@ -368,6 +374,8 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   float m_jetPtCut;                // pT cut to apply
   bool m_calibrateJets;
   bool m_cleanJets;
+
+  std::string m_triggerLogic;
   
  private: 
 

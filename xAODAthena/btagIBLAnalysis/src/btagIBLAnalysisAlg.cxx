@@ -14,6 +14,7 @@
 #include "xAODTruth/TruthEventContainer.h"
 #include "xAODJet/JetContainer.h"
 #include "xAODTracking/Vertex.h"
+#include "xAODTracking/TrackParticleContainer.h"
 #include "xAODMuon/MuonContainer.h"
 #include "ParticleJetTools/JetFlavourInfo.h"
 #include "xAODBTagging/SecVtxHelper.h"
@@ -52,6 +53,36 @@ bool xaodJetPtSorting(const xAOD::Jet *jet1, const xAOD::Jet *jet2) {
   return jet1->pt() > jet2->pt();
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool isFromWZ( const xAOD::TruthParticle* particle ) {
+  if ( particle==0 ) return false;
+  
+  if ( fabs(particle->pdgId())!= 11 && fabs(particle->pdgId())!= 13) return false;
+  
+  const xAOD::TruthVertex* prodvtx = particle->prodVtx();
+  if ( prodvtx==0 ) return false;
+  
+  if (  prodvtx->nIncomingParticles()==0 ) return false; 
+  
+  if (  prodvtx->nIncomingParticles()>1 ) {
+    int nCharge=0;
+    int nNeutral=0;
+    for(unsigned j = 0; j < prodvtx->nIncomingParticles(); j++){
+      if ( fabs( prodvtx->incomingParticle(j)->pdgId() )==11 || fabs( prodvtx->incomingParticle(j)->pdgId() )==13 ) nCharge++;
+      if ( fabs( prodvtx->incomingParticle(j)->pdgId() )==12 || fabs( prodvtx->incomingParticle(j)->pdgId() )==14 ) nNeutral++;
+    }
+    if ( nCharge>1 ) return true;
+    if ( nCharge+nNeutral>1 ) return true;
+    return false; 
+  }
+  int absPDG=fabs(prodvtx->incomingParticle(0)->pdgId());
+  if ( absPDG==15) return false;
+  else if ( absPDG==24 || absPDG==23 ) return true;
+  return isFromWZ( prodvtx->incomingParticle(0) );
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pSvcLocator ) :
   AthHistogramAlgorithm(name, pSvcLocator),
@@ -65,6 +96,7 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   m_jvt(""),
   m_SMT(false)
 {
+  m_triggerLogic="";
   declareProperty( "Stream", m_stream );
 
   declareProperty( "JetCleaningTool", m_jetCleaningTool );
@@ -75,7 +107,8 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   declareProperty( "TrackToVertexIPEstimator", m_trackToVertexIPEstimator );
   declareProperty( "JVTtool", m_jvt );
 
-  declareProperty( "ReduceInfo", m_reduceInfo=false );
+  declareProperty( "EssentialInfo", m_essentialInfo =true );
+  declareProperty( "ReduceInfo"   , m_reduceInfo=false );
   declareProperty( "Rel20", m_rel20 = false );
   declareProperty( "DoMSV", m_doMSV = false );
   declareProperty( "doSMT", m_SMT);
@@ -85,6 +118,8 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   declareProperty( "GRLname", m_GRLname = "" );
   declareProperty( "JetCollectionName", m_jetCollectionName = "AntiKt4LCTopoJets" );
   declareProperty( "JetPtCut", m_jetPtCut = 20.e3 );
+  
+  declareProperty( "TriggerLogic", m_triggerLogic );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,6 +128,8 @@ btagIBLAnalysisAlg::~btagIBLAnalysisAlg() {}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 StatusCode btagIBLAnalysisAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
+
+  if (m_essentialInfo) m_reduceInfo=true;
 
   // Register histograms
   //ATH_CHECK( book( TH1F("hist_Lxy_denom", "Lxy", 200, 0.0, 100.0) ) );
@@ -116,7 +153,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
 
   // Retrieve the jet calibration tool
   m_jetCalibrationTool.setTypeAndName("JetCalibrationTool/BTagDumpAlg_" + m_jetCollectionName + "_JCalib");
-  CHECK( m_jetCalibrationTool.retrieve() );
+  if (m_calibrateJets) CHECK( m_jetCalibrationTool.retrieve() );
 
   // retrieve other special tools
   if (m_InDetTrackSelectorTool.retrieve().isFailure())  {
@@ -158,6 +195,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_sumtrk_ntrk = new std::vector<int>();
   v_jet_E = new std::vector<float>(); //v_jet_E->reserve(15);
   v_jet_m = new std::vector<float>(); //v_jet_m->reserve(15);
+  v_jet_nConst     =new std::vector<int>();
   v_jet_truthflav = new std::vector<int>();
   v_jet_nBHadr = new std::vector<int>();
   v_jet_nCHadr = new std::vector<int>();
@@ -171,6 +209,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_GhostL_HadF = new std::vector<int>();
   v_jet_LabDr_HadF = new std::vector<int>();
   v_jet_aliveAfterOR = new std::vector<int>();
+  v_jet_aliveAfterORmu =new std::vector<int>();
   v_jet_truthMatch = new std::vector<int>();
   v_jet_isPU = new std::vector<int>();
   v_jet_isBadMedium = new std::vector<int>();
@@ -396,6 +435,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("tileError", &tileError);
   tree->Branch("nPV", &npv);
   tree->Branch("avgmu", &mu);
+  tree->Branch("actmu",&Act_mu);
   tree->Branch("PVx", &PV_x);
   tree->Branch("PVy", &PV_y);
   tree->Branch("PVz", &PV_z);
@@ -404,126 +444,131 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("truth_PVz", &truth_PV_z);
   tree->Branch("truth_LeadJet_pt", &truth_LeadJet_pt);
 
+  v_PVz=new std::vector<float>();
+  //tree->Branch("PVzV",&v_PVz); ///to decomment if you want ALL the PV
+ 
   tree->Branch("njets", &njets);
-  tree->Branch("nbjets", &nbjets);
-  tree->Branch("nbjets_q", &nbjets_q);
-  tree->Branch("nbjets_HadI", &nbjets_HadI);
-  tree->Branch("nbjets_HadF", &nbjets_HadF);
+  if (!m_essentialInfo) tree->Branch("nbjets", &nbjets);
+  if (!m_essentialInfo) tree->Branch("nbjets_q", &nbjets_q);
+  if (!m_essentialInfo) tree->Branch("nbjets_HadI", &nbjets_HadI);
+  if (!m_essentialInfo) tree->Branch("nbjets_HadF", &nbjets_HadF);
   tree->Branch("jet_pt", &v_jet_pt);
   tree->Branch("jet_eta", &v_jet_eta);
   tree->Branch("jet_phi", &v_jet_phi);
   tree->Branch("jet_pt_orig", &v_jet_pt_orig);
   tree->Branch("jet_eta_orig", &v_jet_eta_orig);
-  tree->Branch("jet_phi_orig", &v_jet_phi_orig);
-  tree->Branch("jet_E_orig", &v_jet_E_orig);
-  tree->Branch("jet_sumtrkS_pt", &v_jet_sumtrkS_pt);
+  if (!m_essentialInfo) tree->Branch("jet_phi_orig", &v_jet_phi_orig);
+  if (!m_essentialInfo) tree->Branch("jet_E_orig", &v_jet_E_orig);
+  if (!m_essentialInfo) tree->Branch("jet_sumtrkS_pt", &v_jet_sumtrkS_pt);
   tree->Branch("jet_sumtrkV_pt", &v_jet_sumtrkV_pt);
   tree->Branch("jet_sumtrkV_eta", &v_jet_sumtrkV_eta);
-  tree->Branch("jet_sumtrkV_phi", &v_jet_sumtrkV_phi);
+  if (!m_essentialInfo) tree->Branch("jet_sumtrkV_phi", &v_jet_sumtrkV_phi);
   tree->Branch("jet_sumtrk_ntrk", &v_jet_sumtrk_ntrk);
   tree->Branch("jet_E", &v_jet_E);
-  tree->Branch("jet_m", &v_jet_m);
-  tree->Branch("jet_truthflav", &v_jet_truthflav);
+  if (!m_essentialInfo) tree->Branch("jet_m", &v_jet_m);
+  tree->Branch("jet_nConst",&v_jet_nConst);
+  if (!m_essentialInfo) tree->Branch("jet_truthflav", &v_jet_truthflav);
   tree->Branch("jet_nBHadr", &v_jet_nBHadr);
   tree->Branch("jet_nCHadr", &v_jet_nCHadr);
-  tree->Branch("jet_nGhostBHadrFromParent", &v_jet_nGhostBHadrFromParent); // mod nikola
-  tree->Branch("jet_nGhostCHadrFromParent", &v_jet_nGhostCHadrFromParent); // mod nikola
-  tree->Branch("jet_nGhostCHadrFromParentNotFromB", &v_jet_nGhostCHadrFromParentNotFromB); // mod nikola
-  tree->Branch("jet_nGhostTauFromParent", &v_jet_nGhostTauFromParent); // mod nikola
-  tree->Branch("jet_nGhostHBosoFromParent", &v_jet_nGhostHBosoFromParent); // mod nikola
-  tree->Branch("jet_GhostL_q", &v_jet_GhostL_q);
-  tree->Branch("jet_GhostL_HadI", &v_jet_GhostL_HadI);
-  tree->Branch("jet_GhostL_HadF", &v_jet_GhostL_HadF);
+  if (!m_essentialInfo) tree->Branch("jet_nGhostBHadrFromParent", &v_jet_nGhostBHadrFromParent); // mod nikola
+  if (!m_essentialInfo) tree->Branch("jet_nGhostCHadrFromParent", &v_jet_nGhostCHadrFromParent); // mod nikola
+  if (!m_essentialInfo) tree->Branch("jet_nGhostCHadrFromParentNotFromB", &v_jet_nGhostCHadrFromParentNotFromB); // mod nikola
+  if (!m_essentialInfo) tree->Branch("jet_nGhostTauFromParent", &v_jet_nGhostTauFromParent); // mod nikola
+  if (!m_essentialInfo) tree->Branch("jet_nGhostHBosoFromParent", &v_jet_nGhostHBosoFromParent); // mod nikola
+  if (!m_essentialInfo) tree->Branch("jet_GhostL_q", &v_jet_GhostL_q);
+  if (!m_essentialInfo) tree->Branch("jet_GhostL_HadI", &v_jet_GhostL_HadI);
+  if (!m_essentialInfo) tree->Branch("jet_GhostL_HadF", &v_jet_GhostL_HadF);
   tree->Branch("jet_LabDr_HadF", &v_jet_LabDr_HadF);
   tree->Branch("jet_aliveAfterOR", &v_jet_aliveAfterOR);
+  tree->Branch("jet_aliveAfterORmu" ,&v_jet_aliveAfterORmu);
   tree->Branch("jet_truthMatch", &v_jet_truthMatch);
   tree->Branch("jet_isPU", &v_jet_isPU);
   tree->Branch("jet_isBadMedium", &v_jet_isBadMedium);
   tree->Branch("jet_truthPt", &v_jet_truthPt);
   tree->Branch("jet_dRiso", &v_jet_dRiso);
   tree->Branch("jet_JVT", &v_jet_JVT);
-  tree->Branch("jet_JVF", &v_jet_JVF);
+  if (!m_essentialInfo) tree->Branch("jet_JVF", &v_jet_JVF);
   tree->Branch("jet_dRminToB", &v_jet_dRminToB);
   tree->Branch("jet_dRminToC", &v_jet_dRminToC);
   tree->Branch("jet_dRminToT", &v_jet_dRminToT);
 
-  tree->Branch("jet_ip2d_pb", &v_jet_ip2d_pb);
-  tree->Branch("jet_ip2d_pc", &v_jet_ip2d_pc);
-  tree->Branch("jet_ip2d_pu", &v_jet_ip2d_pu);
+  if (!m_essentialInfo) tree->Branch("jet_ip2d_pb", &v_jet_ip2d_pb);
+  if (!m_essentialInfo) tree->Branch("jet_ip2d_pc", &v_jet_ip2d_pc);
+  if (!m_essentialInfo) tree->Branch("jet_ip2d_pu", &v_jet_ip2d_pu);
   tree->Branch("jet_ip2d_llr", &v_jet_ip2d_llr);
 
-  tree->Branch("jet_ip3d_pb", &v_jet_ip3d_pb);
-  tree->Branch("jet_ip3d_pc", &v_jet_ip3d_pc);
-  tree->Branch("jet_ip3d_pu", &v_jet_ip3d_pu);
+  if (!m_essentialInfo) tree->Branch("jet_ip3d_pb", &v_jet_ip3d_pb);
+  if (!m_essentialInfo) tree->Branch("jet_ip3d_pc", &v_jet_ip3d_pc);
+  if (!m_essentialInfo) tree->Branch("jet_ip3d_pu", &v_jet_ip3d_pu);
   tree->Branch("jet_ip3d_llr", &v_jet_ip3d_llr);
 
   tree->Branch("jet_sv0_sig3d", &v_jet_sv0_sig3d);
-  tree->Branch("jet_sv0_ntrkj", &v_jet_sv0_ntrkj);
-  tree->Branch("jet_sv0_ntrkv", &v_jet_sv0_ntrkv);
-  tree->Branch("jet_sv0_n2t", &v_jet_sv0_n2t);
+  if (!m_essentialInfo) tree->Branch("jet_sv0_ntrkj", &v_jet_sv0_ntrkj);
+  if (!m_essentialInfo) tree->Branch("jet_sv0_ntrkv", &v_jet_sv0_ntrkv);
+  if (!m_essentialInfo) tree->Branch("jet_sv0_n2t", &v_jet_sv0_n2t);
   tree->Branch("jet_sv0_m", &v_jet_sv0_m);
-  tree->Branch("jet_sv0_efc", &v_jet_sv0_efc);
-  tree->Branch("jet_sv0_normdist", &v_jet_sv0_normdist);
-  tree->Branch("jet_sv0_Nvtx", &v_jet_sv0_Nvtx);
-  tree->Branch("jet_sv0_vtx_x", &v_jet_sv0_vtxx);
-  tree->Branch("jet_sv0_vtx_y", &v_jet_sv0_vtxy);
-  tree->Branch("jet_sv0_vtx_z", &v_jet_sv0_vtxz);
+  if (!m_essentialInfo) tree->Branch("jet_sv0_efc", &v_jet_sv0_efc);
+  if (!m_essentialInfo)  tree->Branch("jet_sv0_normdist", &v_jet_sv0_normdist);
+  if (!m_essentialInfo) tree->Branch("jet_sv0_Nvtx", &v_jet_sv0_Nvtx);
+  if (!m_essentialInfo) tree->Branch("jet_sv0_vtx_x", &v_jet_sv0_vtxx);
+  if (!m_essentialInfo) tree->Branch("jet_sv0_vtx_y", &v_jet_sv0_vtxy);
+  if (!m_essentialInfo) tree->Branch("jet_sv0_vtx_z", &v_jet_sv0_vtxz);
 
-  tree->Branch("jet_sv1_ntrkj", &v_jet_sv1_ntrkj);
-  tree->Branch("jet_sv1_ntrkv", &v_jet_sv1_ntrkv);
-  tree->Branch("jet_sv1_n2t", &v_jet_sv1_n2t);
-  tree->Branch("jet_sv1_m", &v_jet_sv1_m);
-  tree->Branch("jet_sv1_efc", &v_jet_sv1_efc);
-  tree->Branch("jet_sv1_normdist", &v_jet_sv1_normdist);
-  tree->Branch("jet_sv1_pb", &v_jet_sv1_pb);
-  tree->Branch("jet_sv1_pc", &v_jet_sv1_pc);
-  tree->Branch("jet_sv1_pu", &v_jet_sv1_pu);
+  if (!m_essentialInfo) tree->Branch("jet_sv1_ntrkj", &v_jet_sv1_ntrkj);
+  if (!m_essentialInfo) tree->Branch("jet_sv1_ntrkv", &v_jet_sv1_ntrkv);
+  if (!m_essentialInfo) tree->Branch("jet_sv1_n2t", &v_jet_sv1_n2t);
+  if (!m_essentialInfo) tree->Branch("jet_sv1_m", &v_jet_sv1_m);
+  if (!m_essentialInfo) tree->Branch("jet_sv1_efc", &v_jet_sv1_efc);
+  if (!m_essentialInfo) tree->Branch("jet_sv1_normdist", &v_jet_sv1_normdist);
+  if (!m_essentialInfo) tree->Branch("jet_sv1_pb", &v_jet_sv1_pb);
+  if (!m_essentialInfo) tree->Branch("jet_sv1_pc", &v_jet_sv1_pc);
+  if (!m_essentialInfo) tree->Branch("jet_sv1_pu", &v_jet_sv1_pu);
   tree->Branch("jet_sv1_llr", &v_jet_sv1_llr);
   tree->Branch("jet_sv1_Nvtx", &v_jet_sv1_Nvtx);
-  tree->Branch("jet_sv1_sig3d", &v_jet_sv1_sig3d);
+  if (!m_essentialInfo) tree->Branch("jet_sv1_sig3d", &v_jet_sv1_sig3d);
   tree->Branch("jet_sv1_vtx_x", &v_jet_sv1_vtxx);
   tree->Branch("jet_sv1_vtx_y", &v_jet_sv1_vtxy);
-  tree->Branch("jet_sv1_vtx_z", &v_jet_sv1_vtxz);
+  if (!m_essentialInfo)  tree->Branch("jet_sv1_vtx_z", &v_jet_sv1_vtxz);
 
-  tree->Branch("PV_jf_x", &PV_jf_x); // mod Remco
-  tree->Branch("PV_jf_y", &PV_jf_y); // mod Remco
-  tree->Branch("PV_jf_z", &PV_jf_z); // mod Remco
+  if (!m_essentialInfo) tree->Branch("PV_jf_x", &PV_jf_x); // mod Remco
+  if (!m_essentialInfo) tree->Branch("PV_jf_y", &PV_jf_y); // mod Remco
+  if (!m_essentialInfo) tree->Branch("PV_jf_z", &PV_jf_z); // mod Remco
 
-  tree->Branch("jet_jf_pb", &v_jet_jf_pb);
-  tree->Branch("jet_jf_pc", &v_jet_jf_pc);
-  tree->Branch("jet_jf_pu", &v_jet_jf_pu);
+  if (!m_essentialInfo) tree->Branch("jet_jf_pb", &v_jet_jf_pb);
+  if (!m_essentialInfo) tree->Branch("jet_jf_pc", &v_jet_jf_pc);
+  if (!m_essentialInfo) tree->Branch("jet_jf_pu", &v_jet_jf_pu);
   tree->Branch("jet_jf_llr", &v_jet_jf_llr);
-  tree->Branch("jet_jf_m", &v_jet_jf_m);
-  tree->Branch("jet_jf_efc", &v_jet_jf_efc);
-  tree->Branch("jet_jf_deta", &v_jet_jf_deta);
-  tree->Branch("jet_jf_dphi", &v_jet_jf_dphi);
-  tree->Branch("jet_jf_ntrkAtVx", &v_jet_jf_ntrkAtVx);
-  tree->Branch("jet_jf_nvtx", &v_jet_jf_nvtx);
-  tree->Branch("jet_jf_sig3d", &v_jet_jf_sig3d);
-  tree->Branch("jet_jf_nvtx1t", &v_jet_jf_nvtx1t);
-  tree->Branch("jet_jf_n2t", &v_jet_jf_n2t);
-  tree->Branch("jet_jf_VTXsize", &v_jet_jf_VTXsize);
-  tree->Branch("jet_jf_vtx_chi2", &v_jet_jf_vtx_chi2); // mod Remco
-  tree->Branch("jet_jf_vtx_ndf", &v_jet_jf_vtx_ndf); // mod Remco
-  tree->Branch("jet_jf_vtx_ntrk", &v_jet_jf_vtx_ntrk); // mod Remco
-  tree->Branch("jet_jf_vtx_L3D", &v_jet_jf_vtx_L3d); // mod Remco
-  tree->Branch("jet_jf_vtx_sig3D", &v_jet_jf_vtx_sig3d); // mod Remco
+  if (!m_essentialInfo) tree->Branch("jet_jf_m", &v_jet_jf_m);
+  if (!m_essentialInfo) tree->Branch("jet_jf_efc", &v_jet_jf_efc);
+  if (!m_essentialInfo) tree->Branch("jet_jf_deta", &v_jet_jf_deta);
+  if (!m_essentialInfo) tree->Branch("jet_jf_dphi", &v_jet_jf_dphi);
+  if (!m_essentialInfo) tree->Branch("jet_jf_ntrkAtVx", &v_jet_jf_ntrkAtVx);
+  if (!m_essentialInfo) tree->Branch("jet_jf_nvtx", &v_jet_jf_nvtx);
+  if (!m_essentialInfo) tree->Branch("jet_jf_sig3d", &v_jet_jf_sig3d);
+  if (!m_essentialInfo) tree->Branch("jet_jf_nvtx1t", &v_jet_jf_nvtx1t);
+  if (!m_essentialInfo) tree->Branch("jet_jf_n2t", &v_jet_jf_n2t);
+  if (!m_essentialInfo) tree->Branch("jet_jf_VTXsize", &v_jet_jf_VTXsize);
+  if (!m_essentialInfo) tree->Branch("jet_jf_vtx_chi2", &v_jet_jf_vtx_chi2); // mod Remco
+  if (!m_essentialInfo) tree->Branch("jet_jf_vtx_ndf", &v_jet_jf_vtx_ndf); // mod Remco
+  if (!m_essentialInfo) tree->Branch("jet_jf_vtx_ntrk", &v_jet_jf_vtx_ntrk); // mod Remco
+  if (!m_essentialInfo) tree->Branch("jet_jf_vtx_L3D", &v_jet_jf_vtx_L3d); // mod Remco
+  if (!m_essentialInfo) tree->Branch("jet_jf_vtx_sig3D", &v_jet_jf_vtx_sig3d); // mod Remco
   //tree->Branch("jet_jf_vtx_nvtx", &v_jet_jf_vtx_nvtx); // mod Remco
-  tree->Branch("jet_jf_phi", &v_jet_jf_phi); // mod Remco
-  tree->Branch("jet_jf_theta", &v_jet_jf_theta); // mod Remco
+  if (!m_essentialInfo) tree->Branch("jet_jf_phi", &v_jet_jf_phi); // mod Remco
+  if (!m_essentialInfo) tree->Branch("jet_jf_theta", &v_jet_jf_theta); // mod Remco
 
-  tree->Branch("jet_jfcombnn_pb", &v_jet_jfcombnn_pb);
-  tree->Branch("jet_jfcombnn_pc", &v_jet_jfcombnn_pc);
-  tree->Branch("jet_jfcombnn_pu", &v_jet_jfcombnn_pu);
+  if (!m_essentialInfo) tree->Branch("jet_jfcombnn_pb", &v_jet_jfcombnn_pb);
+  if (!m_essentialInfo) tree->Branch("jet_jfcombnn_pc", &v_jet_jfcombnn_pc);
+  if (!m_essentialInfo) tree->Branch("jet_jfcombnn_pu", &v_jet_jfcombnn_pu);
   tree->Branch("jet_jfcombnn_llr", &v_jet_jfcombnn_llr);
 
-  tree->Branch("jet_dl1_pb",&v_jet_dl1_pb);
-  tree->Branch("jet_dl1_pc",&v_jet_dl1_pc);
-  tree->Branch("jet_dl1_pu",&v_jet_dl1_pu);
+  if (!m_essentialInfo) tree->Branch("jet_dl1_pb",&v_jet_dl1_pb);
+  if (!m_essentialInfo) tree->Branch("jet_dl1_pc",&v_jet_dl1_pc);
+  if (!m_essentialInfo) tree->Branch("jet_dl1_pu",&v_jet_dl1_pu);
 
-  tree->Branch("jet_sv1ip3d", &v_jet_sv1ip3d);
-  tree->Branch("jet_mv1", &v_jet_mv1);
-  tree->Branch("jet_mv1c", &v_jet_mv1c);
+  if (!m_essentialInfo) tree->Branch("jet_sv1ip3d", &v_jet_sv1ip3d);
+  if (!m_essentialInfo) tree->Branch("jet_mv1", &v_jet_mv1);
+  if (!m_essentialInfo) tree->Branch("jet_mv1c", &v_jet_mv1c);
   tree->Branch("jet_mv2c00", &v_jet_mv2c00);
   tree->Branch("jet_mv2c10", &v_jet_mv2c10);
   tree->Branch("jet_mv2c20", &v_jet_mv2c20);
@@ -562,32 +607,32 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     tree->Branch("jet_msv_vtx_ndf", &v_jet_msv_vtx_ndf);
   }
 
-  tree->Branch("jet_ExKtbb_Hbb_DoubleMV2c20", &v_jet_ExKtbb_Hbb_DoubleMV2c20);
-  tree->Branch("jet_ExKtbb_Hbb_SingleMV2c20", &v_jet_ExKtbb_Hbb_SingleMV2c20);
-  tree->Branch("jet_ExKtbb_Hbb_MV2Only", &v_jet_ExKtbb_Hbb_MV2Only);
-  tree->Branch("jet_ExKtbb_Hbb_MV2andJFDRSig", &v_jet_ExKtbb_Hbb_MV2andJFDRSig);
-  tree->Branch("jet_ExKtbb_Hbb_MV2andTopos", &v_jet_ExKtbb_Hbb_MV2andTopos);
+  if (!m_essentialInfo) tree->Branch("jet_ExKtbb_Hbb_DoubleMV2c20", &v_jet_ExKtbb_Hbb_DoubleMV2c20);
+  if (!m_essentialInfo) tree->Branch("jet_ExKtbb_Hbb_SingleMV2c20", &v_jet_ExKtbb_Hbb_SingleMV2c20);
+  if (!m_essentialInfo) tree->Branch("jet_ExKtbb_Hbb_MV2Only", &v_jet_ExKtbb_Hbb_MV2Only);
+  if (!m_essentialInfo) tree->Branch("jet_ExKtbb_Hbb_MV2andJFDRSig", &v_jet_ExKtbb_Hbb_MV2andJFDRSig);
+  if (!m_essentialInfo) tree->Branch("jet_ExKtbb_Hbb_MV2andTopos", &v_jet_ExKtbb_Hbb_MV2andTopos);
 
   tree->Branch("bH_pt", &v_bH_pt);
   tree->Branch("bH_eta", &v_bH_eta);
-  tree->Branch("bH_phi", &v_bH_phi);
+  if (!m_essentialInfo) tree->Branch("bH_phi", &v_bH_phi);
   tree->Branch("bH_Lxy", &v_bH_Lxy);
-  tree->Branch("bH_x", &v_bH_x);
-  tree->Branch("bH_y", &v_bH_y);
-  tree->Branch("bH_z", &v_bH_z);
+  if (!m_essentialInfo) tree->Branch("bH_x", &v_bH_x);
+  if (!m_essentialInfo) tree->Branch("bH_y", &v_bH_y);
+  if (!m_essentialInfo) tree->Branch("bH_z", &v_bH_z);
   tree->Branch("bH_dRjet", &v_bH_dRjet);
-  tree->Branch("bH_nBtracks", &v_bH_nBtracks);
-  tree->Branch("bH_nCtracks", &v_bH_nCtracks);
+  if (!m_essentialInfo) tree->Branch("bH_nBtracks", &v_bH_nBtracks);
+  if (!m_essentialInfo) tree->Branch("bH_nCtracks", &v_bH_nCtracks);
 
   tree->Branch("cH_pt", &v_cH_pt);
   tree->Branch("cH_eta", &v_cH_eta);
-  tree->Branch("cH_phi", &v_cH_phi);
+  if (!m_essentialInfo) tree->Branch("cH_phi", &v_cH_phi);
   tree->Branch("cH_Lxy", &v_cH_Lxy);
-  tree->Branch("cH_x", &v_cH_x);
-  tree->Branch("cH_y", &v_cH_y);
-  tree->Branch("cH_z", &v_cH_z);
+  if (!m_essentialInfo) tree->Branch("cH_x", &v_cH_x);
+  if (!m_essentialInfo) tree->Branch("cH_y", &v_cH_y);
+  if (!m_essentialInfo) tree->Branch("cH_z", &v_cH_z);
   tree->Branch("cH_dRjet", &v_cH_dRjet);
-  tree->Branch("cH_nCtracks", &v_cH_nCtracks);
+  if (!m_essentialInfo) tree->Branch("cH_nCtracks", &v_cH_nCtracks);
 
   tree->Branch("jet_btag_ntrk", &v_jet_btag_ntrk);
   if (!m_reduceInfo) {
@@ -635,13 +680,13 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     tree->Branch("jet_trk_jf_Vertex", &v_jet_trk_jf_Vertex); // mod Remco
   }
 
-  tree->Branch("jet_sv1_ntrk",&v_jet_sv1_ntrk);
-  tree->Branch("jet_ip3d_ntrk",&v_jet_ip3d_ntrk);
-  tree->Branch("jet_jf_ntrk",&v_jet_jf_ntrk);
+  if (!m_essentialInfo) tree->Branch("jet_sv1_ntrk",&v_jet_sv1_ntrk);
+  if (!m_essentialInfo) tree->Branch("jet_ip3d_ntrk",&v_jet_ip3d_ntrk);
+  if (!m_essentialInfo) tree->Branch("jet_jf_ntrk",&v_jet_jf_ntrk);
 
   // additions by nikola
-  tree->Branch("jet_trkjet_pt", &v_jet_trkjet_pt);
-  tree->Branch("jet_trkjet_mv2c20", &v_jet_trkjet_mv2c20);
+  if (!m_essentialInfo) tree->Branch("jet_trkjet_pt", &v_jet_trkjet_pt);
+  if (!m_essentialInfo) tree->Branch("jet_trkjet_mv2c20", &v_jet_trkjet_mv2c20);
 
   // additions by andrea
   if (m_SMT) {
@@ -688,8 +733,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
   std::string triggerLogic = "HLT_j[0-9]+|L1_MBTS_1_1|L1_RD0_FILLED";
 
   if (v_L1triggerNames.size() == 0 && m_tdt != 0) {
-    ATH_MSG_INFO ("Setting up trigger informations " << name() << "...");
-    auto chainGroup = m_tdt->getChainGroup(triggerLogic);
+    ///ATH_MSG_INFO ("Setting up trigger informations " << name() << "...");
+    auto chainGroup = m_tdt->getChainGroup(m_triggerLogic);
     v_L1trigger = new bool[chainGroup->getListOfTriggers().size()];
     int count = -1;
     for (auto & trig : chainGroup->getListOfTriggers()) {
@@ -721,9 +766,11 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
   runnumber = eventInfo->runNumber();
   eventnumber = eventInfo->eventNumber();
+
   mcchannel = ( isData ? 0 : eventInfo->mcChannelNumber() );
   mcweight = ( isData ? 1 : eventInfo->mcEventWeight() );
   mu = eventInfo->averageInteractionsPerCrossing();
+  Act_mu      = eventInfo->actualInteractionsPerCrossing();
   lbn = ( !isData ? 0 : eventInfo->lumiBlock() );
 
   larError = eventInfo->errorState(xAOD::EventInfo::LAr) == xAOD::EventInfo::Error;
@@ -731,15 +778,15 @@ StatusCode btagIBLAnalysisAlg::execute() {
   coreFlag = eventInfo->isEventFlagBitSet(xAOD::EventInfo::Core, 18);
 
   // Pileup reweighting for mc:
-//  if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets"))
-//  {
-//    puweight = 1;
-//    puweight = m_tool->getCombinedWeight( *eventInfo );
-    float tmpMu = m_PUtool->getLumiBlockMu( *eventInfo );
-    // std::cout << " origMu: " << mu << " newValue: " <<  tmpMu << std::endl;
-    if (isData) mu = tmpMu;
-//  }
-
+  //  if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets"))
+  //  {
+  //    puweight = 1;
+  //    puweight = m_tool->getCombinedWeight( *eventInfo );
+  float tmpMu = m_PUtool->getLumiBlockMu( *eventInfo );
+  // std::cout << " origMu: " << mu << " newValue: " <<  tmpMu << std::endl;
+  if (isData) mu = tmpMu;
+  //  }
+  
   // primary vertex
   const xAOD::VertexContainer *vertices = 0;
   CHECK( evtStore()->retrieve(vertices, "PrimaryVertices") );
@@ -751,6 +798,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
   for (; vtx_itr != vtx_end; ++vtx_itr) {
     count++;
     if ((*vtx_itr)->nTrackParticles() >= 2) {
+      v_PVz->push_back(  (*vtx_itr)->z() );
       npv++;
       if ((*vtx_itr)->vertexType() == 1) {
 	if (PV_x != -999) ATH_MSG_WARNING( ".... second PV in the events ...!!!!!!");
@@ -825,7 +873,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
   std::vector<const xAOD::TruthParticle* > m_partonC;
   std::vector<const xAOD::TruthParticle* > m_partonT;
   std::vector<TLorentzVector> truth_electrons;
-
+  std::vector<TLorentzVector> truth_muons;
+  
   if (!isData) {
     // select truth electrons for electron-jet overlap removal
     for ( const auto* truth : *xTruthEventContainer ) {
@@ -837,32 +886,46 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	truth_PV_y = newTruthVertex->y();
 	truth_PV_z = newTruthVertex->z();
       }
-
+      
       // loop over truth particles in the truth event container
       for(unsigned int i = 0; i < truth->nTruthParticles(); i++) {
 	const xAOD::TruthParticle *particle = truth->truthParticle(i);
 	// VALERIO !!!!!!!!
 	if (particle->pt() > 3e3) {
 	  if (fabs(particle->pdgId()) == 15) m_partonT.push_back(particle);
-	  // if (fabs(particle->pdgId()) == 4) m_partonC.push_back(particle);
-	  // if (fabs(particle->pdgId()) == 5) m_partonB.push_back(particle);
 	  if (particle->isCharmHadron()) m_partonC.push_back(particle);
 	  if (particle->isBottomHadron()) m_partonB.push_back(particle);
 	}
-	if (particle->pt() < 15e3) continue;
-	if (particle->status() != 1) continue;
+	if (particle->pt() < 10e3)     continue; //was 15
+	if (particle->status() != 1)   continue;
 	if (particle->barcode() > 2e5) continue;
-	if (fabs(particle->pdgId()) != 11) continue; // picks out only electrons
-	// see if this electron is coming from a W boson decay (common in ttbar)
-	bool isfromW = false;
-	const xAOD::TruthVertex *prodvtx = particle->prodVtx();
-	for (unsigned j = 0; j < prodvtx->nIncomingParticles(); j++) {
-          if (fabs((prodvtx->incomingParticle(j))->pdgId()) == 24) isfromW = true;
-	}
-        if (!isfromW) continue;
-        TLorentzVector telec;
-        telec.SetPtEtaPhiM(particle->pt(), particle->eta(), particle->phi(), particle->m());
-        truth_electrons.push_back(telec);
+	
+	if ( fabs(particle->pdgId()) != 11 && fabs(particle->pdgId()) != 13) continue;
+	
+	//std::cout << " Lepton=  pt: " << particle->pt()/1e3 << "  eta: " << particle->eta() 
+	//<< " pdg: " << particle->pdgId() << " status: " << particle->status() 
+	//<< "  barcode: " << particle->barcode() << "  --> nIncoming: " << particle->prodVtx()->nIncomingParticles() << std::endl;
+
+	// see if this electron is coming from a W boson decay
+	bool isfromW = isFromWZ( particle );
+
+	/*
+	const xAOD::TruthVertex* prodvtx = particle->prodVtx();
+	for(unsigned j = 0; j < prodvtx->nIncomingParticles(); j++){
+	  std::cout << "    mother=  pt: " << prodvtx->incomingParticle(j)->pt()/1e3 << "  eta: " << prodvtx->incomingParticle(j)->eta() 
+		    << " pdg: " << prodvtx->incomingParticle(j)->pdgId() << " status: " << prodvtx->incomingParticle(j)->status() 
+		    << "  barcode: " << prodvtx->incomingParticle(j)->barcode() << std::endl;
+	  //<< "  --> nIncoming: " << prodvtx->incomingParticle(j)->prodVtx()->nIncomingParticles() << std::endl;
+	  //int absPDG=fabs( (prodvtx->incomingParticle(j))->pdgId() );
+	  //if( absPDG==24 || absPDG==23 ) isfromW = true;
+	*/
+
+	if(!isfromW) continue;
+	TLorentzVector telec;
+	telec.SetPtEtaPhiM(particle->pt(), particle->eta(), particle->phi(), particle->m());
+	
+	if (fabs(particle->pdgId()) == 11) truth_electrons.push_back(telec);
+	if (fabs(particle->pdgId()) == 13) truth_muons.push_back(telec);
       }
     }
   }
@@ -874,8 +937,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
   CHECK( evtStore()->retrieve(jets, m_jetCollectionName) );
   const xAOD::JetContainer *truthjets = 0;
   if (!isData) {
-    CHECK( evtStore()->retrieve(truthjets, "AntiKt4TruthJets") );
-    truth_LeadJet_pt = (truthjets->at(0))->pt();
+    CHECK( evtStore()->retrieve( truthjets, "AntiKt4TruthJets") );
+    truth_LeadJet_pt=-1;
+    if (truthjets->size()!=0) truth_LeadJet_pt=(truthjets->at(0))->pt();
   }
   else truthjets = new xAOD::JetContainer();
   njets = 0;
@@ -956,9 +1020,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
   }
 
   njets = selJets.size();
-  ATH_MSG_DEBUG( "Total number of jets is: " << njets );
-  uint8_t getInt(0); // for accessing summary information
-
+  ATH_MSG_DEBUG( "Total number of jets is: "<< njets );
+  uint8_t getInt(0);   // for accessing summary information
+  
   /////////////////////////////////////////////////////////////////////////////////
   // MAIN JET LOOP
   // Now run over the selected jets and do whatever else needs doing
@@ -973,36 +1037,40 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     // protection against not properly filled objects ... IT SHOULD NEVER HAPPEN THOUGH
     try {
-      const std::vector<ElementLink<xAOD::VertexContainer > > TMPvertices = jet->btagging()->auxdata<std::vector<ElementLink<xAOD::VertexContainer > > >("SV0_vertices");
+      const std::vector<ElementLink<xAOD::VertexContainer > > TMPvertices = jet->btagging()->auxdata<std::vector<ElementLink<xAOD::VertexContainer > > >("SV1_vertices");
     } catch(...) {
-      ATH_MSG_WARNING("THIS JET IS NOT FILLED PROPERLY!!!!!!!!!!!!! .... PLEASE CHECK");
-      njets -= 1;
+      std::vector< ElementLink< xAOD::TrackParticleContainer > > TMPassocTracks = jet->btagging()->auxdata<std::vector<ElementLink<xAOD::TrackParticleContainer> > >("BTagTrackToJetAssociator");
+      ATH_MSG_WARNING(" THIS JET: " << jet->pt() << " eta: " << jet->eta() << " IS NOT FILLED PROPERLY!!!!!!!!!!!!! and contains: " << TMPassocTracks.size() << " tracks  .... PLEASE CHECK");
+      njets-=1;
       continue;
     }
 
     /////////////////////////////////////////////////////////////////////////////////
     // flagging jets that overlap with electron
     bool iseljetoverlap = false;
-
     for(unsigned int i = 0; i < truth_electrons.size(); i++) {
       float dr = deltaR(jet->eta(), truth_electrons.at(i).Eta(), jet->phi(), truth_electrons.at(i).Phi());
       if (dr < 0.3) iseljetoverlap = true;
     }
-
-    if (iseljetoverlap) v_jet_aliveAfterOR->push_back(0);
-    else v_jet_aliveAfterOR->push_back(1);
-
+    v_jet_aliveAfterOR->push_back( !iseljetoverlap );
+    
+    iseljetoverlap = false;
+    for(unsigned int i= 0; i < truth_muons.size(); i++){
+      float dr =deltaR(jet->eta(), truth_muons.at(i).Eta(),jet->phi(), truth_muons.at(i).Phi());
+      if(dr < 0.3) iseljetoverlap = true;
+    }
+    v_jet_aliveAfterORmu->push_back( !iseljetoverlap );
     // jet cleaning - should be done after lepton overlap removal
     // if( (!m_jetCleaningTool->keep(*jet)) && (jet->pt() > 20e3) ) return StatusCode::SUCCESS;
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // simple kinematic quantities + PUinfo + JVF/JVT
+    // simple kinematic quantities + PUinfo + JVF/JVT      
     v_jet_pt->push_back(jet->pt());
     v_jet_eta->push_back(jet->eta());
     v_jet_phi->push_back(jet->phi());
     v_jet_E->push_back(jet->e());
     v_jet_m->push_back(jet->m());
-
+    v_jet_nConst->push_back( jet->numConstituents() );
     float dRiso = 10;
     for (unsigned int j2 = 0; j2 < selJets.size(); j2++) {
       if (j2 == j) continue;
@@ -1067,15 +1135,16 @@ StatusCode btagIBLAnalysisAlg::execute() {
     if (jetHasJVF && testjvf.size() > m_indexPV) jvfV = testjvf.at(m_indexPV);
 
     v_jet_JVF->push_back(jvfV);
-
     // JVT
     float jvtV = 0;
     try {
       jvtV = jet->auxdata<float>("Jvt");
       float tmpJVT = jvtV;
       jvtV = m_jvt->updateJvt(*jet);
-      // if (tmpJVT != jvtV) std::cout << " initial: " << tmpJVT << " |  final: " << jvtV << std::endl;
-    } catch (...) {};
+      if (tmpJVT != jvtV)  ATH_MSG_DEBUG(" initial: " << tmpJVT << " |  final: " << jvtV );
+    } catch (...) {
+      ATH_MSG_WARNING(" something went wrong with the JVT recalculation .... please investigate");
+    };
     v_jet_JVT->push_back(jvtV);
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1161,12 +1230,12 @@ StatusCode btagIBLAnalysisAlg::execute() {
       // get ghost C Hadrons from parent jet which are NOT children of ghost B Hadrons from parent jet
       int nGhostCHadrFromParentNotFromB = 0;
       // loop over C Hadrons
-      for (int c = 0; c < ghostCFromParent.size(); c++) {
+      for (unsigned int c = 0; c < ghostCFromParent.size(); c++) {
          const xAOD::TruthParticle* cHadron = (const xAOD::TruthParticle*)(ghostCFromParent.at(c));
          int cHadronComesFromB = 0;
 
          // loop over B Hadrons
-         for (int b = 0; b < ghostBFromParent.size(); b++) {
+         for (unsigned int b = 0; b < ghostBFromParent.size(); b++) {
            const xAOD::TruthParticle* bHadron = (const xAOD::TruthParticle*)(ghostBFromParent.at(b));
 
            // loop over C Hadron parents
@@ -1311,6 +1380,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     // Get b-tag object and fill b-tagging information
     const xAOD::BTagging *bjet = jet->btagging();
 
+    //std::cout << " got Btagging: " << std::endl;
+
     // IP2D
     std::vector< ElementLink< xAOD::TrackParticleContainer > > IP2DTracks;
     IP2DTracks = bjet->auxdata<std::vector<ElementLink< xAOD::TrackParticleContainer> > >("IP2D_TrackParticleLinks");
@@ -1401,6 +1472,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sumtrkV_phi->push_back(tmp_trkSum_VPhi);
     v_jet_sumtrk_ntrk->push_back(tmp_trkSum_nTrk);
 
+    //std::cout << "  after track loop " << std::endl;
+    
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // SV0 // VD: check the existence of the vertex and only then fill the variables
     // this mimics what's done in MV2
@@ -1536,9 +1609,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     // Other
     v_jet_sv1ip3d->push_back(bjet->SV1plusIP3D_discriminant());
-    v_jet_mv1->push_back(bjet->MV1_discriminant());
-    try{
-      v_jet_mv1c->push_back(bjet->auxdata<double>("MV1c_discriminant"));
+    try{ 
+      v_jet_mv1    ->push_back(bjet->MV1_discriminant());
+      v_jet_mv1c   ->push_back(bjet->auxdata<double>("MV1c_discriminant"));
     } catch(...){ }
 
     try {
@@ -1548,31 +1621,16 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_mv2c100->push_back(bjet->auxdata<double>("MV2c100_discriminant"));
     } catch(...) { }
 
-    /*
-    std::vector< ElementLink< xAOD::TrackParticleContainer > > IP3DNTTracks;
-    // std::cout << std::endl;
-    IP3DNTTracks= bjet->auxdata<std::vector<ElementLink< xAOD::TrackParticleContainer> > >("IP3DNeg_TrackParticleLinks");
-    // std::cout << " number of associated tracks: " << IP3DNTTracks.size() << " | " << IP3DTracks.size() << std::endl;
-    try {
-      double tmpLLR = -99;
-      bjet->loglikelihoodratio("IP3DNeg", tmpLLR);
-      v_jet_ip3dNT_llr->push_back(tmpLLR);
-      bjet->loglikelihoodratio("IP2DNeg", tmpLLR);
-      v_jet_ip2dNT_llr->push_back(tmpLLR);
-      bjet->loglikelihoodratio("SV1Flip", tmpLLR);
-      v_jet_sv1flip_llr->push_back(tmpLLR);
-      bjet->loglikelihoodratio("JetFitterFlip", tmpLLR);
-      v_jet_jfflip_llr->push_back(tmpLLR);
-      v_jet_mv2c20flip->push_back(bjet->auxdata<double>("MV2c20Flip_discriminant"));
-    } catch(...) { }
-    */
-
     try {
       v_jet_mv2m_pu->push_back(bjet->auxdata<double>("MV2m_pu"));
       v_jet_mv2m_pc->push_back(bjet->auxdata<double>("MV2m_pc"));
       v_jet_mv2m_pb->push_back(bjet->auxdata<double>("MV2m_pb"));
-      // v_jet_mvb->push_back(bjet->auxdata<double>("MVb_discriminant"));
     } catch(...) { }
+
+    try {
+      v_jet_mvb    ->push_back(bjet->auxdata<double>("MV2c10b_discriminant"));
+    } catch(...) { }
+   
 
     if(m_doMSV){
       // MSV
@@ -1689,10 +1747,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
       if(bjet->isAvailable<double>("ExKtbb_Hbb_MV2andTopos")) {
         v_jet_ExKtbb_Hbb_MV2andTopos->push_back(bjet->auxdata<double>("ExKtbb_Hbb_MV2andTopos"));
       }
-
-    }
-    else {
-      ATH_MSG_INFO("WARNING! No ExKtbbTag run on " << m_jetCollectionName.c_str());
+    } else {
+      ATH_MSG_DEBUG("WARNING! No ExKtbbTag run on " << m_jetCollectionName.c_str());
     }
 
     // additions by nikola for ghost associated track jets
@@ -1714,7 +1770,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
           trkjet_mv2c20.push_back(ghostTrackBJet->auxdata<double>("MV2c20_discriminant"));
         }
       }
-
       v_jet_trkjet_pt->push_back(trkjet_pt);
       v_jet_trkjet_mv2c20->push_back(trkjet_mv2c20);
     }
@@ -1724,6 +1779,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     int j_sv1_ntrk = 0;
     int j_ip3d_ntrk = 0;
     int j_jf_ntrk = 0;
+
     std::vector<float> j_trk_pt;
     std::vector<float> j_trk_eta;
     std::vector<float> j_trk_theta;
@@ -1793,79 +1849,126 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     v_jet_sv0_Nvtx->push_back(SV0vertices.size());
 
-    float jet_mu_dRmin_pt = 999, jet_mu_dRmin_dR = 999, jet_mu_dRmin_truthflav = 999, jet_mu_dRmin_eta = 999, jet_mu_dRmin_phi = 999, jet_mu_dRmin_assJet_pt = 999, jet_mu_dRmin_qOverPratio = 999, jet_mu_dRmin_mombalsignif = 999, jet_mu_dRmin_scatneighsignif = 999, jet_mu_dRmin_pTrel = 999, jet_mu_dRmin_VtxTyp = 999, jet_mu_dRmin_d0 = 999, jet_mu_dRmin_z0 = 999, jet_mu_dRmin_parent_pdgid = 999, jet_mu_dRmin_ID_qOverP_var = 999, jet_mu_dRmin_muonType = 999;
-     if (m_SMT) {
-       try {
-       std::vector<ElementLink<xAOD::MuonContainer> > assocMuons;
-       assocMuons = bjet->auxdata<std::vector<ElementLink<xAOD::MuonContainer> > >("Muons");
-       if(assocMuons.size() != 0){
-         for (unsigned int iT = 0; iT < assocMuons.size(); iT++) {
-           if (!assocMuons.at(iT).isValid()) continue;
-           const xAOD::Muon *tmpMuon = *(assocMuons.at(iT));
-           float dr = deltaR(tmpMuon->eta(), jet->eta(), tmpMuon->phi(), jet->phi());
-           if (dr >= 0.4) continue;
-           const ElementLink< xAOD::TrackParticleContainer >& pMuIDTrack = tmpMuon->inDetTrackParticleLink();
-           const ElementLink< xAOD::TrackParticleContainer >& pMuMSTrack = tmpMuon->muonSpectrometerTrackParticleLink();
-           const xAOD::Vertex *pVtx = (*pMuIDTrack)->vertex();
-           const std::vector<float>&cov = (*pMuIDTrack)->definingParametersCovMatrixVec();
-           float momBalSignif0 = 999.;
-           tmpMuon->parameter(momBalSignif0, xAOD::Muon::momentumBalanceSignificance);
-           if (momBalSignif0 == 0) continue;
-           if ((*pMuMSTrack)->qOverP() == 0) continue;
-           if (dr < jet_mu_dRmin_dR) {
-             jet_mu_dRmin_dR = dr;
-             jet_mu_dRmin_pt = tmpMuon->pt() / 1000;
-             jet_mu_dRmin_truthflav = thisJetTruthLabel;
-             jet_mu_dRmin_eta = tmpMuon->eta();
-             jet_mu_dRmin_phi = tmpMuon->phi();
-             jet_mu_dRmin_assJet_pt = jet->pt() / 1000;
-             jet_mu_dRmin_qOverPratio = (*pMuIDTrack)->qOverP() / (*pMuMSTrack)->qOverP();
-             float momBalSignif = 999.;
-             if(tmpMuon->parameter(momBalSignif, xAOD::Muon::momentumBalanceSignificance)) {
-               jet_mu_dRmin_mombalsignif = momBalSignif;
-             }
-             else {
-               jet_mu_dRmin_mombalsignif = momBalSignif;
-             }
-             float scatNeighSignif = 999.;
-             if(tmpMuon->parameter(scatNeighSignif, xAOD::Muon::scatteringNeighbourSignificance)) {
-               jet_mu_dRmin_scatneighsignif = scatNeighSignif;
-             }
-             else {
-              jet_mu_dRmin_scatneighsignif = scatNeighSignif;
-             }
-             TLorentzVector myjet, mymu;
-             myjet.SetPtEtaPhiM(jet->pt(), jet->eta(), jet->phi(), 0);
-             mymu.SetPtEtaPhiM(tmpMuon->pt(), tmpMuon->eta(), tmpMuon->phi(), 0);
-             jet_mu_dRmin_pTrel = myjet.Vect().Perp(mymu.Vect()) / 1000;
-             if(pVtx != NULL) {
-               jet_mu_dRmin_VtxTyp = pVtx->vertexType();
-             }
-             else {
-               jet_mu_dRmin_VtxTyp = 999.;
-             }
-             jet_mu_dRmin_d0 = tmpMuon->primaryTrackParticle()->d0();
-             jet_mu_dRmin_z0 = tmpMuon->primaryTrackParticle()->z0();
+    float jet_mu_dRmin_pt=999,jet_mu_dRmin_dR=999,jet_mu_dRmin_truthflav=999,jet_mu_dRmin_eta=999,jet_mu_dRmin_phi=999,jet_mu_dRmin_assJet_pt=999,jet_mu_dRmin_qOverPratio=999,jet_mu_dRmin_mombalsignif=999,jet_mu_dRmin_scatneighsignif=999,jet_mu_dRmin_pTrel=999,jet_mu_dRmin_VtxTyp=999,jet_mu_dRmin_d0=999,jet_mu_dRmin_z0=999,jet_mu_dRmin_parent_pdgid=999,jet_mu_dRmin_ID_qOverP_var=999,jet_mu_dRmin_muonType=999;    
 
-             const xAOD::TruthParticle *matched_truth_muon = 0;
-             if(tmpMuon->isAvailable<ElementLink<xAOD::TruthParticleContainer> >("truthParticleLink")) {
-               ElementLink<xAOD::TruthParticleContainer> link = tmpMuon->auxdata<ElementLink<xAOD::TruthParticleContainer> >("truthParticleLink");
-               if(link.isValid()) {
-                 matched_truth_muon = *link;
-                 int pdgid = parent_classify(matched_truth_muon);
-                 jet_mu_dRmin_parent_pdgid = pdgid;
-               }
-               else {jet_mu_dRmin_parent_pdgid = 999.;}
-             }
-             jet_mu_dRmin_ID_qOverP_var = cov[14];
-             jet_mu_dRmin_muonType = tmpMuon->muonType();
-           }
-         }
-       }
-       } catch(...) {
-       // std::cout << "NO Muons found!" << std::endl;
-       // todo: write out some warning here but don't want to clog logfiles for now
-       }
+    if (m_SMT) {
+      /*
+      std::cout << std::endl;
+      for( SG::auxid_t auxid : bjet->getAuxIDs() ) {
+	static SG::AuxTypeRegistry& reg = SG::AuxTypeRegistry::instance();
+	std::cout << reg.getName( auxid ) << " , " << reg.getTypeName( auxid ) << std::endl;
+      }
+      */
+
+      // new from Valerio: if the variables are lready available, do not calculate them
+      if ( bjet->isAvailable<float>("SMT_mu_pt") ) {
+	//std::cout << "SMT info already available, will get them from there ... " << std::endl;
+	jet_mu_dRmin_dR             = bjet->auxdata<float>("SMT_dR");
+	jet_mu_dRmin_pt             = bjet->auxdata<float>("SMT_mu_pt");
+	jet_mu_dRmin_qOverPratio    = bjet->auxdata<float>("SMT_qOverPratio");
+	jet_mu_dRmin_mombalsignif   = bjet->auxdata<float>("SMT_mombalsignif");
+	jet_mu_dRmin_scatneighsignif= bjet->auxdata<float>("SMT_scatneighsignif");
+	jet_mu_dRmin_pTrel          = bjet->auxdata<float>("SMT_pTrel");
+	jet_mu_dRmin_d0             = bjet->auxdata<float>("SMT_mu_d0");
+	jet_mu_dRmin_z0             = bjet->auxdata<float>("SMT_mu_z0");
+	jet_mu_dRmin_ID_qOverP_var  = bjet->auxdata<float>("SMT_ID_qOverP");
+	jet_mu_dRmin_assJet_pt=jet->pt()/1000; // ?? why is this variable needed?
+	jet_mu_dRmin_truthflav=thisJetTruthLabel;
+
+	
+	ElementLink<xAOD::MuonContainer> tmpMuonLink= bjet->auxdata<ElementLink<xAOD::MuonContainer> >("SMT_mu_link");
+	if ( tmpMuonLink.isValid() ) {
+	  const xAOD::Muon* tmpMuon=(*tmpMuonLink);
+	  //std::cout << " link is: " << tmpMuon << std::endl;
+	  if ( tmpMuon!=0 ) {
+	    
+	    jet_mu_dRmin_eta      =tmpMuon->eta();
+	    jet_mu_dRmin_phi      =tmpMuon->phi(); 
+	    jet_mu_dRmin_muonType =tmpMuon->muonType(); 
+	    //std::cout << " .... after eta and friends" << std::endl;
+	    
+	    const ElementLink< xAOD::TrackParticleContainer >& pMuIDTrack=tmpMuon->inDetTrackParticleLink();
+	    //std::cout << "   the link is: " << pMuIDTrack << std::endl;
+	    const xAOD::Vertex * pVtx=(*pMuIDTrack)->vertex();
+	    if(pVtx!=NULL) {
+	      jet_mu_dRmin_VtxTyp=pVtx->vertexType();
+	    } else {jet_mu_dRmin_VtxTyp=999.;}
+	    	    
+	    const xAOD::TruthParticle* matched_truth_muon=0;
+	    if(tmpMuon->isAvailable<ElementLink<xAOD::TruthParticleContainer> >("truthParticleLink")) {
+	      ElementLink<xAOD::TruthParticleContainer> link = tmpMuon->auxdata<ElementLink<xAOD::TruthParticleContainer> >("truthParticleLink");
+	      if(link.isValid()) {
+		matched_truth_muon = *link;
+		int pdgid = parent_classify(matched_truth_muon);
+		jet_mu_dRmin_parent_pdgid=pdgid;
+	      } else {jet_mu_dRmin_parent_pdgid=999.;}
+	    }
+	  }
+	}
+
+      } else {
+	try{
+	  std::vector<ElementLink<xAOD::MuonContainer> > assocMuons;
+	  assocMuons= bjet->auxdata<std::vector<ElementLink<xAOD::MuonContainer> > >("Muons");
+	  if(assocMuons.size()!=0){
+	    for (unsigned int iT=0; iT<assocMuons.size(); iT++) {
+	      if (!assocMuons.at(iT).isValid()) continue;
+	      const xAOD::Muon* tmpMuon= *(assocMuons.at(iT));
+	      float dr = deltaR(tmpMuon->eta(),jet->eta(),tmpMuon->phi(),jet->phi());
+	      if(dr>=0.4) continue;
+	      const ElementLink< xAOD::TrackParticleContainer >& pMuIDTrack=tmpMuon->inDetTrackParticleLink();
+	      const ElementLink< xAOD::TrackParticleContainer >& pMuMSTrack=tmpMuon->muonSpectrometerTrackParticleLink();
+	      const xAOD::Vertex * pVtx=(*pMuIDTrack)->vertex();
+	      const std::vector<float>&cov= (*pMuIDTrack)->definingParametersCovMatrixVec();
+	      float momBalSignif0=999.;
+	      tmpMuon->parameter(momBalSignif0, xAOD::Muon::momentumBalanceSignificance);
+	      if(momBalSignif0==0) continue;
+	      if((*pMuMSTrack)->qOverP()==0) continue;
+	      if(dr<jet_mu_dRmin_dR){
+		jet_mu_dRmin_dR=dr;
+		jet_mu_dRmin_pt=tmpMuon->pt()/1000;
+		jet_mu_dRmin_truthflav=thisJetTruthLabel;
+		jet_mu_dRmin_eta=tmpMuon->eta();
+		jet_mu_dRmin_phi=tmpMuon->phi();
+		jet_mu_dRmin_assJet_pt=jet->pt()/1000;
+		jet_mu_dRmin_qOverPratio=(*pMuIDTrack)->qOverP()/(*pMuMSTrack)->qOverP();
+		float momBalSignif=999.;
+		if(tmpMuon->parameter(momBalSignif, xAOD::Muon::momentumBalanceSignificance)) {
+		  jet_mu_dRmin_mombalsignif=momBalSignif;
+		} else {jet_mu_dRmin_mombalsignif=momBalSignif;}
+		float scatNeighSignif=999.;
+		if(tmpMuon->parameter(scatNeighSignif, xAOD::Muon::scatteringNeighbourSignificance)) {
+		  jet_mu_dRmin_scatneighsignif=scatNeighSignif;
+		} else {jet_mu_dRmin_scatneighsignif=scatNeighSignif;}
+		TLorentzVector myjet, mymu;
+		myjet.SetPtEtaPhiM(jet->pt(),jet->eta(),jet->phi(),0);
+		mymu.SetPtEtaPhiM(tmpMuon->pt(),tmpMuon->eta(),tmpMuon->phi(),0);
+		jet_mu_dRmin_pTrel=myjet.Vect().Perp(mymu.Vect())/1000;
+		if(pVtx!=NULL) {
+		  jet_mu_dRmin_VtxTyp=pVtx->vertexType();
+		} else {jet_mu_dRmin_VtxTyp=999.;}
+		jet_mu_dRmin_d0=tmpMuon->primaryTrackParticle()->d0();
+		jet_mu_dRmin_z0=tmpMuon->primaryTrackParticle()->z0();
+		
+		const xAOD::TruthParticle* matched_truth_muon=0;
+		if(tmpMuon->isAvailable<ElementLink<xAOD::TruthParticleContainer> >("truthParticleLink")) {
+		  ElementLink<xAOD::TruthParticleContainer> link = tmpMuon->auxdata<ElementLink<xAOD::TruthParticleContainer> >("truthParticleLink");
+		  if(link.isValid()) {
+		    matched_truth_muon = *link;
+		    int pdgid = parent_classify(matched_truth_muon);
+		    jet_mu_dRmin_parent_pdgid=pdgid;
+		  } else {jet_mu_dRmin_parent_pdgid=999.;}
+		}
+		jet_mu_dRmin_ID_qOverP_var=cov[14];
+		jet_mu_dRmin_muonType=tmpMuon->muonType();
+	      }
+	    }
+	  }
+	} catch(...) {
+	  //std::cout << "NO Muons found!"<<std::endl;
+	  //todo: write out some warning here but don't want to clog logfiles for now
+	}
+      }  
      }
 
     for (unsigned int sv0V = 0; sv0V < SV0vertices.size(); sv0V++) {
@@ -1893,6 +1996,26 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sv1_vtxx->push_back(j_sv1_vtxx);
     v_jet_sv1_vtxy->push_back(j_sv1_vtxy);
     v_jet_sv1_vtxz->push_back(j_sv1_vtxz);
+
+
+    if (m_SMT) {
+      v_jet_mu_assJet_pt->push_back(jet_mu_dRmin_assJet_pt);
+      v_jet_mu_truthflav->push_back(jet_mu_dRmin_truthflav);
+      v_jet_mu_pt->push_back(jet_mu_dRmin_pt);
+      v_jet_mu_eta->push_back(jet_mu_dRmin_eta);
+      v_jet_mu_phi->push_back(jet_mu_dRmin_phi);
+      v_jet_mu_qOverPratio->push_back(jet_mu_dRmin_qOverPratio);
+      v_jet_mu_mombalsignif->push_back(jet_mu_dRmin_mombalsignif);
+      v_jet_mu_scatneighsignif->push_back(jet_mu_dRmin_scatneighsignif);
+      v_jet_mu_dR->push_back(jet_mu_dRmin_dR);
+      v_jet_mu_pTrel->push_back(jet_mu_dRmin_pTrel);
+      v_jet_mu_VtxTyp->push_back(jet_mu_dRmin_VtxTyp);
+      v_jet_mu_d0->push_back(jet_mu_dRmin_d0);
+      v_jet_mu_z0->push_back(jet_mu_dRmin_z0);
+      v_jet_mu_parent_pdgid->push_back(jet_mu_dRmin_parent_pdgid);
+      v_jet_mu_ID_qOverP_var->push_back(jet_mu_dRmin_ID_qOverP_var);
+      v_jet_mu_muonType->push_back(jet_mu_dRmin_muonType);      
+    }
 
     if (m_reduceInfo) continue;
 
@@ -2013,26 +2136,20 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	}
       }
 
-      if (index != -1) {
-        j_trk_ip3d_grade.push_back(tmpGrading.at(index));
-        // j_trk_ip3d_d0.push_back(tmpD0.at(index));
-        // j_trk_ip3d_z0.push_back(tmpZ0.at(index));
-        ip3d_llr = -999;
-        ip2d_llr = -999;
-        if (tmpIP3DUwgt.at(index) != 0) ip3d_llr = log(tmpIP3DBwgt.at(index) / tmpIP3DUwgt.at(index));
-        if (tmpIP2DUwgt.at(index) != 0) ip2d_llr = log(tmpIP2DBwgt.at(index) / tmpIP2DUwgt.at(index));
-        j_trk_ip3d_llr.push_back(ip3d_llr);
-        j_trk_ip2d_llr.push_back(ip2d_llr);
-      }
-      else {
-        j_trk_ip3d_grade.push_back(-10);
-        // j_trk_ip3d_d0.push_back(-999);
-        // j_trk_ip3d_z0.push_back(-999);
-        j_trk_ip3d_llr.push_back(-999);
-        j_trk_ip2d_llr.push_back(-999);
+      if (index!=-1) {
+	j_trk_ip3d_grade.push_back(tmpGrading.at(index));
+	ip3d_llr=-999;
+	ip2d_llr=-999;
+	if (tmpIP3DUwgt.at(index)!=0) ip3d_llr = log(tmpIP3DBwgt.at(index)/tmpIP3DUwgt.at(index));
+	if (tmpIP2DUwgt.at(index)!=0) ip2d_llr = log(tmpIP2DBwgt.at(index)/tmpIP2DUwgt.at(index));
+	j_trk_ip3d_llr.push_back(ip3d_llr);
+	j_trk_ip2d_llr.push_back(ip2d_llr);
+      } else {
+	j_trk_ip3d_grade.push_back(-10);
+	j_trk_ip3d_llr.push_back(-999);
+	j_trk_ip2d_llr.push_back(-999);
       }
       if (particleInCollection(tmpTrk, IP2DTracks)) trackAlgo += 1 << IP2D;
-
       if (particleInCollection(tmpTrk, SV0Tracks)) trackAlgo +=1 << SV0;
       if (particleInCollection(tmpTrk, SV1Tracks)) trackAlgo +=1 << SV1;
       if (particleInCollection(tmpTrk, JFTracks)) trackAlgo +=1 << JF; // mod Remco
@@ -2299,6 +2416,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
   // clear all the things that need clearing
   truth_electrons.clear();
+  truth_muons.clear();
   selJets.clear();
 
   return StatusCode::SUCCESS;
@@ -2396,6 +2514,7 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_sumtrk_ntrk->clear();
   v_jet_E->clear();
   v_jet_m->clear();
+  v_jet_nConst->clear();
   v_jet_truthflav->clear();
   v_jet_nBHadr->clear();
   v_jet_nCHadr->clear();
@@ -2404,11 +2523,13 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_nGhostCHadrFromParentNotFromB->clear(); // mod nikola
   v_jet_nGhostTauFromParent->clear();
   v_jet_nGhostHBosoFromParent->clear();
+
   v_jet_GhostL_q->clear();
   v_jet_GhostL_HadI->clear();
   v_jet_GhostL_HadF->clear();
   v_jet_LabDr_HadF->clear();
   v_jet_aliveAfterOR->clear();
+  v_jet_aliveAfterORmu->clear();
   v_jet_truthMatch->clear();
   v_jet_isBadMedium->clear();
   v_jet_isPU->clear();
