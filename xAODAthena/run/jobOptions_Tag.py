@@ -2,10 +2,11 @@
 ##########################################################################################################################################################
 ### MAIN SWITCHES
 
-ReduceInfo        =False   ## write minimal amount of info on the output file
+ONLYEssentialInfo =False   ## write minimal amount of info on the output file
+ReduceInfo        =True    ## write minimal amount of info on the output file
 DoMSV             =False   ## include variables for MSV tagger
 doSMT             =False   ## include variables for SMT tagger
-doRetag           =False    ## perform retagging
+doRetag           =False   ## perform retagging
 doComputeReference=False
 JetCollections = [
   ##"AntiKt10LCTopoJets"
@@ -15,26 +16,58 @@ JetCollections = [
   #'AntiKt4LCTopoJets', 
   ]
 
+#### automatic AF2 switch
+#### reading from outside the ReduceInfo
+
+### 0= SLIM, 1=FULL
+ContentMode=  vars().get('CONTENT',-1)
+if ContentMode!=-1:
+  if ContentMode==0: ReduceInfo=True
+  if ContentMode==1: ReduceInfo=False
+  if ContentMode==2: ONLYEssentialInfo=True
 
 #########################################################################################################################################################
 #########################################################################################################################################################
 ### Define input xAOD and output ntuple file name
 import glob
 from AthenaCommon.AthenaCommonFlags import jobproperties as jp
-jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1)
+jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock( vars().get('EVTMAX', -1) )
 
 jp.AthenaCommonFlags.FilesInput = [ 
   "/afs/cern.ch/user/g/ggonella/ggonella/public/ForValerio/mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264_tid05419191_00/AOD.05419191._000184.pool.root.1"
-  ##"/tmp/vdao/mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264_tid05419257_00/AOD.05419257._000001.pool.root.1"
-  #"/afs/cern.ch/user/n/nwhallon/work/public/xAOD_samples/mc15_13TeV.361021.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ1W.merge.AOD.e3569_s2576_s2132_r6630_r6264_tid05403632_00/AOD.05403632._000098.pool.root.1"
+  ##"/afs/cern.ch/user/v/vdao/mc15_8TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e3099_s2578_r7135_tid06628604_00/AOD.06628604._000221.pool.root.1",
+  ##"/afs/cern.ch/user/v/vdao/valid1.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e3099_s2578_r7058_tid06432679_00/AOD.06432679._000066.pool.root.1",
+  ##"/afs/cern.ch/work/v/vdao//xAODs/dataNtuple/Peter/mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_a766_a767_r6264_tid05443510_00/AOD.05443510._000453.pool.root.1",
+  ##"/afs/cern.ch/work/v/vdao//xAODs/dataNtuple/Peter/mc15_13TeV.410004.PowhegHerwigppEvtGen_UEEE5_ttbar_hdamp172p5_nonallhad.merge.AOD.e3836_a766_a767_r6264_tid05457978_00/AOD.05457978._000222.pool.root.1",
+  ##"/afs/cern.ch/work/v/vdao//xAODs/dataNtuple/Peter/mc15_13TeV.410006.PowhegPythia8EvtGen_A14_ttbar_hdamp172p5_nonallhad.merge.AOD.e3836_a766_a767_r6264_tid05457982_00/AOD.05457982._000217.pool.root.1",
+  ##"/afs/cern.ch/work/v/vdao//xAODs/dataNtuple/Peter/mc15_13TeV.410022.Sherpa_CT10_ttbar_SingleLeptonP_MEPS_NLO.merge.AOD.e3959_a766_a780_r6264_tid05960719_00/AOD.05960719._000038.pool.root.1"
   ]
+
+##svcMgr.EventSelector.InputCollections = jp.AthenaCommonFlags.FilesInput()
+from PyUtils import AthFile
+af = AthFile.fopen( jp.AthenaCommonFlags.FilesInput()[0] )
+##svcMgr.EventSelector.InputCollections[0] )
+
+### AF2 or FS
+isAF2=False
+if af.fileinfos.has_key("evt_type"):
+  eventTypeList = af.fileinfos["evt_type"]
+  if eventTypeList.__contains__("IS_SIMULATION") :
+    simType = af.fileinfos['metadata']['/Simulation/Parameters']['SimulationFlavour']
+    if simType  == 'default' :
+      print "VALERIO SAYS: THIS IS FS"
+    elif hWsimType  == 'atlfast' : 
+      print "VALERIO SAYS: THIS IS AF2"
+      isAF2=True
+
+evtPrintoutInterval = vars().get('EVTPRINT', 5000)
+svcMgr += CfgMgr.AthenaEventLoopMgr( EventPrintoutInterval=evtPrintoutInterval )
+
 svcMgr += CfgMgr.THistSvc()
 for jet in JetCollections:
   shortJetName=jet.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr")
   svcMgr.THistSvc.Output += [ shortJetName+" DATAFILE='flav_"+shortJetName+".root' OPT='RECREATE'"]
 #svcMgr.THistSvc.Output += ["BTAGSTREAM DATAFILE='flavntuple.root' OPT='RECREATE'"]
-
-
 
 ##########################################################################################################################################################
 ##########################################################################################################################################################
@@ -80,7 +113,8 @@ rec.doWriteTAG.set_Value_and_Lock   (False)
 rec.doDPD.set_Value_and_Lock        (False)
 rec.doTruth.set_Value_and_Lock      (False)
 
-#############rec.doApplyAODFix.set_Value_and_Lock(False)
+if af.fileinfos["metadata"]["/TagInfo"]["AtlasRelease"].__contains__("AtlasDerivation"):
+    rec.doApplyAODFix.set_Value_and_Lock(False)
 
 include ("RecExCommon/RecExCommon_topOptions.py")
 
@@ -103,24 +137,30 @@ print "geoFlags.isIBL() = "+str(  geoFlags.isIBL() )
 from BTagging.BTaggingFlags import BTaggingFlags
 
 #### if the new file is already in the datatbase: simple edit the name
-#BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-07'
+###############BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-10'
 
 #### if you want to use your own calibration file use this part below
-#BTaggingFlags.CalibrationFromLocalReplica = True
-#BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
-#BTaggingFlags.CalibrationTag = 'Run2DC14' ## '0801C' ##'k0002'
+######BTaggingFlags.CalibrationFromLocalReplica = True
+######BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
+######BTaggingFlags.CalibrationTag = "antonello"
+######BTaggingFlags.JetVertexCharge=False
 
 include("RetagFragment.py")
-
 if doRetag:
   from BTagging.BTaggingConfiguration import getConfiguration
   BTagConf = getConfiguration()
   ip3d =BTagConf.getTool("IP3DTag", "BTagTrackToJetAssociator","AntiKt4EMTopo")
   #ip3d.OutputLevel=DEBUG
-  #####ip3d.SortingMode="SortZ0D0"
-  
-  ip2d =BTagConf.getTool("IP2DTag", "BTagTrackToJetAssociator","AntiKt4EMTopo")
-  #####ip2d.SortingMode="SortPt"
+  ####ip3d.SortingMode="SortZ0D0"
+  ####ip3d.NtrkMax=8
+  ####ip3d.SignWithSvx=True
+  ip3dTrkSel=BTagConf.getTool("IP3DTrackSelector", "BTagTrackToJetAssociator","AntiKt4EMTopo")
+  ####ip3dTrkSel.nHitPix=1
+  ip3dLH=BTagConf.getTool("IP3DNewLikelihoodTool", "BTagTrackToJetAssociator","AntiKt4EMTopo")
+  ip2d  =BTagConf.getTool("IP2DTag", "BTagTrackToJetAssociator","AntiKt4EMTopo")
+  ###############################ip2d.SortingMode="SortPt"
+  mv2c20 =BTagConf.getTool("MV2c20Tag", "BTagTrackToJetAssociator","AntiKt4EMTopo")
+  ###mv2c20.OutputLevel=DEBUG
 
 ##########################################################################################################################################################
 ##########################################################################################################################################################
@@ -153,6 +193,7 @@ ToolSvc += CfgMgr.CP__PileupReweightingTool("prw",
 ##########################################################################################################################################################
 ##########################################################################################################################################################
 ##########################################################################################################################################################
+
 ### Main Ntuple Dumper Algorithm
 for JetCollection in JetCollections:
   shortJetName=JetCollection.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr")
@@ -167,13 +208,14 @@ for JetCollection in JetCollections:
   alg.JetCollectionName = JetCollection
   alg.doSMT = doSMT
   if "Track" in JetCollection or "Truth" in JetCollection:
-    alg.JetPtCut = 5.e3
-    alg.CleanJets = False
+    alg.JetPtCut = 10.e3
+    alg.CleanJets     = False
     alg.CalibrateJets = False
   else:
     alg.JetPtCut = 20.e3
   alg.doSMT     =doSMT
   alg.ReduceInfo=ReduceInfo
+  alg.EssentialInfo=ONLYEssentialInfo
   alg.DoMSV     =DoMSV
   alg.Rel20     =True
   alg.JetCleaningTool.CutLevel= "LooseBad" 
@@ -187,7 +229,7 @@ for JetCollection in JetCollections:
   if "EM" in JetCollection: 
     collectionForTool="AntiKt4EMTopo"
     calibfile  ="JES_MC15Prerecommendation_April2015.config"
-    #########################calibfile  ="JES_Prerecommendation2015_AFII_Apr2015.config"
+    if isAF2: calibfile  ="JES_MC15Prerecommendation_AFII_June2015.config"
     calSeg     ="JetArea_Residual_Origin_EtaJES_GSC"
   print collectionForTool
   ToolSvc += CfgMgr.JetCalibrationTool("BTagDumpAlg_"+JetCollection+"_JCalib",

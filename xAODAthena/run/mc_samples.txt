@@ -13,7 +13,59 @@
 ###mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264/
 ###mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6633_r6264/
 
-mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264/
+#mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264/
+#mc15_13TeV.301334.Pythia8EvtGen_A14NNPDF23LO_zprime4000_tt.merge.AOD.e3723_s2608_s2183_r6630_r6264/
+##mc15_13TeV.301332.Pythia8EvtGen_A14NNPDF23LO_zprime2750_tt.merge.AOD.e4061_s2608_s2183_r6630_r6264/
+
+#### for maps debugging
+####mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6765_r6282/
+############################mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.DAOD_FTAG1.e3698_s2608_s2183_r6765_r6282_p2419/
+####mc15_8TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e3099_s2578_r7135/
+####valid1.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e3099_s2578_r7058/
+#mc15_8TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e3099_s2578_r7058/
+##mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2700_r7117_r6282/
+
+
+## from Peter requests:
+mc15_13TeV.410006.PowhegPythia8EvtGen_A14_ttbar_hdamp172p5_nonallhad.merge.AOD.e3836_a766_a767_r6264/
+mc15_13TeV.410004.PowhegHerwigppEvtGen_UEEE5_ttbar_hdamp172p5_nonallhad.merge.AOD.e3836_a766_a767_r6264/
+mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_a766_a767_r6264/
+mc15_13TeV.410021.Sherpa_CT10_ttbar_DiLepton_MEPS_NLO.merge.AOD.e3959_a766_a780_r6264/
+mc15_13TeV.410022.Sherpa_CT10_ttbar_SingleLeptonP_MEPS_NLO.merge.AOD.e3959_a766_a780_r6264/
+mc15_13TeV.410023.Sherpa_CT10_ttbar_SingleLeptonM_MEPS_NLO.merge.AOD.e3959_a766_a780_r6264/
+
+
+
+####ttbar
+#mc15_13TeV.410021.Sherpa_CT10_ttbar_DiLepton_MEPS_NLO.merge.AOD.e3959_a766_a777_r6282/
+#mc15_13TeV.410022.Sherpa_CT10_ttbar_SingleLeptonP_MEPS_NLO.merge.AOD.e3959_a766_a777_r6282/
+#mc15_13TeV.410023.Sherpa_CT10_ttbar_SingleLeptonM_MEPS_NLO.merge.AOD.e3959_a766_a777_r6282/
+####B-Filter
+##########mc15_13TeV.361302.Sherpa_CT10_Wenu_Pt0_70_BFilter.merge.AOD.e3651_s2586_s2174_r6869_r6282/
+#mc15_13TeV.361305.Sherpa_CT10_Wenu_Pt70_140_BFilter.merge.AOD.e3651_s2586_s2174_r6869_r6282/
+#mc15_13TeV.361308.Sherpa_CT10_Wenu_Pt140_280_BFilter.merge.AOD.e3651_s2586_s2174_r6869_r6282/
+##########mc15_13TeV.361311.Sherpa_CT10_Wenu_Pt280_500_BFilter.merge.AOD.e4133_s2608_s2183_r6869_r6282/
+#mc15_13TeV.361314.Sherpa_CT10_Wenu_Pt500_700_BFilter.merge.AOD.e4133_s2608_s2183_r6869_r6282/
+####C-Filter:
+#mc15_13TeV.361301.Sherpa_CT10_Wenu_Pt0_70_CFilterBVeto.merge.AOD.e3651_s2586_s2174_r6869_r6282/
+#mc15_13TeV.361304.Sherpa_CT10_Wenu_Pt70_140_CFilterBVeto.merge.AOD.e3651_s2586_s2174_r6869_r6282/
+#mc15_13TeV.361307.Sherpa_CT10_Wenu_Pt140_280_CFilterBVeto.merge.AOD.e3651_s2586_s2174_r6869_r6282/
+##########mc15_13TeV.361310.Sherpa_CT10_Wenu_Pt280_500_CFilterBVeto.merge.AOD.e4133_s2608_s2183_r6869_r6282/
+#mc15_13TeV.361313.Sherpa_CT10_Wenu_Pt500_700_CFilterBVeto.merge.AOD.e4133_s2608_s2183_r6869_r6282/
+####Z+jets (B-filter)
+#mc15_13TeV.361374.Sherpa_CT10_Zee_Pt0_70_BFilter.merge.AOD.e3651_s2586_s2174_r6869_r6282/
+#mc15_13TeV.361377.Sherpa_CT10_Zee_Pt70_140_BFilter.merge.AOD.e3651_s2586_s2174_r6869_r6282/
+#mc15_13TeV.361380.Sherpa_CT10_Zee_Pt140_280_BFilter.merge.AOD.e3651_s2586_s2174_r6869_r6282/
+#mc15_13TeV.361383.Sherpa_CT10_Zee_Pt280_500_BFilter.merge.AOD.e4133_s2608_s2183_r6869_r6282/
+#mc15_13TeV.361386.Sherpa_CT10_Zee_Pt500_700_BFilter.merge.AOD.e4133_s2608_s2183_r6869_r6282/
+####Z+jets (C-filter)
+#mc15_13TeV.361373.Sherpa_CT10_Zee_Pt0_70_CFilterBVeto.merge.AOD.e3651_s2586_s2174_r6869_r6282/
+#mc15_13TeV.361376.Sherpa_CT10_Zee_Pt70_140_CFilterBVeto.merge.AOD.e3651_s2586_s2174_r6869_r6282/
+#mc15_13TeV.361379.Sherpa_CT10_Zee_Pt140_280_CFilterBVeto.merge.AOD.e3651_s2586_s2174_r6869_r6282/
+#mc15_13TeV.361382.Sherpa_CT10_Zee_Pt280_500_CFilterBVeto.merge.AOD.e4133_s2608_s2183_r6869_r6282/
+#mc15_13TeV.361385.Sherpa_CT10_Zee_Pt500_700_CFilterBVeto.merge.AOD.e4133_s2608_s2183_r6869_r6282/
+
+
 
 
 ##### dijet samples:  (6633: week1,  6630: week1)

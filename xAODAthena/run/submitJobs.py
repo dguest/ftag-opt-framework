@@ -23,13 +23,27 @@ import sys
 
 #suffix=".BTAGNTUP_V23"            ### same as V21 but no GRL and no mu recalculation
 
-suffix=".BTAGNTUP_VtestIPxDRef"       ### IPxD tests
+####suffix=".BTAGNTUP_V23slim"     ### same as above .... hopefully
+##suffix=".BTAGNTUP_V25slim"         ### same as above .... just to clear some mess
 
+####suffix=".BTAGNTUP_VtestIPxDRef"    ### IPxD tests
+#suffix=".BTAGNTUP_V24fullMVb"     ### first with working MVb (new SV1, rest default)
+
+#suffix=".BTAGNTUP_V24IPtest"      ### IPxD d0z0 sorting + nPix>=1
+#suffix=".BTAGNTUP_V24IPtest2"     ### IPxD d0z0 sorting + nPix>=1 + SV0 removal
+
+###suffix=".BTAGNTUP_V23anto"         ### default but with Antonello's reference
+###suffix=".BTAGNTUP_V23anto2"           ### Antonello's reference + first 8 tracks
+
+###suffix=".BTAGNTUP_V27slim"         ### this is for maps comparison
+suffix=".BTAGNTUP_V27full"         ### this is for maps comparison on 50ns samples
+
+suffix=".BTAGNTUP_V28slim"         ### update on truth classification + nConstituent for jets
 
 ###########################################################################################################################
 ###########################################################################################################################
 ###########################################################################################################################
-isOfficial=False
+isOfficial=True
 username="vdao"
 
 
@@ -46,10 +60,11 @@ def submitJob(ds) :
     
     com += " --skipScout "
     ###########################################com += " --allowTaskDuplication "
-    ##com += " --Debug "
-    ##com += "--express "
+    ###########################################com += " --Debug "
+    ###########################################com += " --express "
     if isOfficial: com += " --official --voms atlas:/atlas/perf-flavtag/Role=production "
     
+    com += "--useNewCode "
     
     com += "--inDS " + ds + " "
     oDS=""
@@ -67,9 +82,13 @@ def submitJob(ds) :
     com += "--outDS "+ oDS + " "
   
     if "data" in ds:  com += "--nFilesPerJob 2 "
-    else           :  com += "--nFilesPerJob 5 "
+    ###else           :  com += "--nFilesPerJob 5 "
+    else           :  com += "--nFilesPerJob 5 " ###--forceStaged "
+    ##else           :  com += "--nFilesPerJob 3 "
 
-    com += " --extFile ilumicalc_histograms_None_276262-276954.root "
+    com += " --extFile ilumicalc_histograms_None_276262-276954.root,mycool.db,BTagCalibRUN2-08-09_noIP.root "
+    com += "--addPoolFC BTagCalibRUN2-08-09_noIP.root "
+
     #com += "--extFile mycool.db,BTagCalibRUN2Onl-08-05-Run1Special.root "
     #com += "--addPoolFC ,BTagCalibRUN2Onl-08-05-Run1Special.root "
 

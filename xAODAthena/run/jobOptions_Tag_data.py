@@ -5,7 +5,7 @@
 ReduceInfo        =False   ## write minimal amount of info on the output file
 DoMSV             =False   ## include variables for MSV tagger
 doSMT             =False   ## include variables for SMT tagger
-doRetag           =False   ## perform retagging
+doRetag           =True    ## perform retagging
 doComputeReference=False
 JetCollections = [
   'AntiKt4EMTopoJets', 
@@ -31,6 +31,20 @@ for jet in JetCollections:
   svcMgr.THistSvc.Output += [ shortJetName+" DATAFILE='flav_"+shortJetName+".root' OPT='RECREATE'"]
 #svcMgr.THistSvc.Output += ["BTAGSTREAM DATAFILE='flavntuple.root' OPT='RECREATE'"]
 
+from PyUtils import AthFile
+##print jp.AthenaCommonFlags.FilesInput
+af = AthFile.fopen( "/afs/cern.ch/work/v/vdao//xAODs/data15_13TeV.00276330.physics_Main.merge.DAOD_FTAG1.f620_m1480_p2411_tid06320446_00/DAOD_FTAG1.06320446._000001.pool.root.1",) #opens the first file from the InputCollections list
+af.fileinfos #this is a dict of dicts, take a look at what's available! Below are some examples:
+
+#print af.fileinfos
+derivation=af.fileinfos['EventStreamInfo']
+if "StreamDAOD_" in derivation: derivation=derivation.split("DAOD_")[1]
+print "DERIVATION IS: "+derivation
+#isMC = 'IS_SIMULATION' in af.fileinfos['evt_type']
+#beam_energy = af.fileinfos['beam_energy']
+#conditions_tag = af.fileinfos['conditions_tag'] #useful for figuring out which mc production this is
+#isFullSim = af.fileinfos['metadata']['/Simulation/Parameters']['SimulationFlavour']=='default' #full sim or atlfast
+exit(-1)
 
 ##########################################################################################################################################################
 ##########################################################################################################################################################
@@ -142,6 +156,9 @@ ToolSvc += CfgMgr.CP__PileupReweightingTool("prw",
 ##########################################################################################################################################################
 ##########################################################################################################################################################
 ### Main Ntuple Dumper Algorithm
+
+triggerLogic="HLT_j[0-9]+|L1_MBTS_1_1|L1_RD0_FILLED"
+
 for JetCollection in JetCollections:
   shortJetName=JetCollection.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr")
   alg = CfgMgr.btagIBLAnalysisAlg("BTagDumpAlg_"+JetCollection, 
@@ -151,7 +168,8 @@ for JetCollection in JetCollections:
                                   TrackVertexAssociationTool=ToolSvc.TightVertexAssocTool,
                                   TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator,
                                   JVTtool=ToolSvc.JVT,
-                                  GRLname = "data15_13TeV.periodAllYear_DetStatus-v64-pro19_DQDefects-00-01-02_PHYS_StandardGRL_All_Good.xml"
+                                  GRLname = "data15_13TeV.periodAllYear_DetStatus-v64-pro19_DQDefects-00-01-02_PHYS_StandardGRL_All_Good.xml",
+                                  TriggerLogic=triggerLogic
                                   ) #DEBUG
   alg.JetCollectionName = JetCollection
   alg.doSMT = doSMT
