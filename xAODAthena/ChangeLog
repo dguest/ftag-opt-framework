@@ -1,3 +1,9 @@
+2015-11-20     Valerio Dao (valerio.dao@cern.ch):
+	- fixing lepton overlap removal for all top generators
+	- adding Jet constituents
+	- greatly improved flexibility and automation of job options
+	- merging my changes with the mainstream addition from Nikola
+
 2015-08-30     Valerio Dao (valerio.dao@cern.ch):
 	- additional variables (Phi direction from trk)
 	- better understanding of track impact parameter significance
