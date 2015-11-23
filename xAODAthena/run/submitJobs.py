@@ -1,56 +1,27 @@
 import os
 import sys
 
-##suffix=".BTAGNTUP_OrigV6slim"    ### improving jet calibration
-##suffix=".BTAGNTUP_OrigV6full"
-##suffix=".BTAGNTUP_OrigV7full"    ### latest jet calibration
-##suffix=".BTAGNTUP_V7retag"       ### latest jet calibration+retag
-##suffix=".BTAGNTUP_V8slim"        ### correct AODfix
-##suffix=".BTAGNTUP_V8full"        ### correct AODfix
-##suffix=".BTAGNTUP_V9slim"        ### specific fix to run over FTAG
-##suffix=".BTAGNTUP_V9full"        ### specific fix to run over FTAG + trigSelection + grl in data
-##suffix=".BTAGNTUP_V10full"       ### finally fixing JVT
-##suffix=".BTAGNTUP_V11slim"       ### (put 3 jets collections)
-##suffix=".BTAGNTUP_V13slim"       ### (new jet cleaning, 2 jet collections)
-##suffix=".BTAGNTUP_V14slim"       ### new trigger logic and cuts (eta)
-##suffix=".BTAGNTUP_V15full"       ### only HLT single jet triggers 
-##suffix=".BTAGNTUP_V16full"       ### same as 15 but fixing my stupidity with PUtool 
-
-##suffix=".BTAGNTUP_V19full"       ### from 16 but updating tag of JetCalibration and implementing PUtool [also first test of split output]
-##suffix=".BTAGNTUP_V20full"       ### fix in d02d var + latest calibration. I AM STUPID AND THIS IS INDEED SLIM!!!!!
-#suffix=".BTAGNTUP_V21full"        ### same as V20 but this time really full
-#suffix=".BTAGNTUP_V22tmp"         ### same as V21 but no GRL and no mu recalculation
-
-#suffix=".BTAGNTUP_V23"            ### same as V21 but no GRL and no mu recalculation
-
-####suffix=".BTAGNTUP_V23slim"     ### same as above .... hopefully
-##suffix=".BTAGNTUP_V25slim"         ### same as above .... just to clear some mess
-
-####suffix=".BTAGNTUP_VtestIPxDRef"    ### IPxD tests
-#suffix=".BTAGNTUP_V24fullMVb"     ### first with working MVb (new SV1, rest default)
-
-#suffix=".BTAGNTUP_V24IPtest"      ### IPxD d0z0 sorting + nPix>=1
-#suffix=".BTAGNTUP_V24IPtest2"     ### IPxD d0z0 sorting + nPix>=1 + SV0 removal
-
-###suffix=".BTAGNTUP_V23anto"         ### default but with Antonello's reference
-###suffix=".BTAGNTUP_V23anto2"           ### Antonello's reference + first 8 tracks
-
-###suffix=".BTAGNTUP_V27slim"         ### this is for maps comparison
-suffix=".BTAGNTUP_V27full"         ### this is for maps comparison on 50ns samples
-
-suffix=".BTAGNTUP_V28slim"         ### update on truth classification + nConstituent for jets
-
-###########################################################################################################################
-###########################################################################################################################
-###########################################################################################################################
-isOfficial=True
-username="vdao"
+##########################################################################################################################
+###
+### THINGS THAT SHOULD BE CHANGED BY THE USER
+###
+##### name to prepend to the production. IT MUST CONTAIN one of the following string:
+#     * full : very detailed information (very large ntuples)
+#     * slim : no tracking information, still good enough for MVA training
+#     * minin: very essential information for the smallest possible ntuples (only good for efficiency determination)
+suffix    =".BTAGNTUP_V28slim"         ### update on truth classification + nConstituent for jets
+isOfficial=True    ### using official production role or just personal priority
+username  ="vdao"  ### only needed if isOfficial=False
+inputFile ="mc_samples.txt"
+###
+###
+##########################################################################################################################
 
 
 ###########################################################################################################################
 ###########################################################################################################################
 ###########################################################################################################################
-dsList=open("mc_samples.txt",'r')
+dsList=open(inputFile,'r')
 lines=dsList.readlines()
 
 def submitJob(ds) :
@@ -58,6 +29,13 @@ def submitJob(ds) :
     if "data" in ds: com = "pathena jobOptions_Tag_data.py "
     else           : com = "pathena jobOptions_Tag.py "
     
+    if "slim" in suffix  : com+=' -c "CONTENT=0" '
+    elif "full" in suffit: com+=' -c "CONTENT=1" '
+    elif "minim" in suffit: com+=' -c "CONTENT=2" '
+    else:
+        print " WARNING: suffix MUST contain one among: 'full', 'slim', 'minim' "
+        continue
+
     com += " --skipScout "
     ###########################################com += " --allowTaskDuplication "
     ###########################################com += " --Debug "
