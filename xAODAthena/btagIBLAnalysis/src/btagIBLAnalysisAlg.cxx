@@ -2383,24 +2383,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     v_jet_trk_jf_Vertex->push_back(j_trk_jf_Vertex); // mod Remco
 
-    if (m_SMT) {
-       v_jet_mu_assJet_pt->push_back(jet_mu_dRmin_assJet_pt);
-       v_jet_mu_truthflav->push_back(jet_mu_dRmin_truthflav);
-       v_jet_mu_pt->push_back(jet_mu_dRmin_pt);
-       v_jet_mu_eta->push_back(jet_mu_dRmin_eta);
-       v_jet_mu_phi->push_back(jet_mu_dRmin_phi);
-       v_jet_mu_qOverPratio->push_back(jet_mu_dRmin_qOverPratio);
-       v_jet_mu_mombalsignif->push_back(jet_mu_dRmin_mombalsignif);
-       v_jet_mu_scatneighsignif->push_back(jet_mu_dRmin_scatneighsignif);
-       v_jet_mu_dR->push_back(jet_mu_dRmin_dR);
-       v_jet_mu_pTrel->push_back(jet_mu_dRmin_pTrel);
-       v_jet_mu_VtxTyp->push_back(jet_mu_dRmin_VtxTyp);
-       v_jet_mu_d0->push_back(jet_mu_dRmin_d0);
-       v_jet_mu_z0->push_back(jet_mu_dRmin_z0);
-       v_jet_mu_parent_pdgid->push_back(jet_mu_dRmin_parent_pdgid);
-       v_jet_mu_ID_qOverP_var->push_back(jet_mu_dRmin_ID_qOverP_var);
-       v_jet_mu_muonType->push_back(jet_mu_dRmin_muonType);
-    }
   } // end jet loop
 
   for (unsigned int j = 0; j < selJets.size(); j++) {
