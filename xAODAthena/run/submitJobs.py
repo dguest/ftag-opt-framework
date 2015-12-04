@@ -9,7 +9,7 @@ import sys
 #     * full : very detailed information (very large ntuples)
 #     * slim : no tracking information, still good enough for MVA training
 #     * minin: very essential information for the smallest possible ntuples (only good for efficiency determination)
-suffix    =".BTAGNTUP_V28slim"         ### update on truth classification + nConstituent for jets
+suffix    =".BTAGNTUP_V32minim"         ### update on truth classification + nConstituent for jets
 isOfficial=True    ### using official production role or just personal priority
 username  ="vdao"  ### only needed if isOfficial=False
 inputFile ="mc_samples.txt"
@@ -29,12 +29,12 @@ def submitJob(ds) :
     if "data" in ds: com = "pathena jobOptions_Tag_data.py "
     else           : com = "pathena jobOptions_Tag.py "
     
-    if "slim" in suffix  : com+=' -c "CONTENT=0" '
-    elif "full" in suffit: com+=' -c "CONTENT=1" '
-    elif "minim" in suffit: com+=' -c "CONTENT=2" '
+    if "slim" in suffix   : com+=' -c "CONTENT=0" '
+    elif "full" in suffix : com+=' -c "CONTENT=1" '
+    elif "minim" in suffix: com+=' -c "CONTENT=2" '
     else:
         print " WARNING: suffix MUST contain one among: 'full', 'slim', 'minim' "
-        continue
+        return
 
     com += " --skipScout "
     ###########################################com += " --allowTaskDuplication "
