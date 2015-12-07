@@ -261,9 +261,11 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_jf_pu = new std::vector<float>();
   v_jet_jf_llr = new std::vector<float>();
   v_jet_jf_m = new std::vector<float>();
+  v_jet_jf_mUncorr=new std::vector<float>(); //eloi
   v_jet_jf_efc = new std::vector<float>();
   v_jet_jf_deta = new std::vector<float>();
   v_jet_jf_dphi = new std::vector<float>();
+  v_jet_jf_dRFlightDir=new std::vector<float>(); //eloi
   v_jet_jf_ntrkAtVx = new std::vector<float>();
   v_jet_jf_nvtx = new std::vector<int>();
   v_jet_jf_sig3d = new std::vector<float>();
@@ -539,9 +541,11 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   if (!m_essentialInfo) tree->Branch("jet_jf_pu", &v_jet_jf_pu);
   tree->Branch("jet_jf_llr", &v_jet_jf_llr);
   if (!m_essentialInfo) tree->Branch("jet_jf_m", &v_jet_jf_m);
+  if (!m_essentialInfo) tree->Branch("jet_jf_mUncorr",&v_jet_jf_mUncorr); //eloi
   if (!m_essentialInfo) tree->Branch("jet_jf_efc", &v_jet_jf_efc);
   if (!m_essentialInfo) tree->Branch("jet_jf_deta", &v_jet_jf_deta);
   if (!m_essentialInfo) tree->Branch("jet_jf_dphi", &v_jet_jf_dphi);
+  if (!m_essentialInfo) tree->Branch("jet_jf_dRFlightDir",&v_jet_jf_dRFlightDir); //eloi
   if (!m_essentialInfo) tree->Branch("jet_jf_ntrkAtVx", &v_jet_jf_ntrkAtVx);
   if (!m_essentialInfo) tree->Branch("jet_jf_nvtx", &v_jet_jf_nvtx);
   if (!m_essentialInfo) tree->Branch("jet_jf_sig3d", &v_jet_jf_sig3d);
@@ -1553,6 +1557,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     float jfsig3d = -99;
     int jfnvtx1t = -1;
     int jfn2t = -1;
+    float massUncorr = -99;  // eloi
+    float dRFlightDir = -99; // eloi
     std::vector<ElementLink<xAOD::BTagVertexContainer> > jfvertices;
     try {
       jfvertices =  bjet->auxdata<std::vector<ElementLink<xAOD::BTagVertexContainer> > >("JetFitter_JFvertices");
@@ -1575,6 +1581,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_jf_pc->push_back(bjet->JetFitter_pc());
       v_jet_jf_pu->push_back(bjet->JetFitter_pu());
       v_jet_jf_llr->push_back(bjet->JetFitter_loglikelihoodratio());
+      bjet->variable<float>("JetFitter", "massUncorr", massUncorr); //eloi
+      bjet->variable<float>("JetFitter", "dRFlightDir", dRFlightDir); //eloi
     }
     else {
       v_jet_jf_pb->push_back(-99);
@@ -1585,9 +1593,11 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_jf_VTXsize->push_back(jfvertices.size());
 
     v_jet_jf_m->push_back(jfm);
+    v_jet_jf_mUncorr->push_back(massUncorr); //eloi
     v_jet_jf_efc->push_back(jfefc);
     v_jet_jf_deta->push_back(jfdeta);
     v_jet_jf_dphi->push_back(jfdphi);
+    v_jet_jf_dRFlightDir->push_back(dRFlightDir); //eloi
     v_jet_jf_ntrkAtVx->push_back(jfntrkAtVx);
     v_jet_jf_nvtx->push_back(jfnvtx);
     v_jet_jf_sig3d->push_back(jfsig3d);
@@ -2566,9 +2576,11 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_jf_pu->clear();
   v_jet_jf_llr->clear();
   v_jet_jf_m->clear();
+  v_jet_jf_mUncorr->clear(); //eloi
   v_jet_jf_efc->clear();
   v_jet_jf_deta->clear();
   v_jet_jf_dphi->clear();
+  v_jet_jf_dRFlightDir->clear(); //eloi
   v_jet_jf_ntrkAtVx->clear();
   v_jet_jf_nvtx->clear();
   v_jet_jf_sig3d->clear();
