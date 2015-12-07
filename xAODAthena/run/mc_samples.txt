@@ -2,6 +2,35 @@
 #### mc15a samples
 ######################################################################################################################
 
+### 20.7.2.2 samples:
+mc15_13TeV.301329.Pythia8EvtGen_A14NNPDF23LO_zprime2000_tt.recon.AOD.e4061_s2608_s2183_r7377_r7351/
+mc15_13TeV.301334.Pythia8EvtGen_A14NNPDF23LO_zprime4000_tt.recon.AOD.e3723_s2608_s2183_r7377_r7351/
+mc15_13TeV.301920.Pythia8EvtGen_A14NNPDF23LO_Zprimebb600.recon.AOD.e3889_s2608_s2183_r7377_r7351/
+mc15_13TeV.301921.Pythia8EvtGen_A14NNPDF23LO_Zprimebb800.recon.AOD.e3889_s2608_s2183_r7377_r7351/
+mc15_13TeV.301922.Pythia8EvtGen_A14NNPDF23LO_Zprimebb1000.recon.AOD.e3889_s2608_s2183_r7377_r7351/
+mc15_13TeV.301923.Pythia8EvtGen_A14NNPDF23LO_Zprimebb1250.recon.AOD.e3889_s2608_s2183_r7377_r7351/
+mc15_13TeV.301924.Pythia8EvtGen_A14NNPDF23LO_Zprimebb1500.recon.AOD.e3889_s2608_s2183_r7377_r7351/
+mc15_13TeV.301925.Pythia8EvtGen_A14NNPDF23LO_Zprimebb1750.recon.AOD.e3889_s2608_s2183_r7377_r7351/
+mc15_13TeV.301926.Pythia8EvtGen_A14NNPDF23LO_Zprimebb2000.recon.AOD.e3889_s2608_s2183_r7377_r7351/
+mc15_13TeV.301927.Pythia8EvtGen_A14NNPDF23LO_Zprimebb2500.recon.AOD.e3889_s2608_s2183_r7377_r7351/
+mc15_13TeV.301928.Pythia8EvtGen_A14NNPDF23LO_Zprimebb3000.recon.AOD.e3889_s2608_s2183_r7377_r7351/
+mc15_13TeV.301929.Pythia8EvtGen_A14NNPDF23LO_Zprimebb4000.recon.AOD.e3889_s2608_s2183_r7377_r7351/
+mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.recon.AOD.e3698_s2608_s2183_r7377_r7351/
+
+
+
+
+
+
+
+
+
+
+##valid1.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e3099_s2578_r7377/
+
+
+
+
 ## ttbar samples: 50ns (FS, AF2, AF2, AF2)
 ####mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264/
 ####mc15_13TeV.410006.PowhegPythia8EvtGen_A14_ttbar_hdamp172p5_nonallhad.merge.AOD.e3836_a766_a767_r6264/
@@ -27,12 +56,12 @@
 
 
 ## from Peter requests:
-mc15_13TeV.410006.PowhegPythia8EvtGen_A14_ttbar_hdamp172p5_nonallhad.merge.AOD.e3836_a766_a767_r6264/
-mc15_13TeV.410004.PowhegHerwigppEvtGen_UEEE5_ttbar_hdamp172p5_nonallhad.merge.AOD.e3836_a766_a767_r6264/
-mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_a766_a767_r6264/
-mc15_13TeV.410021.Sherpa_CT10_ttbar_DiLepton_MEPS_NLO.merge.AOD.e3959_a766_a780_r6264/
-mc15_13TeV.410022.Sherpa_CT10_ttbar_SingleLeptonP_MEPS_NLO.merge.AOD.e3959_a766_a780_r6264/
-mc15_13TeV.410023.Sherpa_CT10_ttbar_SingleLeptonM_MEPS_NLO.merge.AOD.e3959_a766_a780_r6264/
+#mc15_13TeV.410006.PowhegPythia8EvtGen_A14_ttbar_hdamp172p5_nonallhad.merge.AOD.e3836_a766_a767_r6264/
+#mc15_13TeV.410004.PowhegHerwigppEvtGen_UEEE5_ttbar_hdamp172p5_nonallhad.merge.AOD.e3836_a766_a767_r6264/
+#mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_a766_a767_r6264/
+#mc15_13TeV.410021.Sherpa_CT10_ttbar_DiLepton_MEPS_NLO.merge.AOD.e3959_a766_a780_r6264/
+#mc15_13TeV.410022.Sherpa_CT10_ttbar_SingleLeptonP_MEPS_NLO.merge.AOD.e3959_a766_a780_r6264/
+#mc15_13TeV.410023.Sherpa_CT10_ttbar_SingleLeptonM_MEPS_NLO.merge.AOD.e3959_a766_a780_r6264/
 
 
 
