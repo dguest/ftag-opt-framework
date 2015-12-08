@@ -25,7 +25,13 @@
   //gROOT->ProcessLine("Plotter_pt3(\"/afs/cern.ch/work/v/vdao/xAODs/Rel207_prep/newIPxD_Z27tt_TrkSelNewRef/\",\"13TeVXAODEM_Z27tt_TrkSelRef\",0.70)");
 
   //gROOT->ProcessLine("Plotter_pt3(\"/afs/cern.ch/work/v/vdao/xAODs/IBLonoff/OFF/\",\"13TeVXAODEM_ttbar_IBLOFF\",0.70)");
-  gROOT->ProcessLine("Plotter_pt3(\"/afs/cern.ch/work/v/vdao/xAODs/IBLonoff/ON/\",\"13TeVXAODEM_ttbar_IBLON\",0.70)");
+  //gROOT->ProcessLine("Plotter_pt3(\"/afs/cern.ch/work/v/vdao/xAODs/IBLonoff/ON/\",\"13TeVXAODEM_ttbar_IBLON\",0.70)");
+
+  //gROOT->ProcessLine("Plotter_pt3(\"/afs/cern.ch/work/v/vdao//xAODs/firstRel2072/\",\"13TeVXAODEM_ttbar_2072OFF\",0.70)");
+  //gROOT->ProcessLine("Plotter_pt3(\"/afs/cern.ch/work/v/vdao//xAODs/mc15aRef/\",\"13TeVXAODEM_ttbar_mc15a\",0.70)");
+  
+  //gROOT->ProcessLine("Plotter_pt3(\"/afs/cern.ch/work/v/vdao/xAODs/Valid/r7377/\",\"13TeVXAODEM_ttbar_r7377_OR\",0.70)");
+  gROOT->ProcessLine("Plotter_pt3(\"/afs/cern.ch/work/v/vdao/xAODs/Valid/r7377/\",\"13TeVXAODEM_ttbar_r7377\",0.70)");
 
   gROOT->ProcessLine(".q");
 }

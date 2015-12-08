@@ -127,7 +127,7 @@ def GetHisto(tag, intree, val):
     
     ####cut=" abs(jet_eta)<2.5 && jet_pt>25e3 &&  jet_truthMatch==1 && jet_truthflav=="+str(val)
 
-    cut=" jet_LabDr_HadF=="+str(val)+" && abs(jet_eta)<2.5 && jet_pt>20e3  &&  (jet_JVT>0.641 || jet_pt>50e3 || abs(jet_eta)>2.4) "
+    cut=" jet_LabDr_HadF=="+str(val)+" && abs(jet_eta)<2.5 && jet_pt>20e3  &&  (jet_JVT>0.641 || jet_pt>50e3 || abs(jet_eta)>2.4) && jet_aliveAfterOR==1 "
 
     ##if not is8T: cut="jet_truthflav=="+str(val)+" && jet_pt>25e3  &&  (jet_JVT>0.2 || jet_pt>50e3 || abs(jet_eta)>2.4) "
     ##             cut="jet_LabDr_HadF=="+str(val)+" && jet_pt>25e3  &&  (jet_JVT>0.2 || jet_pt>50e3 || abs(jet_eta)>2.4) "

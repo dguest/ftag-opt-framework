@@ -132,6 +132,8 @@ TH1D* GetHisto1(string varName, string cutBase,
   den->SetMarkerSize(0.6);
   den->SetMarkerColor(2);
  
+  std::cout << " Integral is: " << den->Integral() << std::endl;
+
   if (normalize) den->Scale(1./den->Integral());
   return den;
 }
@@ -478,8 +480,8 @@ void PrintTagger(string tagger, string file1)  {
   /// even more ugly
   
   string CutBase="";
-  if (isXAOD) CutBase=" abs(jet_eta)<2.5 && jet_pt>20e3 && (jet_JVT>0.641 || jet_pt>50e3 || abs(jet_eta)>2.4) ";
-  else        CutBase=" abs(jet_eta)<2.5 && jet_pt>20e3 && (jet_JVT>0.641 || jet_pt>50e3 || abs(jet_eta)>2.4) "; //jet_truthmatched==1 ";
+  if (isXAOD) CutBase=" abs(jet_eta)<2.5 && jet_pt>20e3 && (jet_JVT>0.641 || jet_pt>50e3 || abs(jet_eta)>2.4)";// && jet_aliveAfterOR==1";
+  else        CutBase=" abs(jet_eta)<2.5 && jet_pt>20e3 && (jet_JVT>0.641 || jet_pt>50e3 || abs(jet_eta)>2.4)";// && jet_aliveAfterOR==1";
 
   string Cut1=" "; 
   string Cut2=" "; 
@@ -498,12 +500,6 @@ void PrintTagger(string tagger, string file1)  {
   string yLabel=tagger+"l rej @70% eff.";
   string effCut=" && "+getVariable(tagger, is8TeV)+">"+" ";
  
-  /*
-  GetComparison(file1,CutBase, effCut,
-		Cut1, Cut2, Cut3,
-	        "bH_Lxy", "b-hadron transverse decay length (mm)", yLabel,  
-		40,  0, 100);
-  */
 
   GetComparison(file1,CutBase, tagger,
 		Cut1, Cut2, Cut3,
@@ -511,27 +507,51 @@ void PrintTagger(string tagger, string file1)  {
 		10,20,400);
 		//19,20,400);
   //39,  20, 1000);
+  std::cout << std::endl;
 
   if (tagger=="IP3D") {
+   
     plotKine( file1,CutBase, Cut1, Cut2, Cut3,
 	      "jet_pt/1e3", "jet p_{T} (GeV)", yLabel,  
 	      39,  20, 1000);
     plotKine( file1,CutBase, Cut1, Cut2, Cut3,
 	      "abs(jet_eta)", "jet #eta", yLabel,  
 	      20, 0, 2.5); 
+
+    TH1D* histoMu=GetHisto1("avgmu", "avgmu>-1",
+			    "<mu>", "int", 
+			    51, -0.4, 50.6, true);
+    TCanvas* myCX=new TCanvas("testBlah","testBlah",800,600);
+    histoMu->Draw();
+    outF->cd();
+    outF->WriteObject(histoMu, "avgmu" );
+    myCX->Print("shit");
+
+
+    TH1D* histoPV=GetHisto1("nPV", "nPV>-1",
+			    "nPV", "int", 
+			    41, -0.4, 40.6, true);
+    TCanvas* myCY=new TCanvas("testBlah2","testBlah2",800,600);
+    histoPV->Draw();
+    outF->cd();
+    outF->WriteObject(histoPV, "nPV" );
+    myCY->Print("shit2");
   }
 
   GetComparison(file1,CutBase, tagger,
 		Cut1, Cut2, Cut3,
 	        "abs(jet_eta)", "jet #eta", yLabel,  
 		20, 0, 2.5); // was 10
-
-  /*
+		
   GetComparison(file1, CutBase, tagger,
                 Cut1, Cut2, Cut3,
                 "avgmu", "<#mu>", yLabel,
                 10,  0, 40);
-  */
+
+  GetComparison(file1, CutBase, tagger,
+                Cut1, Cut2, Cut3,
+                "nPV", "# PV", yLabel,
+                10,  0, 30);
 }
   
 
