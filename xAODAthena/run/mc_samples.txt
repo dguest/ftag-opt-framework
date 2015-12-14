@@ -20,12 +20,6 @@ mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.recon.AOD.
 
 
 
-
-
-
-
-
-
 ##valid1.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e3099_s2578_r7377/
 
 
@@ -55,7 +49,16 @@ mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.recon.AOD.
 ##mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2700_r7117_r6282/
 
 
-## from Peter requests:
+## for deriving the benchmarks
+# NEW -MC15b
+mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r7267_r6282
+mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_a766_a810_r6282
+mc15_13TeV.410004.PowhegHerwigppEvtGen_UEEE5_ttbar_hdamp172p5_nonallhad.merge.AOD.e3836_a766_a810_r6282
+mc15_13TeV.410006.PowhegPythia8EvtGen_A14_ttbar_hdamp172p5_nonallhad.merge.AOD.e3836_a766_a810_r6282
+mc15_13TeV.410021.Sherpa_CT10_ttbar_DiLepton_MEPS_NLO.merge.AOD.e3959_a766_a810_r6282
+mc15_13TeV.410022.Sherpa_CT10_ttbar_SingleLeptonP_MEPS_NLO.merge.AOD.e3959_a766_a810_r6282
+mc15_13TeV.410023.Sherpa_CT10_ttbar_SingleLeptonM_MEPS_NLO.merge.AOD.e3959_a766_a810_r6282
+#OLD - MC15a
 #mc15_13TeV.410006.PowhegPythia8EvtGen_A14_ttbar_hdamp172p5_nonallhad.merge.AOD.e3836_a766_a767_r6264/
 #mc15_13TeV.410004.PowhegHerwigppEvtGen_UEEE5_ttbar_hdamp172p5_nonallhad.merge.AOD.e3836_a766_a767_r6264/
 #mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_a766_a767_r6264/
