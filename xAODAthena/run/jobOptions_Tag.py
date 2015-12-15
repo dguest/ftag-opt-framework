@@ -57,7 +57,7 @@ if af.fileinfos.has_key("evt_type"):
     simType = af.fileinfos['metadata']['/Simulation/Parameters']['SimulationFlavour']
     if simType  == 'default' :
       print "VALERIO SAYS: THIS IS FS"
-    elif hWsimType  == 'atlfast' : 
+    elif simType  == 'atlfast' : 
       print "VALERIO SAYS: THIS IS AF2"
       isAF2=True
 
