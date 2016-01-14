@@ -2310,68 +2310,18 @@ StatusCode btagIBLAnalysisAlg::execute() {
       // std::cout << " ..... after Remco" << std::endl;
 
       // origin
-      int origin = PUFAKE;
+      int origin = getTrackOrigin(tmpTrk,
+                                  tracksFromB,
+                                  tracksFromC,
+                                  tracksFromCc,
+                                  tracksFromB1,
+                                  tracksFromB2,
+                                  tracksFromC1,
+                                  tracksFromC2,
+                                  tracksFromCNotFromB1,
+                                  tracksFromCNotFromB2);
+
       const xAOD::TruthParticle *truth = truthParticle(tmpTrk);
-      float truthProb = -1; // need to check MCtruth classifier
-      try {
-         truthProb = tmpTrk->auxdata< float >("truthMatchProbability");
-      } catch(...) {};
-      if (truth && truthProb > 0.75) {
-        int truthBarcode = truth->barcode();
-        if (truthBarcode > 2e5) origin = GEANT;
-        else {
-          origin = FRAG;
-          for (unsigned int iT = 0; iT < tracksFromB.size(); iT++) {
-            if (truth == tracksFromB.at(iT)) {
-              origin = FROMB;
-              break;
-            }
-          }
-          for (unsigned int iT = 0; iT < tracksFromC.size(); iT++) {
-            if (truth == tracksFromC.at(iT)) {
-              origin = FROMC;
-              break;
-            }
-          }
-          // additions by nikola
-          for (unsigned int iT = 0; iT < tracksFromB1.size(); iT++) {
-            if (truth == tracksFromB1.at(iT)) {
-              origin = 10;
-              break;
-            }
-          }
-          for (unsigned int iT = 0; iT < tracksFromB2.size(); iT++) {
-            if (truth == tracksFromB2.at(iT)) {
-              origin = 11;
-              break;
-            }
-          }
-          for (unsigned int iT = 0; iT < tracksFromC1.size(); iT++) {
-            if (truth == tracksFromC1.at(iT)) {
-              origin = 12;
-              break;
-            }
-          }
-          for (unsigned int iT = 0; iT < tracksFromC2.size(); iT++) {
-            if (truth == tracksFromC2.at(iT)) {
-              origin = 13;
-              break;
-            }
-          }
-          for (unsigned int iT = 0; iT < tracksFromCNotFromB1.size(); iT++) {
-            if (truth == tracksFromCNotFromB1.at(iT)) {
-              origin = 14;
-              break;
-            }
-          }
-          for (unsigned int iT = 0; iT < tracksFromCNotFromB2.size(); iT++) {
-            if (truth == tracksFromCNotFromB2.at(iT)) {
-              origin = 15;
-              break;
-            }
-          }
-        }
-      }
 
       if (truth) {
         if (truth->prodVtx()) {
@@ -2910,3 +2860,80 @@ int btagIBLAnalysisAlg :: parent_classify(const xAOD::TruthParticle *theParticle
   }
   return parent_id;
 }
+
+int btagIBLAnalysisAlg :: getTrackOrigin(const xAOD::TrackParticle *tmpTrk,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromB,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromC,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromCc,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromB1,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromB2,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromC1,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromC2,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromCNotFromB1,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromCNotFromB2) {
+      // origin
+      int origin = PUFAKE;
+      const xAOD::TruthParticle *truth = truthParticle(tmpTrk);
+      float truthProb = -1; // need to check MCtruth classifier
+      try {
+         truthProb = tmpTrk->auxdata< float >("truthMatchProbability");
+      } catch(...) {};
+      if (truth && truthProb > 0.75) {
+        int truthBarcode = truth->barcode();
+        if (truthBarcode > 2e5) origin = GEANT;
+        else {
+          origin = FRAG;
+          for (unsigned int iT = 0; iT < tracksFromB.size(); iT++) {
+            if (truth == tracksFromB.at(iT)) {
+              origin = FROMB;
+              break;
+            }
+          }
+          for (unsigned int iT = 0; iT < tracksFromC.size(); iT++) {
+            if (truth == tracksFromC.at(iT)) {
+              origin = FROMC;
+              break;
+            }
+          }
+          // additions by nikola
+          for (unsigned int iT = 0; iT < tracksFromB1.size(); iT++) {
+            if (truth == tracksFromB1.at(iT)) {
+              origin = 10;
+              break;
+            }
+          }
+          for (unsigned int iT = 0; iT < tracksFromB2.size(); iT++) {
+            if (truth == tracksFromB2.at(iT)) {
+              origin = 11;
+              break;
+            }
+          }
+          for (unsigned int iT = 0; iT < tracksFromC1.size(); iT++) {
+            if (truth == tracksFromC1.at(iT)) {
+              origin = 12;
+              break;
+            }
+          }
+          for (unsigned int iT = 0; iT < tracksFromC2.size(); iT++) {
+            if (truth == tracksFromC2.at(iT)) {
+              origin = 13;
+              break;
+            }
+          }
+          for (unsigned int iT = 0; iT < tracksFromCNotFromB1.size(); iT++) {
+            if (truth == tracksFromCNotFromB1.at(iT)) {
+              origin = 14;
+              break;
+            }
+          }
+          for (unsigned int iT = 0; iT < tracksFromCNotFromB2.size(); iT++) {
+            if (truth == tracksFromCNotFromB2.at(iT)) {
+              origin = 15;
+              break;
+            }
+          }
+        }
+      }
+  return origin;
+}
+

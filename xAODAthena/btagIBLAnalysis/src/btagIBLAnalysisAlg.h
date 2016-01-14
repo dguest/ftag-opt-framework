@@ -409,7 +409,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 
   /** InDetTrackSelectorTool (temporary: to be moved to a separate Tool) */
   ToolHandle< InDet::IInDetTrackSelectionTool > m_InDetTrackSelectorTool;
-  
+
   /** TrackVertex associator (temporary: to be moved to a separate Tool) */
   ToolHandle< CP::ITrackVertexAssociationTool > m_TightTrackVertexAssociationTool;
 
@@ -417,7 +417,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   //ToolHandle< Reco::ITrackToVertex > m_trackToVertexTool;
 
   /** GP: Tool for the estimation of the IPs to the Vertex */
-  ToolHandle< Trk::ITrackToVertexIPEstimator > m_trackToVertexIPEstimator;  
+  ToolHandle< Trk::ITrackToVertexIPEstimator > m_trackToVertexIPEstimator;
 
   ToolHandle< Trig::TrigDecisionTool > m_tdt;
 
@@ -427,15 +427,25 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   ToolHandle<IJetUpdateJvt> m_jvt;
 
   ToolHandle<CP::IPileupReweightingTool> m_PUtool;
- 
+
   // determine whether particle is B hadron or not
   bool isBHadron(int pdgid);
 
   // compute dR between two objects
   float deltaR(float eta1, float eta2, float phi1, float phi2);
-  
+
   const xAOD::Jet* GetParentJet(const xAOD::Jet* Jet, std::string Keyname);
 
-}; 
+int getTrackOrigin(const xAOD::TrackParticle *tmpTrk,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromB,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromC,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromCc,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromB1,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromB2,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromC1,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromC2,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromCNotFromB1,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromCNotFromB2);
+};
 
 #endif //> !BTAGIBLANALYSIS_BTAGIBLANALYSISALG_H
