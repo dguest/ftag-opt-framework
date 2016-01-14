@@ -294,7 +294,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 
   // track info
   std::vector<int>   *v_jet_btag_ntrk;
-  
+
   std::vector<std::vector<float> > *v_jet_trk_pt;
   std::vector<std::vector<float> > *v_jet_trk_eta;
   std::vector<std::vector<float> > *v_jet_trk_theta;
@@ -309,7 +309,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<std::vector<float> > *v_jet_trk_vtx_dy;
   std::vector<std::vector<float> > *v_jet_trk_vtx_X;
   std::vector<std::vector<float> > *v_jet_trk_vtx_Y;
-  
+
   std::vector<std::vector<int> > *v_jet_trk_nNextToInnHits;
   std::vector<std::vector<int> > *v_jet_trk_nInnHits;
   std::vector<std::vector<int> > *v_jet_trk_nBLHits; // soo this will be deprecated
@@ -325,15 +325,15 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<std::vector<float> > *v_jet_trk_z0;
   std::vector<std::vector<float> > *v_jet_trk_d0_truth;
   std::vector<std::vector<float> > *v_jet_trk_z0_truth;
- 
-  std::vector<std::vector<int> >   *v_jet_trk_IP3D_grade;
+
+  std::vector<std::vector<int> > *v_jet_trk_IP3D_grade;
   std::vector<std::vector<float> > *v_jet_trk_IP3D_d0;
   std::vector<std::vector<float> > *v_jet_trk_IP3D_d02D;
   std::vector<std::vector<float> > *v_jet_trk_IP3D_z0;
   std::vector<std::vector<float> > *v_jet_trk_IP3D_d0sig;
   std::vector<std::vector<float> > *v_jet_trk_IP3D_z0sig;
-  std::vector<std::vector<float> >   *v_jet_trk_IP2D_llr;
-  std::vector<std::vector<float> >   *v_jet_trk_IP3D_llr;
+  std::vector<std::vector<float> > *v_jet_trk_IP2D_llr;
+  std::vector<std::vector<float> > *v_jet_trk_IP3D_llr;
 
   std::vector<std::vector<int> > *v_jet_trk_jf_Vertex; //mod Remco
 
@@ -343,7 +343,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<int>   *v_jet_jf_ntrk;
 
   // additions by Nikola
-  std::vector<std::vector<float> >  *v_jet_trkjet_pt;
+  std::vector<std::vector<float> > *v_jet_trkjet_pt;
   std::vector<std::vector<double> > *v_jet_trkjet_mv2c20;
 
   // additions by Andrea
@@ -363,22 +363,27 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_jet_mu_ID_qOverP_var;
   std::vector<float> *v_jet_mu_muonType;
   std::vector<float> *v_jet_mu_assJet_pt;
+  // additions by nikola
+  std::vector<int> *v_jet_mu_fatjet_nMu;
+  std::vector<float> *v_jet_mu_fatjet_pTmax_pT;
+  std::vector<float> *v_jet_mu_fatjet_pTmax_pTrel;
+  std::vector<float> *v_jet_mu_fatjet_pTmax_pTrelFrac;
 
   void clearvectors();
 
 #ifndef __MAKECINT__
   const xAOD::TruthParticle*  truthParticle(const xAOD::TrackParticle *trkPart) const;
-  void GetParentTracks(const xAOD::TruthParticle* part, 
-		       std::vector<const xAOD::TruthParticle*> &tracksFromB, 
-		       std::vector<const xAOD::TruthParticle*> &tracksFromC, 
+  void GetParentTracks(const xAOD::TruthParticle* part,
+		       std::vector<const xAOD::TruthParticle*> &tracksFromB,
+		       std::vector<const xAOD::TruthParticle*> &tracksFromC,
 		       bool isfromC, std::string indent);
   bool decorateTruth(const xAOD::TruthParticle & particle);
-  int parent_classify(const xAOD::TruthParticle * theParticle); 
+  int parent_classify(const xAOD::TruthParticle * theParticle);
   //bool particleInCollection( const xAOD::TrackParticle *trkPart,
   //std::vector< ElementLink< xAOD::TrackParticleContainer > > trkColl);
-  
-  
-#endif // not __MAKECINT__  
+
+
+#endif // not __MAKECINT__
 
 
   /// from outside

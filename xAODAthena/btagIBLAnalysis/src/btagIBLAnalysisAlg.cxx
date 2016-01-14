@@ -441,6 +441,11 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_mu_parent_pdgid = new std::vector<float>();
   v_jet_mu_ID_qOverP_var = new std::vector<float>();
   v_jet_mu_muonType = new std::vector<float>();
+  // additions by nikola
+  v_jet_mu_fatjet_nMu = new std::vector<int>();
+  v_jet_mu_fatjet_pTmax_pT = new std::vector<float>();
+  v_jet_mu_fatjet_pTmax_pTrel = new std::vector<float>();
+  v_jet_mu_fatjet_pTmax_pTrelFrac = new std::vector<float>();
 
   tree->Branch("runnb", &runnumber);
   tree->Branch("eventnb", &eventnumber);
@@ -740,6 +745,11 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     tree->Branch("jet_mu_parent_pdgid", &v_jet_mu_parent_pdgid);
     tree->Branch("jet_mu_ID_qOverP_var", &v_jet_mu_ID_qOverP_var);
     tree->Branch("jet_mu_muonType", &v_jet_mu_muonType);
+    // additions by nikola
+    tree->Branch("jet_mu_fatjet_nMu", &v_jet_mu_fatjet_nMu);
+    tree->Branch("jet_mu_fatjet_pTmax_pT", &v_jet_mu_fatjet_pTmax_pT);
+    tree->Branch("jet_mu_fatjet_pTmax_pTrel", &v_jet_mu_fatjet_pTmax_pTrel);
+    tree->Branch("jet_mu_fatjet_pTmax_pTrelFrac", &v_jet_mu_fatjet_pTmax_pTrelFrac);
   }
 
   clearvectors();
@@ -1950,8 +1960,42 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sv0_Nvtx->push_back(SV0vertices.size());
 
     float jet_mu_dRmin_pt=999,jet_mu_dRmin_dR=999,jet_mu_dRmin_truthflav=999,jet_mu_dRmin_eta=999,jet_mu_dRmin_phi=999,jet_mu_dRmin_assJet_pt=999,jet_mu_dRmin_qOverPratio=999,jet_mu_dRmin_mombalsignif=999,jet_mu_dRmin_scatneighsignif=999,jet_mu_dRmin_pTrel=999,jet_mu_dRmin_VtxTyp=999,jet_mu_dRmin_d0=999,jet_mu_dRmin_z0=999,jet_mu_dRmin_parent_pdgid=999,jet_mu_dRmin_ID_qOverP_var=999,jet_mu_dRmin_muonType=999;    
-
+    float jet_mu_fatjet_nMu = 0, jet_mu_fatjet_pTmax_pT = 999, jet_mu_fatjet_pTmax_pTrel = 999, jet_mu_fatjet_pTmax_pTrelFrac = 999;
     if (m_SMT) {
+      // additions by nikola
+      try {
+	std::vector<ElementLink<xAOD::MuonContainer> > assocMuons;
+        assocMuons = bjet->auxdata<std::vector<ElementLink<xAOD::MuonContainer> > >("Muons");
+        if (assocMuons.size() != 0) {
+          for (unsigned int iT = 0; iT < assocMuons.size(); iT++) {
+            if (!assocMuons.at(iT).isValid()) continue;
+            const xAOD::Muon *tmpMuon = *(assocMuons.at(iT));
+            float dr = deltaR(tmpMuon->eta(), jet->eta(), tmpMuon->phi(), jet->phi());
+            const ElementLink< xAOD::TrackParticleContainer >& pMuIDTrack = tmpMuon->inDetTrackParticleLink();
+            const ElementLink< xAOD::TrackParticleContainer >& pMuMSTrack = tmpMuon->muonSpectrometerTrackParticleLink();
+            const xAOD::Vertex *pVtx = (*pMuIDTrack)->vertex();
+            const std::vector<float>&cov = (*pMuIDTrack)->definingParametersCovMatrixVec();
+            float momBalSignif0 = 999.;
+            tmpMuon->parameter(momBalSignif0, xAOD::Muon::momentumBalanceSignificance);
+            if (momBalSignif0 == 0) continue;
+            if ((*pMuMSTrack)->qOverP() == 0) continue;
+            if (dr >= 1.0) continue;
+            jet_mu_fatjet_nMu += 1;
+            if (tmpMuon->pt() > jet_mu_fatjet_pTmax_pT) {
+              jet_mu_fatjet_pTmax_pT = tmpMuon->pt();
+              TLorentzVector myjet, mymu;
+              myjet.SetPtEtaPhiM(jet->pt(), jet->eta(), jet->phi(), 0);
+              mymu.SetPtEtaPhiM(tmpMuon->pt(), tmpMuon->eta(), tmpMuon->phi(), 0);
+              jet_mu_fatjet_pTmax_pTrel = myjet.Vect().Perp(mymu.Vect()) / 1000;
+              jet_mu_fatjet_pTmax_pTrelFrac = jet_mu_fatjet_pTmax_pTrel / jet->pt();
+            }
+          }
+        }
+      } catch(...) {
+         std::cout << "NO Muons found!" << std::endl;
+         // todo: write out some warning here but don't want to clog logfiles for now
+       }
+
       /*
       std::cout << std::endl;
       for( SG::auxid_t auxid : bjet->getAuxIDs() ) {
@@ -1960,7 +2004,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       }
       */
 
-      // new from Valerio: if the variables are lready available, do not calculate them
+      // new from Valerio: if the variables are already available, do not calculate them
       if ( bjet->isAvailable<float>("SMT_mu_pt") ) {
 	//std::cout << "SMT info already available, will get them from there ... " << std::endl;
 	jet_mu_dRmin_dR             = bjet->auxdata<float>("SMT_dR");
@@ -1975,25 +2019,21 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	jet_mu_dRmin_assJet_pt=jet->pt()/1000; // ?? why is this variable needed?
 	jet_mu_dRmin_truthflav=thisJetTruthLabel;
 
-	
 	ElementLink<xAOD::MuonContainer> tmpMuonLink= bjet->auxdata<ElementLink<xAOD::MuonContainer> >("SMT_mu_link");
 	if ( tmpMuonLink.isValid() ) {
 	  const xAOD::Muon* tmpMuon=(*tmpMuonLink);
 	  //std::cout << " link is: " << tmpMuon << std::endl;
 	  if ( tmpMuon!=0 ) {
-	    
 	    jet_mu_dRmin_eta      =tmpMuon->eta();
-	    jet_mu_dRmin_phi      =tmpMuon->phi(); 
-	    jet_mu_dRmin_muonType =tmpMuon->muonType(); 
+	    jet_mu_dRmin_phi      =tmpMuon->phi();
+	    jet_mu_dRmin_muonType =tmpMuon->muonType();
 	    //std::cout << " .... after eta and friends" << std::endl;
-	    
 	    const ElementLink< xAOD::TrackParticleContainer >& pMuIDTrack=tmpMuon->inDetTrackParticleLink();
 	    //std::cout << "   the link is: " << pMuIDTrack << std::endl;
 	    const xAOD::Vertex * pVtx=(*pMuIDTrack)->vertex();
 	    if(pVtx!=NULL) {
 	      jet_mu_dRmin_VtxTyp=pVtx->vertexType();
 	    } else {jet_mu_dRmin_VtxTyp=999.;}
-	    	    
 	    const xAOD::TruthParticle* matched_truth_muon=0;
 	    if(tmpMuon->isAvailable<ElementLink<xAOD::TruthParticleContainer> >("truthParticleLink")) {
 	      ElementLink<xAOD::TruthParticleContainer> link = tmpMuon->auxdata<ElementLink<xAOD::TruthParticleContainer> >("truthParticleLink");
@@ -2049,7 +2089,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 		} else {jet_mu_dRmin_VtxTyp=999.;}
 		jet_mu_dRmin_d0=tmpMuon->primaryTrackParticle()->d0();
 		jet_mu_dRmin_z0=tmpMuon->primaryTrackParticle()->z0();
-		
+
 		const xAOD::TruthParticle* matched_truth_muon=0;
 		if(tmpMuon->isAvailable<ElementLink<xAOD::TruthParticleContainer> >("truthParticleLink")) {
 		  ElementLink<xAOD::TruthParticleContainer> link = tmpMuon->auxdata<ElementLink<xAOD::TruthParticleContainer> >("truthParticleLink");
@@ -2068,7 +2108,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	  //std::cout << "NO Muons found!"<<std::endl;
 	  //todo: write out some warning here but don't want to clog logfiles for now
 	}
-      }  
+      }
      }
 
     for (unsigned int sv0V = 0; sv0V < SV0vertices.size(); sv0V++) {
@@ -2114,7 +2154,11 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_mu_z0->push_back(jet_mu_dRmin_z0);
       v_jet_mu_parent_pdgid->push_back(jet_mu_dRmin_parent_pdgid);
       v_jet_mu_ID_qOverP_var->push_back(jet_mu_dRmin_ID_qOverP_var);
-      v_jet_mu_muonType->push_back(jet_mu_dRmin_muonType);      
+      v_jet_mu_muonType->push_back(jet_mu_dRmin_muonType);
+      v_jet_mu_fatjet_nMu->push_back(jet_mu_fatjet_nMu);
+      v_jet_mu_fatjet_pTmax_pT->push_back(jet_mu_fatjet_pTmax_pT);
+      v_jet_mu_fatjet_pTmax_pTrel->push_back(jet_mu_fatjet_pTmax_pTrel);
+      v_jet_mu_fatjet_pTmax_pTrelFrac->push_back(jet_mu_fatjet_pTmax_pTrelFrac);
     }
 
     if (m_reduceInfo) continue;
@@ -2840,6 +2884,11 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_mu_ID_qOverP_var->clear();
   v_jet_mu_muonType->clear();
   v_jet_mu_assJet_pt->clear();
+  // additions by nikola
+  v_jet_mu_fatjet_nMu->clear();
+  v_jet_mu_fatjet_pTmax_pT->clear();
+  v_jet_mu_fatjet_pTmax_pTrel->clear();
+  v_jet_mu_fatjet_pTmax_pTrelFrac->clear();
 }
 
 int btagIBLAnalysisAlg :: parent_classify(const xAOD::TruthParticle *theParticle) {
