@@ -375,6 +375,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_trk_theta = new std::vector<std::vector<float> >();
   v_jet_trk_phi = new std::vector<std::vector<float> >();
   v_jet_trk_dr = new std::vector<std::vector<float> >();
+  v_jet_trk_assoc_msv = new std::vector<std::vector<int> >();   // mod nikola
   v_jet_trk_chi2 = new std::vector<std::vector<float> >();
   v_jet_trk_ndf = new std::vector<std::vector<float> >();
   v_jet_trk_algo = new std::vector<std::vector<int> >();
@@ -680,6 +681,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     tree->Branch("jet_trk_theta", &v_jet_trk_theta);
     tree->Branch("jet_trk_phi", &v_jet_trk_phi);
     tree->Branch("jet_trk_dr", &v_jet_trk_dr);
+    tree->Branch("jet_trk_assoc_msv", &v_jet_trk_assoc_msv);    // mod nikola
     tree->Branch("jet_trk_chi2", &v_jet_trk_chi2);
     tree->Branch("jet_trk_ndf", &v_jet_trk_ndf);
     tree->Branch("jet_trk_algo", &v_jet_trk_algo);
@@ -1895,6 +1897,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> j_trk_theta;
     std::vector<float> j_trk_phi;
     std::vector<float> j_trk_dr; // mod nikola
+    std::vector<int> j_trk_assoc_msv; // mod nikola
     std::vector<float> j_trk_chi2;
     std::vector<float> j_trk_ndf;
     std::vector<int> j_trk_algo;
@@ -2268,6 +2271,32 @@ StatusCode btagIBLAnalysisAlg::execute() {
       trk4vector.SetPtEtaPhiM(tmpTrk->pt(), tmpTrk->eta(), tmpTrk->phi(), 0);
       j_trk_dr.push_back(jet4vector.DeltaR(trk4vector));
 
+      // if doing MSV, keep track of which MSV this track belongs to
+      if (m_doMSV) {
+        int trk_assoc_msv = -1;
+
+        // get msv vertices
+        std::vector< ElementLink< xAOD::VertexContainer > > msvVertices;
+        bjet->variable<std::vector<ElementLink<xAOD::VertexContainer> > >("MSV", "vertices", msvVertices);
+
+        // loop over vertices
+        if (msvVertices.size() > 0) {
+          for (int vtx = 0; vtx < msvVertices.size(); vtx++) {
+            if (msvVertices.size() >= 10) continue;
+
+            // loop over tracks
+            int trk_num = (*msvVertices.at(vtx))->nTrackParticles();
+            for (int t = 0; t < trk_num; t++) {
+              const xAOD::TrackParticle *tmpMSVTrk = (*msvVertices.at(vtx))->trackParticle(t);
+              if (tmpMSVTrk == tmpTrk) {
+                trk_assoc_msv = vtx;
+              }
+            }
+          }
+        }
+        j_trk_assoc_msv.push_back(trk_assoc_msv);
+      }
+
       // algo
       unsigned int trackAlgo = 0;
       int index = -1;
@@ -2444,6 +2473,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_trk_theta->push_back(j_trk_theta);
     v_jet_trk_phi->push_back(j_trk_phi);
     v_jet_trk_dr->push_back(j_trk_dr);
+    v_jet_trk_assoc_msv->push_back(j_trk_assoc_msv);
     v_jet_trk_chi2->push_back(j_trk_chi2);
     v_jet_trk_ndf->push_back(j_trk_ndf);
     v_jet_trk_algo->push_back(j_trk_algo);
@@ -2774,6 +2804,7 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_trk_theta->clear();
   v_jet_trk_phi->clear();
   v_jet_trk_dr->clear();
+  v_jet_trk_assoc_msv->clear();
   v_jet_trk_chi2->clear();
   v_jet_trk_ndf->clear();
   v_jet_trk_algo->clear();

@@ -300,6 +300,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<std::vector<float> > *v_jet_trk_theta;
   std::vector<std::vector<float> > *v_jet_trk_phi;
   std::vector<std::vector<float> > *v_jet_trk_dr;
+  std::vector<std::vector<int> > *v_jet_trk_assoc_msv;
   std::vector<std::vector<float> > *v_jet_trk_chi2;
   std::vector<std::vector<float> > *v_jet_trk_ndf;
 
