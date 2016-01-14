@@ -18,7 +18,7 @@
 class IJetSelector;
 class IJetCalibrationTool;
 namespace InDet { class IInDetTrackSelectionTool; }
-namespace CP { 
+namespace CP {
   class ITrackVertexAssociationTool;
   class IPileupReweightingTool;
 }
@@ -32,18 +32,18 @@ enum TAGGERALGO{ IP2D=0,
 		 IP3D,
 		 SV0,
 		 SV1,
-		 JF }; 
+		 JF };
 
 enum TRKORIGIN{ PUFAKE=-1,
 		FROMB,
 		FROMC,
 		FRAG,
-		GEANT }; 
+		GEANT };
 
-class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm { 
- public: 
+class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
+ public:
   btagIBLAnalysisAlg( const std::string& name, ISvcLocator* pSvcLocator );
-  virtual ~btagIBLAnalysisAlg(); 
+  virtual ~btagIBLAnalysisAlg();
 
   virtual StatusCode  initialize();
   virtual StatusCode  execute();
@@ -52,7 +52,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   TFile* output;
   TTree* tree;
   std::string m_stream;
-  
+
   // general event info
   int runnumber;
   int eventnumber;
@@ -171,7 +171,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   float PV_jf_x; //mod Remco
   float PV_jf_y; //mod Remco
   float PV_jf_z; //mod Remco
-  
+
   std::vector<float> *v_jet_jf_pb;
   std::vector<float> *v_jet_jf_pc;
   std::vector<float> *v_jet_jf_pu;
@@ -234,6 +234,15 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_jet_msv_energyTrkInJet;
   std::vector<int> *v_jet_msv_nvsec;
   std::vector<float> *v_jet_msv_normdist;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_cov0;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_cov1;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_cov2;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_cov3;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_cov4;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_cov5;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_cov6;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_cov7;
+  std::vector<std::vector<float> > *v_jet_msv_vtx_cov8;
   std::vector<std::vector<float> > *v_jet_msv_vtx_mass;
   std::vector<std::vector<float> > *v_jet_msv_vtx_efrc;
   std::vector<std::vector<float> > *v_jet_msv_vtx_ntrk;

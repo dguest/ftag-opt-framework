@@ -314,6 +314,15 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_msv_energyTrkInJet = new std::vector<float>();
   v_jet_msv_nvsec = new std::vector<int>();
   v_jet_msv_normdist = new std::vector<float>();
+  v_jet_msv_vtx_cov0 = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_cov1 = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_cov2 = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_cov3 = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_cov4 = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_cov5 = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_cov6 = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_cov7 = new std::vector<std::vector<float> >();
+  v_jet_msv_vtx_cov8 = new std::vector<std::vector<float> >();
   v_jet_msv_vtx_mass = new std::vector<std::vector<float> >();
   v_jet_msv_vtx_efrc = new std::vector<std::vector<float> >();
   v_jet_msv_vtx_ntrk = new std::vector<std::vector<float> >();
@@ -597,6 +606,15 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     tree->Branch("jet_msv_energyTrkInJet", &v_jet_msv_energyTrkInJet);
     tree->Branch("jet_msv_nvsec", &v_jet_msv_nvsec);
     tree->Branch("jet_msv_normdist", &v_jet_msv_normdist);
+    tree->Branch("jet_msv_vtx_cov0", &v_jet_msv_vtx_cov0);
+    tree->Branch("jet_msv_vtx_cov1", &v_jet_msv_vtx_cov1);
+    tree->Branch("jet_msv_vtx_cov2", &v_jet_msv_vtx_cov2);
+    tree->Branch("jet_msv_vtx_cov3", &v_jet_msv_vtx_cov3);
+    tree->Branch("jet_msv_vtx_cov4", &v_jet_msv_vtx_cov4);
+    tree->Branch("jet_msv_vtx_cov5", &v_jet_msv_vtx_cov5);
+    tree->Branch("jet_msv_vtx_cov6", &v_jet_msv_vtx_cov6);
+    tree->Branch("jet_msv_vtx_cov7", &v_jet_msv_vtx_cov7);
+    tree->Branch("jet_msv_vtx_cov8", &v_jet_msv_vtx_cov8);
     tree->Branch("jet_msv_vtx_mass", &v_jet_msv_vtx_mass);
     tree->Branch("jet_msv_vtx_efrc", &v_jet_msv_vtx_efrc);
     tree->Branch("jet_msv_vtx_ntrk", &v_jet_msv_vtx_ntrk);
@@ -1640,9 +1658,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
     try {
       v_jet_mvb    ->push_back(bjet->auxdata<double>("MV2c10b_discriminant"));
     } catch(...) { }
-   
 
-    if(m_doMSV){
+
+    if (m_doMSV){
       // MSV
       // need initial values if no msv vertex is find, fix in MSVvariablesFactory
       double msv1;
@@ -1674,6 +1692,15 @@ StatusCode btagIBLAnalysisAlg::execute() {
       bjet->variable<std::vector<ElementLink<xAOD::VertexContainer> > >("MSV", "vertices", msvVertices);
 
       //tmp vectors
+      std::vector<float> j_msv_cov0 = std::vector<float>(msv_nvsec, 0);
+      std::vector<float> j_msv_cov1 = std::vector<float>(msv_nvsec, 0);
+      std::vector<float> j_msv_cov2 = std::vector<float>(msv_nvsec, 0);
+      std::vector<float> j_msv_cov3 = std::vector<float>(msv_nvsec, 0);
+      std::vector<float> j_msv_cov4 = std::vector<float>(msv_nvsec, 0);
+      std::vector<float> j_msv_cov5 = std::vector<float>(msv_nvsec, 0);
+      std::vector<float> j_msv_cov6 = std::vector<float>(msv_nvsec, 0);
+      std::vector<float> j_msv_cov7 = std::vector<float>(msv_nvsec, 0);
+      std::vector<float> j_msv_cov8 = std::vector<float>(msv_nvsec, 0);
       std::vector<float> j_msv_mass = std::vector<float>(msv_nvsec, 0);
       std::vector<float> j_msv_efrc = std::vector<float>(msv_nvsec, 0);
       std::vector<float> j_msv_ntrk = std::vector<float>(msv_nvsec, 0);
@@ -1689,9 +1716,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
       // loop over vertices
       int ivtx = 0;
-      if(msvVertices.size() > 0){
+      if (msvVertices.size() > 0) {
         const std::vector<ElementLink<xAOD::VertexContainer> >::const_iterator verticesEnd = msvVertices.end();
-        for(std::vector<ElementLink<xAOD::VertexContainer> >::const_iterator vtxIter = msvVertices.begin(); vtxIter != verticesEnd; ++vtxIter){
+        for (std::vector<ElementLink<xAOD::VertexContainer> >::const_iterator vtxIter = msvVertices.begin(); vtxIter != verticesEnd; ++vtxIter){
           if (msvVertices.size() >= 10) continue;
           float mass = xAOD::SecVtxHelper::VertexMass(**vtxIter);
           float efrc = xAOD::SecVtxHelper::EnergyFraction(**vtxIter);
@@ -1705,8 +1732,18 @@ StatusCode btagIBLAnalysisAlg::execute() {
           float zp = (**vtxIter)->z();
           float chi = (**vtxIter)->chiSquared();
           float ndf = (**vtxIter)->numberDoF();
+          std::vector<float> covariantMatrix = (**vtxIter)->covariance();
 
           if (ivtx < 10) {
+            j_msv_cov0[ivtx] = covariantMatrix.at(0);
+            j_msv_cov1[ivtx] = covariantMatrix.at(1);
+            j_msv_cov2[ivtx] = covariantMatrix.at(2);
+            j_msv_cov3[ivtx] = covariantMatrix.at(3);
+            j_msv_cov4[ivtx] = covariantMatrix.at(4);
+            j_msv_cov5[ivtx] = covariantMatrix.at(5);
+            j_msv_cov6[ivtx] = covariantMatrix.at(6);
+            j_msv_cov7[ivtx] = covariantMatrix.at(7);
+            j_msv_cov8[ivtx] = covariantMatrix.at(8);
             j_msv_mass[ivtx] = mass;
             j_msv_efrc[ivtx] = efrc;
             j_msv_ntrk[ivtx] = ntrk;
@@ -1725,6 +1762,15 @@ StatusCode btagIBLAnalysisAlg::execute() {
       }
 
       // fill info per vertex
+      v_jet_msv_vtx_cov0->push_back(j_msv_cov0);
+      v_jet_msv_vtx_cov1->push_back(j_msv_cov1);
+      v_jet_msv_vtx_cov2->push_back(j_msv_cov2);
+      v_jet_msv_vtx_cov3->push_back(j_msv_cov3);
+      v_jet_msv_vtx_cov4->push_back(j_msv_cov4);
+      v_jet_msv_vtx_cov5->push_back(j_msv_cov5);
+      v_jet_msv_vtx_cov6->push_back(j_msv_cov6);
+      v_jet_msv_vtx_cov7->push_back(j_msv_cov7);
+      v_jet_msv_vtx_cov8->push_back(j_msv_cov8);
       v_jet_msv_vtx_mass->push_back(j_msv_mass);
       v_jet_msv_vtx_efrc->push_back(j_msv_efrc);
       v_jet_msv_vtx_ntrk->push_back(j_msv_ntrk);
@@ -1741,20 +1787,19 @@ StatusCode btagIBLAnalysisAlg::execute() {
     } // end m_doMSV
 
     // ExKtbbTag
-    if(bjet->isAvailable<double>("ExKtbb_Hbb_DoubleMV2c20")) {
-      // reference mode
+    if (bjet->isAvailable<double>("ExKtbb_Hbb_DoubleMV2c20")) {
       v_jet_ExKtbb_Hbb_DoubleMV2c20->push_back(bjet->auxdata<double>("ExKtbb_Hbb_DoubleMV2c20"));
 
-      if(bjet->isAvailable<double>("ExKtbb_Hbb_SingleMV2c20")) {
+      if (bjet->isAvailable<double>("ExKtbb_Hbb_SingleMV2c20")) {
         v_jet_ExKtbb_Hbb_SingleMV2c20->push_back(bjet->auxdata<double>("ExKtbb_Hbb_SingleMV2c20"));
       }
-      if(bjet->isAvailable<double>("ExKtbb_Hbb_MV2Only")) {
+      if (bjet->isAvailable<double>("ExKtbb_Hbb_MV2Only")) {
         v_jet_ExKtbb_Hbb_MV2Only->push_back(bjet->auxdata<double>("ExKtbb_Hbb_MV2Only"));
       }
-      if(bjet->isAvailable<double>("ExKtbb_Hbb_MV2andJFDRSig")) {
+      if (bjet->isAvailable<double>("ExKtbb_Hbb_MV2andJFDRSig")) {
         v_jet_ExKtbb_Hbb_MV2andJFDRSig->push_back(bjet->auxdata<double>("ExKtbb_Hbb_MV2andJFDRSig"));
       }
-      if(bjet->isAvailable<double>("ExKtbb_Hbb_MV2andTopos")) {
+      if (bjet->isAvailable<double>("ExKtbb_Hbb_MV2andTopos")) {
         v_jet_ExKtbb_Hbb_MV2andTopos->push_back(bjet->auxdata<double>("ExKtbb_Hbb_MV2andTopos"));
       }
     } else {
@@ -2629,6 +2674,15 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_msv_energyTrkInJet->clear();
   v_jet_msv_nvsec->clear();
   v_jet_msv_normdist->clear();
+  v_jet_msv_vtx_cov0->clear();
+  v_jet_msv_vtx_cov1->clear();
+  v_jet_msv_vtx_cov2->clear();
+  v_jet_msv_vtx_cov3->clear();
+  v_jet_msv_vtx_cov4->clear();
+  v_jet_msv_vtx_cov5->clear();
+  v_jet_msv_vtx_cov6->clear();
+  v_jet_msv_vtx_cov7->clear();
+  v_jet_msv_vtx_cov8->clear();
   v_jet_msv_vtx_mass->clear();
   v_jet_msv_vtx_efrc->clear();
   v_jet_msv_vtx_ntrk->clear();
