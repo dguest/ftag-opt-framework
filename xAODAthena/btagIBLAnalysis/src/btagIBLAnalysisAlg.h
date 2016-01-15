@@ -344,7 +344,11 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<int>   *v_jet_jf_ntrk;
 
   // additions by Nikola
-  std::vector<std::vector<float> > *v_jet_trkjet_pt;
+  std::vector<std::vector<float> >  *v_jet_trkjet_pt;
+  std::vector<std::vector<float> >  *v_jet_trkjet_eta;
+  std::vector<std::vector<float> >  *v_jet_trkjet_phi;
+  std::vector<std::vector<float> >  *v_jet_trkjet_m;
+  std::vector<std::vector<int> >  *v_jet_trkjet_ntrk;
   std::vector<std::vector<double> > *v_jet_trkjet_mv2c20;
 
   // additions by Andrea
