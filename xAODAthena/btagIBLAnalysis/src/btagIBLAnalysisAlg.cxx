@@ -348,6 +348,24 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_ExKtbb_Hbb_MV2andJFDRSig = new std::vector<double>();
   v_jet_ExKtbb_Hbb_MV2andTopos = new std::vector<double>();
 
+  v_bH1_pt = new std::vector<float>();
+  v_bH1_eta = new std::vector<float>();
+  v_bH1_phi = new std::vector<float>();
+  v_bH1_Lxy = new std::vector<float>();
+  v_bH1_dRjet = new std::vector<float>();
+  v_bH1_x = new std::vector<float>();
+  v_bH1_y = new std::vector<float>();
+  v_bH1_z = new std::vector<float>();
+
+  v_bH2_pt = new std::vector<float>();
+  v_bH2_eta = new std::vector<float>();
+  v_bH2_phi = new std::vector<float>();
+  v_bH2_Lxy = new std::vector<float>();
+  v_bH2_dRjet = new std::vector<float>();
+  v_bH2_x = new std::vector<float>();
+  v_bH2_y = new std::vector<float>();
+  v_bH2_z = new std::vector<float>();
+
   v_bH_pt = new std::vector<float>();
   v_bH_eta = new std::vector<float>();
   v_bH_phi = new std::vector<float>();
@@ -656,6 +674,24 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   if (!m_essentialInfo) tree->Branch("jet_ExKtbb_Hbb_MV2Only", &v_jet_ExKtbb_Hbb_MV2Only);
   if (!m_essentialInfo) tree->Branch("jet_ExKtbb_Hbb_MV2andJFDRSig", &v_jet_ExKtbb_Hbb_MV2andJFDRSig);
   if (!m_essentialInfo) tree->Branch("jet_ExKtbb_Hbb_MV2andTopos", &v_jet_ExKtbb_Hbb_MV2andTopos);
+
+  if (!m_essentialInfo) tree->Branch("bH1_pt", &v_bH1_pt);
+  if (!m_essentialInfo) tree->Branch("bH1_eta", &v_bH1_eta);
+  if (!m_essentialInfo) tree->Branch("bH1_phi", &v_bH1_phi);
+  if (!m_essentialInfo) tree->Branch("bH1_Lxy", &v_bH1_Lxy);
+  if (!m_essentialInfo) tree->Branch("bH1_x", &v_bH1_x);
+  if (!m_essentialInfo) tree->Branch("bH1_y", &v_bH1_y);
+  if (!m_essentialInfo) tree->Branch("bH1_z", &v_bH1_z);
+  if (!m_essentialInfo) tree->Branch("bH1_dRjet", &v_bH1_dRjet);
+
+  if (!m_essentialInfo) tree->Branch("bH2_pt", &v_bH2_pt);
+  if (!m_essentialInfo) tree->Branch("bH2_eta", &v_bH2_eta);
+  if (!m_essentialInfo) tree->Branch("bH2_phi", &v_bH2_phi);
+  if (!m_essentialInfo) tree->Branch("bH2_Lxy", &v_bH2_Lxy);
+  if (!m_essentialInfo) tree->Branch("bH2_x", &v_bH2_x);
+  if (!m_essentialInfo) tree->Branch("bH2_y", &v_bH2_y);
+  if (!m_essentialInfo) tree->Branch("bH2_z", &v_bH2_z);
+  if (!m_essentialInfo) tree->Branch("bH2_dRjet", &v_bH2_dRjet);
 
   tree->Branch("bH_pt", &v_bH_pt);
   tree->Branch("bH_eta", &v_bH_eta);
@@ -1375,7 +1411,51 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<const xAOD::TruthParticle*> tracksFromC;
     std::vector<const xAOD::TruthParticle*> tracksFromCc;
 
-    // nikola to-do: add truth information for matched B and C Hadrons for double b-tagging
+    // nikola to-do: make this more elegant (maybe loop over all B Hadrons?) maybe add C1 and C2 info
+    if (matchedBH1 != NULL) {
+      v_bH1_pt->push_back(matchedBH1->pt());
+      v_bH1_eta->push_back(matchedBH1->eta());
+      v_bH1_phi->push_back(matchedBH1->phi());
+      float Lxy = sqrt( pow(matchedBH1->decayVtx()->x(), 2) + pow(matchedBH1->decayVtx()->y(), 2) );
+      v_bH1_Lxy->push_back(Lxy);
+      v_bH1_x->push_back(matchedBH1->decayVtx()->x());
+      v_bH1_y->push_back(matchedBH1->decayVtx()->y());
+      v_bH1_z->push_back(matchedBH1->decayVtx()->z());
+      float dr = deltaR(jet->eta(), matchedBH1->eta(), jet->phi(), matchedBH1->phi());
+      v_bH1_dRjet->push_back(dr);
+    }
+    else {
+      v_bH1_pt->push_back(-999);
+      v_bH1_eta->push_back(-999);
+      v_bH1_phi->push_back(-999);
+      v_bH1_Lxy->push_back(-999);
+      v_bH1_dRjet->push_back(-999);
+      v_bH1_x->push_back(-999);
+      v_bH1_y->push_back(-999);
+      v_bH1_z->push_back(-999);
+    }
+    if (matchedBH2 != NULL) {
+      v_bH2_pt->push_back(matchedBH2->pt());
+      v_bH2_eta->push_back(matchedBH2->eta());
+      v_bH2_phi->push_back(matchedBH2->phi());
+      float Lxy = sqrt( pow(matchedBH2->decayVtx()->x(), 2) + pow(matchedBH2->decayVtx()->y(), 2) );
+      v_bH2_Lxy->push_back(Lxy);
+      v_bH2_x->push_back(matchedBH2->decayVtx()->x());
+      v_bH2_y->push_back(matchedBH2->decayVtx()->y());
+      v_bH2_z->push_back(matchedBH2->decayVtx()->z());
+      float dr = deltaR(jet->eta(), matchedBH2->eta(), jet->phi(), matchedBH2->phi());
+      v_bH2_dRjet->push_back(dr);
+    }
+    else {
+      v_bH2_pt->push_back(-999);
+      v_bH2_eta->push_back(-999);
+      v_bH2_phi->push_back(-999);
+      v_bH2_Lxy->push_back(-999);
+      v_bH2_dRjet->push_back(-999);
+      v_bH2_x->push_back(-999);
+      v_bH2_y->push_back(-999);
+      v_bH2_z->push_back(-999);
+    }
     if (matchedBH != NULL) {
       v_bH_pt->push_back(matchedBH->pt());
       v_bH_eta->push_back(matchedBH->eta());
@@ -2797,6 +2877,24 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_ExKtbb_Hbb_MV2Only->clear();
   v_jet_ExKtbb_Hbb_MV2andJFDRSig->clear();
   v_jet_ExKtbb_Hbb_MV2andTopos->clear();
+
+  v_bH1_pt->clear();
+  v_bH1_eta->clear();
+  v_bH1_phi->clear();
+  v_bH1_Lxy->clear();
+  v_bH1_dRjet->clear();
+  v_bH1_x->clear();
+  v_bH1_y->clear();
+  v_bH1_z->clear();
+
+  v_bH2_pt->clear();
+  v_bH2_eta->clear();
+  v_bH2_phi->clear();
+  v_bH2_Lxy->clear();
+  v_bH2_dRjet->clear();
+  v_bH2_x->clear();
+  v_bH2_y->clear();
+  v_bH2_z->clear();
 
   v_bH_pt->clear();
   v_bH_eta->clear();

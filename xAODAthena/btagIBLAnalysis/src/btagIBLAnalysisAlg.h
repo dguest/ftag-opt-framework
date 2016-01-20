@@ -270,6 +270,24 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<double> *v_jet_ExKtbb_Hbb_MV2andTopos;
 
   // B hadron
+  std::vector<float> *v_bH1_pt;
+  std::vector<float> *v_bH1_eta;
+  std::vector<float> *v_bH1_phi;
+  std::vector<float> *v_bH1_Lxy;
+  std::vector<float> *v_bH1_x;
+  std::vector<float> *v_bH1_y;
+  std::vector<float> *v_bH1_z;
+  std::vector<float> *v_bH1_dRjet;
+
+  std::vector<float> *v_bH2_pt;
+  std::vector<float> *v_bH2_eta;
+  std::vector<float> *v_bH2_phi;
+  std::vector<float> *v_bH2_Lxy;
+  std::vector<float> *v_bH2_x;
+  std::vector<float> *v_bH2_y;
+  std::vector<float> *v_bH2_z;
+  std::vector<float> *v_bH2_dRjet;
+
   std::vector<float> *v_bH_pt;
   std::vector<float> *v_bH_eta;
   std::vector<float> *v_bH_phi;
