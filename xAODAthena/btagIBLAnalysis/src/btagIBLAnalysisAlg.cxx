@@ -4,6 +4,7 @@
 // Author(s): marx@cern.ch
 // Description: athena-based code to process xAODs
 ///////////////////////////////////////
+#include <utility>
 #include "GaudiKernel/ITHistSvc.h"
 #include "GaudiKernel/ServiceHandle.h"
 
@@ -439,6 +440,14 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_ip3d_ntrk = new std::vector<int>();
   v_jet_jf_ntrk = new std::vector<int>();
 
+  // MVb variables
+  v_jet_width  = new std::vector<float>();
+  v_jet_n_trk_sigd0cut  = new std::vector<int>();
+  v_jet_trk3_d0sig  = new std::vector<float>();
+  v_jet_trk3_z0sig  = new std::vector<float>();
+  v_jet_sv_scaled_efc  = new std::vector<float>();
+  v_jet_jf_scaled_efc  = new std::vector<float>();
+
   // additions by nikola
   v_jet_trkjet_pt = new std::vector<std::vector<float> >();
   v_jet_trkjet_eta = new std::vector<std::vector<float> >();
@@ -764,6 +773,15 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   if (!m_essentialInfo) tree->Branch("jet_sv1_ntrk",&v_jet_sv1_ntrk);
   if (!m_essentialInfo) tree->Branch("jet_ip3d_ntrk",&v_jet_ip3d_ntrk);
   if (!m_essentialInfo) tree->Branch("jet_jf_ntrk",&v_jet_jf_ntrk);
+
+  // MVb variables
+  if (!m_essentialInfo) tree->Branch("jet_width", &v_jet_width);
+  if (!m_essentialInfo) tree->Branch("jet_n_trk_sigd0cut", &v_jet_n_trk_sigd0cut);
+  if (!m_essentialInfo) tree->Branch("jet_trk3_d0sig", &v_jet_trk3_d0sig);
+  if (!m_essentialInfo) tree->Branch("jet_trk3_z0sig", &v_jet_trk3_z0sig);
+  if (!m_essentialInfo) tree->Branch("jet_sv_scaled_efc", &v_jet_sv_scaled_efc);
+  if (!m_essentialInfo) tree->Branch("jet_jf_scaled_efc", &v_jet_jf_scaled_efc);
+
 
   // additions by nikola
   if (!m_essentialInfo) tree->Branch("jet_trkjet_pt", &v_jet_trkjet_pt);
@@ -1898,6 +1916,81 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     } // end m_doMSV
 
+    // Generating MVb variables (as in MV2Tag.cxx) 
+    bool trksOK=IP3DTracks.size();
+
+    std::vector<float> vectD0, vectD0Signi, vectZ0, vectZ0Signi;    vectD0.clear(), vectD0Signi.clear(), vectZ0.clear(), vectZ0Signi.clear();
+    trksOK &= bjet->variable< std::vector<float> > ("IP3D", "valD0wrtPVofTracks", vectD0     );
+    trksOK &= bjet->variable< std::vector<float> > ("IP3D", "sigD0wrtPVofTracks", vectD0Signi);
+    trksOK &= bjet->variable< std::vector<float> > ("IP3D", "valZ0wrtPVofTracks", vectZ0     );
+    trksOK &= bjet->variable< std::vector<float> > ("IP3D", "sigZ0wrtPVofTracks", vectZ0Signi);
+    if (vectD0.size() and vectD0Signi.size() and vectZ0.size() and vectZ0Signi.size()) {
+      trksOK &= IP3DTracks.size() == vectD0.size();
+      trksOK &= IP3DTracks.size() == vectZ0.size();
+      trksOK &= IP3DTracks.size() == vectD0Signi.size();
+      trksOK &= IP3DTracks.size() == vectZ0Signi.size();
+    }
+    //std::cout<<"debug: "<<IP3DTracks.size()<<" "<<vectD0.size()<<" "<<vectZ0.size()<<" "<<vectD0Signi.size()<<" "<<vectZ0Signi.size()<<std::endl;
+
+    int ntrks = IP3DTracks.size();
+    float width = 0;
+    int   n_trk_d0cut = 0;
+    float trk3_d0sig = -100;
+    float trk3_z0sig = -100;
+    float sv_scaled_efc = -1;
+    float jf_scaled_efc = -1;
+    if (trksOK) {
+      ATH_MSG_VERBOSE("#BTAG# MV2: calculating MVb inputs.");
+
+      float sum_pt = 0., sum_pt_dr = 0.;
+
+      std::vector<std::pair<float, float> > trk_d0_z0;
+      trk_d0_z0.reserve(IP3DTracks.size());
+
+      unsigned trkIndex=0;
+      for(auto trkIter = IP3DTracks.begin(); trkIter != IP3DTracks.end(); ++trkIter) {
+        const xAOD::TrackParticle* aTemp = **trkIter;
+        TLorentzVector trk;
+        trk.SetPtEtaPhiM(aTemp->pt(), aTemp->eta(), aTemp->phi(), 0.);
+
+        // no need for a dedicated selection here, the tracks are already
+        // selected by the IP3D algorithm
+        const float d0sig = vectD0Signi.at(trkIndex);
+        const float z0sig = vectZ0Signi.at(trkIndex);
+        trkIndex++;
+
+        if (std::fabs(d0sig) > 1.8)
+          n_trk_d0cut++;
+
+        // track width components
+        sum_pt += trk.Pt();
+        const float dRtoJet = trk.DeltaR(jet->p4());
+        sum_pt_dr += dRtoJet * trk.Pt();
+
+        // for 3rd higest d0/z0 significance
+        trk_d0_z0.push_back(std::make_pair(d0sig, z0sig));
+      } //end of trk loop
+    
+      // sort by highest signed d0 sig
+      std::sort(trk_d0_z0.begin(), trk_d0_z0.end(), [](const std::pair<float, float>& a, const std::pair<float, float>& b) { 
+        return a.first > b.first; 
+      } );
+
+      //Assign MVb variables
+      if (sum_pt > 0) width = sum_pt_dr / sum_pt;
+      if (trk_d0_z0.size() > 2) trk3_d0sig = trk_d0_z0[2].first;
+      if (trk_d0_z0.size() > 2) trk3_z0sig = trk_d0_z0[2].second;
+      if (sv1ntrkv>0) sv_scaled_efc  =  sv1efc * (static_cast<float>(ntrks) / sv1ntrkv);
+      if (jfntrkAtVx + jfnvtx1t>0) jf_scaled_efc  =  jfefc * (static_cast<float>(ntrks) / (jfntrkAtVx + jfnvtx1t));
+    }
+
+    v_jet_width->push_back(width);
+    v_jet_n_trk_sigd0cut->push_back(n_trk_d0cut);
+    v_jet_trk3_d0sig->push_back(trk3_d0sig);
+    v_jet_trk3_z0sig->push_back(trk3_z0sig);
+    v_jet_sv_scaled_efc->push_back(sv_scaled_efc);
+    v_jet_jf_scaled_efc->push_back(jf_scaled_efc);
+
     // ExKtbbTag
     if (bjet->isAvailable<double>("ExKtbb_Hbb_DoubleMV2c20")) {
       std::vector<float> exktsubjet_pt;
@@ -2962,6 +3055,14 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_sv1_ntrk->clear();
   v_jet_ip3d_ntrk->clear();
   v_jet_jf_ntrk->clear();
+
+  // MVb variables
+  v_jet_width->clear();
+  v_jet_n_trk_sigd0cut->clear();
+  v_jet_trk3_d0sig->clear();
+  v_jet_trk3_z0sig->clear();
+  v_jet_sv_scaled_efc->clear();
+  v_jet_jf_scaled_efc->clear();
 
   // additions by nikola
   v_jet_trkjet_pt->clear();
