@@ -173,9 +173,13 @@ for JetCollection in JetCollections:
                                   ) #DEBUG
   alg.JetCollectionName = JetCollection
   alg.doSMT = doSMT
-  if "Track" in JetCollection or "Truth" in JetCollection:
-    alg.JetPtCut = 5.e3
-    alg.CleanJets = False
+  if "AntiKt2PV0TrackJets" in JetCollection or "Truth" in JetCollection:
+    alg.JetPtCut = 10.e3
+    alg.CleanJets     = False
+    alg.CalibrateJets = False
+  if "AntiKt3PV0TrackJets" in JetCollection or "AntiKt4PV0TrackJets" in JetCollection:
+    alg.JetPtCut = 7.e3
+    alg.CleanJets     = False
     alg.CalibrateJets = False
   else:
     alg.JetPtCut = 20.e3
