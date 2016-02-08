@@ -212,7 +212,7 @@ for JetCollection in JetCollections:
     alg.JetPtCut = 10.e3
     alg.CleanJets     = False
     alg.CalibrateJets = False
-  if "AntiKt3PV0TrackJets" in JetCollection or "AntiKt4PV0TrackJets" in JetCollection:
+  else if "AntiKt3PV0TrackJets" in JetCollection or "AntiKt4PV0TrackJets" in JetCollection:
     alg.JetPtCut = 7.e3
     alg.CleanJets     = False
     alg.CalibrateJets = False
