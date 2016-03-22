@@ -298,6 +298,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_mv2c10 = new std::vector<double>();
   v_jet_mv2c20 = new std::vector<double>();
   v_jet_mv2c100 = new std::vector<double>();
+  v_jet_mv2cl100 = new std::vector<double>();
   v_jet_mv2m_pu = new std::vector<double>();
   v_jet_mv2m_pc = new std::vector<double>();
   v_jet_mv2m_pb = new std::vector<double>();
@@ -629,6 +630,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   tree->Branch("jet_mv2c10", &v_jet_mv2c10);
   tree->Branch("jet_mv2c20", &v_jet_mv2c20);
   tree->Branch("jet_mv2c100", &v_jet_mv2c100);
+  tree->Branch("jet_mv2cl100", &v_jet_mv2cl100);
   tree->Branch("jet_mv2m_pu", &v_jet_mv2m_pu);
   tree->Branch("jet_mv2m_pc", &v_jet_mv2m_pc);
   tree->Branch("jet_mv2m_pb", &v_jet_mv2m_pb);
@@ -1777,6 +1779,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_mv2c10->push_back(bjet->auxdata<double>("MV2c10_discriminant"));
       v_jet_mv2c20->push_back(bjet->auxdata<double>("MV2c20_discriminant"));
       v_jet_mv2c100->push_back(bjet->auxdata<double>("MV2c100_discriminant"));
+      v_jet_mv2cl100->push_back(bjet->auxdata<double>("MV2cl100_discriminant"));
     } catch(...) { }
 
     try {
@@ -2920,6 +2923,7 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_mv2c10->clear();
   v_jet_mv2c20->clear();
   v_jet_mv2c100->clear();
+  v_jet_mv2cl100->clear();
   v_jet_mv2m_pu->clear();
   v_jet_mv2m_pb->clear();
   v_jet_mv2m_pc->clear();

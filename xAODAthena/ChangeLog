@@ -1,3 +1,6 @@
+2016-03-22 Jonathan Shlomi (jshlomi@cern.ch)
+	- added mv2cl100 ( c vs light version of MV2)
+
 2015-11-20     Valerio Dao (valerio.dao@cern.ch):
 	- fixing lepton overlap removal for all top generators
 	- adding Jet constituents
