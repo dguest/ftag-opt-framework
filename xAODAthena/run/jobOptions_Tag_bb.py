@@ -120,18 +120,18 @@ def buildExclusiveSubjets(JetCollectionName, nsubjet, ToolSvc = ToolSvc):
 
     from JetTagTools.JetTagToolsConf import Analysis__ExKtbbTagTool
     ExKtbbTagToolInstance = Analysis__ExKtbbTagTool(
-                                                    name = "ExKtbbTagTool%i_%s" % (nsubjet, JetCollectionName),
-                                                    JetAlgorithm = "Kt",
-                                                    JetRadius = 10.0,
-                                                    PtMin = 5000,
-                                                    ExclusiveNJets = 2,
-
-                                                    # SubjetFinder = subjetfinder,
-                                                    SubjetRecorder = subjetrecorder,
-                                                    SubjetLabel = subjetlabel,
-                                                    SubjetAlgorithm_BTAG = "AntiKt",
-                                                    SubjetRadius_BTAG = 0.4
-                                                   )
+      name = "ExKtbbTagTool%i_%s" % (nsubjet, JetCollectionName),
+      JetAlgorithm = "Kt",
+      JetRadius = 10.0,
+      PtMin = 5000,
+      ExclusiveNJets = 2,
+      SubjetContainerName = SubjetContainerName,
+      # SubjetFinder = subjetfinder,
+      SubjetRecorder = subjetrecorder,
+      SubjetLabel = subjetlabel,
+      SubjetAlgorithm_BTAG = "AntiKt",
+      SubjetRadius_BTAG = 0.4
+    )
     ToolSvc += ExKtbbTagToolInstance
 
     return (ExKtbbTagToolInstance, SubjetContainerName)
@@ -168,7 +168,8 @@ print "Fat Jet ExKt SubJet Collection:",JetCollectionExKtSubJetList
 from BTagging.BTaggingFlags import BTaggingFlags
 
 #### if the new file is already in the datatbase: simple edit the name
-BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-13'
+# BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-13'
+BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-16incl'
 
 #### if you want to use your own calibration file use this part below
 #BTaggingFlags.CalibrationFromLocalReplica = True
@@ -178,7 +179,17 @@ BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-13'
 defaultTaggers = ['IP2D', 'IP3D', 'SV0', 'MultiSVbb1', 'MultiSVbb2', 'SV1', 'BasicJetFitter', 'JetFitterTag', 'GbbNNTag', 'MV2c00', 'MV2c10', 'MV2c20', 'MV2c100', 'MV2m']
 specialTaggers = ['ExKtbb_Hbb_MV2Only', 'ExKtbb_Hbb_MV2andJFDRSig', 'ExKtbb_Hbb_MV2andTopos']
 
-BTaggingFlags.CalibrationChannelAliases += ["AntiKt10LCTopoTrimmedPtFrac5SmallR20->AntiKt10LCTopo,AntiKt6LCTopo,AntiKt6TopoEM,AntiKt4LCTopo,AntiKt4TopoEM,AntiKt4EMTopo"]
+### setup calibration aliases ###
+aliased_collecions = [
+  'AntiKt10LCTopoTrimmedPtFrac5SmallR20',
+  'AntiKt10LCTopoTrimmedPtFrac5SmallR20ExKt2Sub',
+  ]
+aliases = ['AntiKt10LCTopo', 'AntiKt6LCTopo', 'AntiKt6TopoEM',
+           'AntiKt4LCTopo', 'AntiKt4TopoEM', 'AntiKt4EMTopo']
+for aliased in aliased_collecions:
+  BTaggingFlags.CalibrationChannelAliases.append(
+    "{}->{}".format(aliased, ','.join(aliases)))
+
 for JetCollectionExKtSubJet in JetCollectionExKtSubJetList:
   BTaggingFlags.CalibrationChannelAliases += [JetCollectionExKtSubJet[:-4]+"->AntiKt4LCTopo"]
 
@@ -267,6 +278,7 @@ for JetCollection in JetCollections:
                                   TrackVertexAssociationTool=ToolSvc.TightVertexAssocTool,
                                   TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator,
                                   JVTtool=ToolSvc.JVT,
+                                  DumpCaloInfo=True,
                                   ) #DEBUG
   alg.JetCollectionName = JetCollection
   alg.doSMT = doSMT
