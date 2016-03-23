@@ -87,15 +87,21 @@ bool isFromWZ( const xAOD::TruthParticle* particle ) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pSvcLocator ) :
   AthHistogramAlgorithm(name, pSvcLocator),
+  m_SMT(false),
   m_stream("BTAGSTREAM"),
-  m_jetCalibrationTool(""),
+  m_dumpCaloInfo(false),
+  m_cluster_branches(),
+  m_substructure_moment_branches(),
+  m_exkt_branches(),
+  m_trkjet_branches(),
+  m_track_branches(),
   m_jetCleaningTool("JetCleaningTool/JetCleaningTool", this),
+  m_jetCalibrationTool(""),
   m_InDetTrackSelectorTool(""),
   m_TightTrackVertexAssociationTool(""),
   m_tdt("Trig::TrigDecisionTool/TrigDecisionTool"),
   m_GRLSelectionTool("GoodRunsListSelectionTool/GoodRunsListSelectionTool", this),
-  m_jvt(""),
-  m_SMT(false)
+  m_jvt("")
 {
   m_triggerLogic="";
   declareProperty( "Stream", m_stream );
@@ -119,12 +125,17 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   declareProperty( "GRLname", m_GRLname = "" );
   declareProperty( "JetCollectionName", m_jetCollectionName = "AntiKt4LCTopoJets" );
   declareProperty( "JetPtCut", m_jetPtCut = 20.e3 );
-  
+
   declareProperty( "TriggerLogic", m_triggerLogic );
+
+  declareProperty( "DumpCaloInfo", m_dumpCaloInfo);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-btagIBLAnalysisAlg::~btagIBLAnalysisAlg() {}
+btagIBLAnalysisAlg::~btagIBLAnalysisAlg() {
+  // FIXME: we're leaking memory with all the vectors, that we never
+  // delete, but I suppose there are bigger issues with this code.
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 StatusCode btagIBLAnalysisAlg::initialize() {
@@ -180,6 +191,15 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   CHECK( m_PUtool.retrieve() );
 
   ATH_CHECK(m_tdt.retrieve());
+
+  // addition from Dan: create cluster branches
+  if (m_dumpCaloInfo) {
+    m_cluster_branches.set_tree(*tree);
+    m_substructure_moment_branches.set_tree(*tree);
+  }
+  m_exkt_branches.set_tree(*tree, "jet_exktsubjet_");
+  m_trkjet_branches.set_tree(*tree, "jet_trkjet_");
+  m_track_branches.set_tree(*tree, "jet_trk_");
 
   // Setup branches
   v_jet_pt = new std::vector<float>(); //v_jet_pt->reserve(15);
@@ -322,9 +342,6 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_msv_vtx_cov3 = new std::vector<std::vector<float> >();
   v_jet_msv_vtx_cov4 = new std::vector<std::vector<float> >();
   v_jet_msv_vtx_cov5 = new std::vector<std::vector<float> >();
-  v_jet_msv_vtx_cov6 = new std::vector<std::vector<float> >();
-  v_jet_msv_vtx_cov7 = new std::vector<std::vector<float> >();
-  v_jet_msv_vtx_cov8 = new std::vector<std::vector<float> >();
   v_jet_msv_vtx_mass = new std::vector<std::vector<float> >();
   v_jet_msv_vtx_efrc = new std::vector<std::vector<float> >();
   v_jet_msv_vtx_ntrk = new std::vector<std::vector<float> >();
@@ -338,12 +355,6 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_msv_vtx_chi = new std::vector<std::vector<float> >();
   v_jet_msv_vtx_ndf = new std::vector<std::vector<float> >();
 
-  v_jet_exktsubjet_pt = new std::vector<std::vector<float> >();
-  v_jet_exktsubjet_eta = new std::vector<std::vector<float> >();
-  v_jet_exktsubjet_phi = new std::vector<std::vector<float> >();
-  v_jet_exktsubjet_m = new std::vector<std::vector<float> >();
-  v_jet_exktsubjet_ntrk = new std::vector<std::vector<int> >();
-  v_jet_exktsubjet_mv2c20 = new std::vector<std::vector<float> >();
   v_jet_ExKtbb_Hbb_DoubleMV2c20 = new std::vector<double>();
   v_jet_ExKtbb_Hbb_SingleMV2c20 = new std::vector<double>();
   v_jet_ExKtbb_Hbb_MV2Only = new std::vector<double>();
@@ -394,6 +405,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_trk_eta = new std::vector<std::vector<float> >();
   v_jet_trk_theta = new std::vector<std::vector<float> >();
   v_jet_trk_phi = new std::vector<std::vector<float> >();
+  v_jet_trk_qoverp = new std::vector<std::vector<float> >();
   v_jet_trk_dr = new std::vector<std::vector<float> >();
   v_jet_trk_assoc_msv = new std::vector<std::vector<int> >();   // mod nikola
   v_jet_trk_chi2 = new std::vector<std::vector<float> >();
@@ -434,6 +446,10 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_trk_IP2D_llr = new std::vector<std::vector<float> >();
   v_jet_trk_IP3D_llr = new std::vector<std::vector<float> >();
 
+  // non-lifetime signed
+  v_jet_trk_ip_d0 = new std::vector<std::vector<float> >();
+  v_jet_trk_ip_z0 = new std::vector<std::vector<float> >();
+
   v_jet_trk_jf_Vertex = new std::vector<std::vector<int> >(); // mod Remco
 
   // those are just quick accessors
@@ -448,14 +464,6 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_trk3_z0sig  = new std::vector<float>();
   v_jet_sv_scaled_efc  = new std::vector<float>();
   v_jet_jf_scaled_efc  = new std::vector<float>();
-
-  // additions by nikola
-  v_jet_trkjet_pt = new std::vector<std::vector<float> >();
-  v_jet_trkjet_eta = new std::vector<std::vector<float> >();
-  v_jet_trkjet_phi = new std::vector<std::vector<float> >();
-  v_jet_trkjet_m = new std::vector<std::vector<float> >();
-  v_jet_trkjet_ntrk = new std::vector<std::vector<int> >();
-  v_jet_trkjet_mv2c20 = new std::vector<std::vector<double> >();
 
   // additions by andrea
   v_jet_mu_assJet_pt = new std::vector<float>();
@@ -657,9 +665,6 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     tree->Branch("jet_msv_vtx_cov3", &v_jet_msv_vtx_cov3);
     tree->Branch("jet_msv_vtx_cov4", &v_jet_msv_vtx_cov4);
     tree->Branch("jet_msv_vtx_cov5", &v_jet_msv_vtx_cov5);
-    tree->Branch("jet_msv_vtx_cov6", &v_jet_msv_vtx_cov6);
-    tree->Branch("jet_msv_vtx_cov7", &v_jet_msv_vtx_cov7);
-    tree->Branch("jet_msv_vtx_cov8", &v_jet_msv_vtx_cov8);
     tree->Branch("jet_msv_vtx_mass", &v_jet_msv_vtx_mass);
     tree->Branch("jet_msv_vtx_efrc", &v_jet_msv_vtx_efrc);
     tree->Branch("jet_msv_vtx_ntrk", &v_jet_msv_vtx_ntrk);
@@ -674,12 +679,6 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     tree->Branch("jet_msv_vtx_ndf", &v_jet_msv_vtx_ndf);
   }
 
-  if (!m_essentialInfo) tree->Branch("jet_exktsubjet_pt", &v_jet_exktsubjet_pt);
-  if (!m_essentialInfo) tree->Branch("jet_exktsubjet_eta", &v_jet_exktsubjet_eta);
-  if (!m_essentialInfo) tree->Branch("jet_exktsubjet_phi", &v_jet_exktsubjet_phi);
-  if (!m_essentialInfo) tree->Branch("jet_exktsubjet_m", &v_jet_exktsubjet_m);
-  if (!m_essentialInfo) tree->Branch("jet_exktsubjet_ntrk", &v_jet_exktsubjet_ntrk);
-  if (!m_essentialInfo) tree->Branch("jet_exktsubjet_mv2c20", &v_jet_exktsubjet_mv2c20);
   if (!m_essentialInfo) tree->Branch("jet_ExKtbb_Hbb_DoubleMV2c20", &v_jet_ExKtbb_Hbb_DoubleMV2c20);
   if (!m_essentialInfo) tree->Branch("jet_ExKtbb_Hbb_SingleMV2c20", &v_jet_ExKtbb_Hbb_SingleMV2c20);
   if (!m_essentialInfo) tree->Branch("jet_ExKtbb_Hbb_MV2Only", &v_jet_ExKtbb_Hbb_MV2Only);
@@ -731,6 +730,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     tree->Branch("jet_trk_eta", &v_jet_trk_eta);
     tree->Branch("jet_trk_theta", &v_jet_trk_theta);
     tree->Branch("jet_trk_phi", &v_jet_trk_phi);
+    tree->Branch("jet_trk_qoverp", &v_jet_trk_qoverp);
     tree->Branch("jet_trk_dr", &v_jet_trk_dr);
     tree->Branch("jet_trk_assoc_msv", &v_jet_trk_assoc_msv);    // mod nikola
     tree->Branch("jet_trk_chi2", &v_jet_trk_chi2);
@@ -766,6 +766,9 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     tree->Branch("jet_trk_ip3d_d0sig", &v_jet_trk_IP3D_d0sig);
     tree->Branch("jet_trk_ip3d_z0sig", &v_jet_trk_IP3D_z0sig);
 
+    tree->Branch("jet_trk_ip_d0", &v_jet_trk_ip_d0);
+    tree->Branch("jet_trk_ip_z0", &v_jet_trk_ip_z0);
+
     tree->Branch("jet_trk_ip2d_llr", &v_jet_trk_IP2D_llr);
     tree->Branch("jet_trk_ip3d_llr", &v_jet_trk_IP3D_llr);
 
@@ -783,15 +786,6 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   if (!m_essentialInfo) tree->Branch("jet_trk3_z0sig", &v_jet_trk3_z0sig);
   if (!m_essentialInfo) tree->Branch("jet_sv_scaled_efc", &v_jet_sv_scaled_efc);
   if (!m_essentialInfo) tree->Branch("jet_jf_scaled_efc", &v_jet_jf_scaled_efc);
-
-
-  // additions by nikola
-  if (!m_essentialInfo) tree->Branch("jet_trkjet_pt", &v_jet_trkjet_pt);
-  if (!m_essentialInfo) tree->Branch("jet_trkjet_eta", &v_jet_trkjet_eta);
-  if (!m_essentialInfo) tree->Branch("jet_trkjet_phi", &v_jet_trkjet_phi);
-  if (!m_essentialInfo) tree->Branch("jet_trkjet_m", &v_jet_trkjet_m);
-  if (!m_essentialInfo) tree->Branch("jet_trkjet_ntrk", &v_jet_trkjet_ntrk);
-  if (!m_essentialInfo) tree->Branch("jet_trkjet_mv2c20", &v_jet_trkjet_mv2c20);
 
   // additions by andrea
   if (m_SMT) {
@@ -1138,6 +1132,12 @@ StatusCode btagIBLAnalysisAlg::execute() {
   // Now run over the selected jets and do whatever else needs doing
   for (unsigned int j = 0; j < selJets.size(); j++) {
     const xAOD::Jet *jet = selJets.at(j);
+
+    // addition from Dan: fill clusters
+    if (m_dumpCaloInfo) {
+      m_cluster_branches.fill(jet->getConstituents());
+      m_substructure_moment_branches.fill(*jet);
+    }
 
     // additions by nikola
     const xAOD::Jet *jet_parent = 0;
@@ -1600,11 +1600,14 @@ StatusCode btagIBLAnalysisAlg::execute() {
       assocTracks = bjet->auxdata<std::vector<ElementLink<xAOD::TrackParticleContainer> > >("BTagTrackToJetAssociator");
     }
 
+    // build vector of tracks to simplify interface
+    std::vector<const xAOD::TrackParticle*> associated_tracks;
     // temporary track loop - sums up the 4vectors of all valid b-tag tracks and outputs
     TLorentzVector pseudoTrackJet(0, 0, 0, 0);
     for (unsigned int iT = 0; iT < assocTracks.size(); iT++) {
       if (!assocTracks.at(iT).isValid()) continue;
       const xAOD::TrackParticle *tmpTrk = *(assocTracks.at(iT));
+      associated_tracks.push_back(tmpTrk);
 
       if (m_InDetTrackSelectorTool->accept(*tmpTrk, myVertex) && m_TightTrackVertexAssociationTool->isCompatible(*tmpTrk, *myVertex) ) {
 	TLorentzVector tmpTrack(0, 0, 0, 0);
@@ -1831,9 +1834,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
       std::vector<float> j_msv_cov3 = std::vector<float>(msv_nvsec, 0);
       std::vector<float> j_msv_cov4 = std::vector<float>(msv_nvsec, 0);
       std::vector<float> j_msv_cov5 = std::vector<float>(msv_nvsec, 0);
-      std::vector<float> j_msv_cov6 = std::vector<float>(msv_nvsec, 0);
-      std::vector<float> j_msv_cov7 = std::vector<float>(msv_nvsec, 0);
-      std::vector<float> j_msv_cov8 = std::vector<float>(msv_nvsec, 0);
       std::vector<float> j_msv_mass = std::vector<float>(msv_nvsec, 0);
       std::vector<float> j_msv_efrc = std::vector<float>(msv_nvsec, 0);
       std::vector<float> j_msv_ntrk = std::vector<float>(msv_nvsec, 0);
@@ -1874,9 +1874,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
             j_msv_cov3[ivtx] = covariantMatrix.at(3);
             j_msv_cov4[ivtx] = covariantMatrix.at(4);
             j_msv_cov5[ivtx] = covariantMatrix.at(5);
-            j_msv_cov6[ivtx] = covariantMatrix.at(6);
-            j_msv_cov7[ivtx] = covariantMatrix.at(7);
-            j_msv_cov8[ivtx] = covariantMatrix.at(8);
             j_msv_mass[ivtx] = mass;
             j_msv_efrc[ivtx] = efrc;
             j_msv_ntrk[ivtx] = ntrk;
@@ -1901,9 +1898,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_msv_vtx_cov3->push_back(j_msv_cov3);
       v_jet_msv_vtx_cov4->push_back(j_msv_cov4);
       v_jet_msv_vtx_cov5->push_back(j_msv_cov5);
-      v_jet_msv_vtx_cov6->push_back(j_msv_cov6);
-      v_jet_msv_vtx_cov7->push_back(j_msv_cov7);
-      v_jet_msv_vtx_cov8->push_back(j_msv_cov8);
       v_jet_msv_vtx_mass->push_back(j_msv_mass);
       v_jet_msv_vtx_efrc->push_back(j_msv_efrc);
       v_jet_msv_vtx_ntrk->push_back(j_msv_ntrk);
@@ -1996,37 +1990,11 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     // ExKtbbTag
     if (bjet->isAvailable<double>("ExKtbb_Hbb_DoubleMV2c20")) {
-      std::vector<float> exktsubjet_pt;
-      std::vector<float> exktsubjet_eta;
-      std::vector<float> exktsubjet_phi;
-      std::vector<float> exktsubjet_m;
-      std::vector<int> exktsubjet_ntrk;
-      std::vector<float> exktsubjet_mv2c20;
       std::vector<const xAOD::Jet*> exKtJets;
       jet->getAssociatedObjects<xAOD::Jet>("ExKt2SubJets", exKtJets);
       if (exKtJets.size() == 2) {
-        exktsubjet_pt.push_back(exKtJets.at(0)->pt());
-        exktsubjet_eta.push_back(exKtJets.at(0)->eta());
-        exktsubjet_phi.push_back(exKtJets.at(0)->phi());
-        exktsubjet_m.push_back(exKtJets.at(0)->m());
-        exktsubjet_ntrk.push_back(exKtJets.at(0)->numConstituents());
-        const xAOD::BTagging *exktsubjet_btag0 = exKtJets.at(0)->btagging();
-        exktsubjet_mv2c20.push_back(exktsubjet_btag0->auxdata<double>("MV2c20_discriminant"));
-
-        exktsubjet_pt.push_back(exKtJets.at(1)->pt());
-        exktsubjet_eta.push_back(exKtJets.at(1)->eta());
-        exktsubjet_phi.push_back(exKtJets.at(1)->phi());
-        exktsubjet_m.push_back(exKtJets.at(1)->m());
-        exktsubjet_ntrk.push_back(exKtJets.at(1)->numConstituents());
-        const xAOD::BTagging *exktsubjet_btag1 = exKtJets.at(1)->btagging();
-        exktsubjet_mv2c20.push_back(exktsubjet_btag1->auxdata<double>("MV2c20_discriminant"));
+        m_exkt_branches.fill(exKtJets);
       }
-      v_jet_exktsubjet_pt->push_back(exktsubjet_pt);
-      v_jet_exktsubjet_eta->push_back(exktsubjet_eta);
-      v_jet_exktsubjet_phi->push_back(exktsubjet_phi);
-      v_jet_exktsubjet_m->push_back(exktsubjet_m);
-      v_jet_exktsubjet_ntrk->push_back(exktsubjet_ntrk);
-      v_jet_exktsubjet_mv2c20->push_back(exktsubjet_mv2c20);
 
       v_jet_ExKtbb_Hbb_DoubleMV2c20->push_back(bjet->auxdata<double>("ExKtbb_Hbb_DoubleMV2c20"));
 
@@ -2051,36 +2019,12 @@ StatusCode btagIBLAnalysisAlg::execute() {
     if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(m_jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0) {
       // ATH_MSG_INFO("this is a trimmed large-R jet collection, adding information (pt and mv2c00) of track jets associated to parent untrimmed jet collection");
 
-      std::vector<float> trkjet_pt;
-      std::vector<float> trkjet_eta;
-      std::vector<float> trkjet_phi;
-      std::vector<float> trkjet_m;
-      std::vector<int> trkjet_ntrk;
-      std::vector<double> trkjet_mv2c20;
-
       std::vector<const xAOD::Jet*> ghostTrackJet2;
 
       jet_parent->getAssociatedObjects<xAOD::Jet>("GhostAntiKt2TrackJet", ghostTrackJet2);
-
-      for (unsigned int i = 0; i < ghostTrackJet2.size(); i++) {
-        // apply track jet selection
-        if (ghostTrackJet2.at(i)->numConstituents() >= 2 && ghostTrackJet2.at(i)->pt() > 10000 && fabs(ghostTrackJet2.at(i)->eta()) < 2.5) {
-          trkjet_pt.push_back(ghostTrackJet2.at(i)->pt());
-          trkjet_eta.push_back(ghostTrackJet2.at(i)->eta());
-          trkjet_phi.push_back(ghostTrackJet2.at(i)->phi());
-          trkjet_m.push_back(ghostTrackJet2.at(i)->m());
-          trkjet_ntrk.push_back(ghostTrackJet2.at(i)->numConstituents());
-
-          const xAOD::BTagging *ghostTrackBJet = ghostTrackJet2.at(i)->btagging();
-          trkjet_mv2c20.push_back(ghostTrackBJet->auxdata<double>("MV2c20_discriminant"));
-        }
+      if (ghostTrackJet2.size() >= 2) {
+        m_trkjet_branches.fill(ghostTrackJet2);
       }
-      v_jet_trkjet_pt->push_back(trkjet_pt);
-      v_jet_trkjet_eta->push_back(trkjet_eta);
-      v_jet_trkjet_phi->push_back(trkjet_phi);
-      v_jet_trkjet_m->push_back(trkjet_m);
-      v_jet_trkjet_ntrk->push_back(trkjet_ntrk);
-      v_jet_trkjet_mv2c20->push_back(trkjet_mv2c20);
     }
 
     // now the tracking part: prepare all the tmpVectors
@@ -2093,6 +2037,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> j_trk_eta;
     std::vector<float> j_trk_theta;
     std::vector<float> j_trk_phi;
+    std::vector<float> j_trk_qoverp;
     std::vector<float> j_trk_dr; // mod nikola
     std::vector<int> j_trk_assoc_msv; // mod nikola
     std::vector<float> j_trk_chi2;
@@ -2126,6 +2071,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> j_trk_ip3d_z0sig;
     std::vector<float> j_trk_ip2d_llr;
     std::vector<float> j_trk_ip3d_llr;
+
+    std::vector<float> j_trk_ip_d0;
+    std::vector<float> j_trk_ip_z0;
 
     std::vector<float> j_sv0_vtxx;
     std::vector<float> j_sv0_vtxy;
@@ -2192,9 +2140,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
           }
         }
       } catch(...) {
-         std::cout << "NO Muons found!" << std::endl;
-         // todo: write out some warning here but don't want to clog logfiles for now
-       }
+        ATH_MSG_INFO("NO Muons found!");
+      }
 
       /*
       std::cout << std::endl;
@@ -2443,6 +2390,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     ////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////
+    // Addition from Dan: first fill my track branches
+    m_track_branches.fill(associated_tracks);
     // MAIN TRACK LOOP
     for (unsigned int iT = 0; iT < assocTracks.size(); iT++) {
       // std::cout << " .... trk link: " << iT << std::endl;
@@ -2459,6 +2408,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       j_trk_eta.push_back(tmpTrk->eta());
       j_trk_theta.push_back(tmpTrk->theta());
       j_trk_phi.push_back(tmpTrk->phi());
+      j_trk_qoverp.push_back(tmpTrk->qOverP());
       j_trk_chi2.push_back(tmpTrk->chiSquared());
       j_trk_ndf.push_back(tmpTrk->numberDoF());
 
@@ -2478,7 +2428,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
         // loop over vertices
         if (msvVertices.size() > 0) {
-          for (int vtx = 0; vtx < msvVertices.size(); vtx++) {
+          for (size_t vtx = 0; vtx < msvVertices.size(); vtx++) {
             if (msvVertices.size() >= 10) continue;
 
             // loop over tracks
@@ -2642,6 +2592,10 @@ StatusCode btagIBLAnalysisAlg::execute() {
       j_trk_ip3d_d0sig.push_back( significance );
       j_trk_ip3d_z0sig.push_back(z0Sig);
 
+      // unsigned parameters
+      j_trk_ip_d0.push_back(d0wrtPriVtx);
+      j_trk_ip_z0.push_back(z0wrtPriVtx);
+
       // TRUTH track info ......
       if (origin == PUFAKE) {
         j_trk_d0_truth.push_back(-999);
@@ -2669,6 +2623,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_trk_eta->push_back(j_trk_eta);
     v_jet_trk_theta->push_back(j_trk_theta);
     v_jet_trk_phi->push_back(j_trk_phi);
+    v_jet_trk_qoverp->push_back(j_trk_qoverp);
     v_jet_trk_dr->push_back(j_trk_dr);
     v_jet_trk_assoc_msv->push_back(j_trk_assoc_msv);
     v_jet_trk_chi2->push_back(j_trk_chi2);
@@ -2699,6 +2654,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_trk_IP3D_d0sig->push_back(j_trk_ip3d_d0sig);
     v_jet_trk_IP3D_z0sig->push_back(j_trk_ip3d_z0sig);
 
+    v_jet_trk_ip_d0->  push_back(j_trk_ip_d0);
+    v_jet_trk_ip_z0->  push_back(j_trk_ip_z0);
+
     v_jet_trk_IP2D_llr->push_back(j_trk_ip2d_llr);
     v_jet_trk_IP3D_llr->push_back(j_trk_ip3d_llr);
 
@@ -2721,6 +2679,13 @@ StatusCode btagIBLAnalysisAlg::execute() {
   truth_electrons.clear();
   truth_muons.clear();
   selJets.clear();
+
+  // addition from Dan: clear branch collections
+  m_cluster_branches.clear();
+  m_substructure_moment_branches.clear();
+  m_exkt_branches.clear();
+  m_trkjet_branches.clear();
+  m_track_branches.clear();
 
   return StatusCode::SUCCESS;
 }
@@ -2947,9 +2912,6 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_msv_vtx_cov3->clear();
   v_jet_msv_vtx_cov4->clear();
   v_jet_msv_vtx_cov5->clear();
-  v_jet_msv_vtx_cov6->clear();
-  v_jet_msv_vtx_cov7->clear();
-  v_jet_msv_vtx_cov8->clear();
   v_jet_msv_vtx_mass->clear();
   v_jet_msv_vtx_efrc->clear();
   v_jet_msv_vtx_ntrk->clear();
@@ -2963,12 +2925,6 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_msv_vtx_chi->clear();
   v_jet_msv_vtx_ndf->clear();
 
-  v_jet_exktsubjet_pt->clear();
-  v_jet_exktsubjet_eta->clear();
-  v_jet_exktsubjet_phi->clear();
-  v_jet_exktsubjet_m->clear();
-  v_jet_exktsubjet_ntrk->clear();
-  v_jet_exktsubjet_mv2c20->clear();
   v_jet_ExKtbb_Hbb_DoubleMV2c20->clear();
   v_jet_ExKtbb_Hbb_SingleMV2c20->clear();
   v_jet_ExKtbb_Hbb_MV2Only->clear();
@@ -3019,6 +2975,7 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_trk_eta->clear();
   v_jet_trk_theta->clear();
   v_jet_trk_phi->clear();
+  v_jet_trk_qoverp->clear();
   v_jet_trk_dr->clear();
   v_jet_trk_assoc_msv->clear();
   v_jet_trk_chi2->clear();
@@ -3046,6 +3003,11 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_trk_IP3D_z0->clear();
   v_jet_trk_IP3D_d0sig->clear();
   v_jet_trk_IP3D_z0sig->clear();
+
+  v_jet_trk_ip_d0->clear();
+  v_jet_trk_ip_z0->clear();
+
+
   v_jet_trk_vtx_X->clear();
   v_jet_trk_vtx_Y->clear();
   v_jet_trk_vtx_dx->clear();
@@ -3067,14 +3029,6 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_trk3_z0sig->clear();
   v_jet_sv_scaled_efc->clear();
   v_jet_jf_scaled_efc->clear();
-
-  // additions by nikola
-  v_jet_trkjet_pt->clear();
-  v_jet_trkjet_eta->clear();
-  v_jet_trkjet_phi->clear();
-  v_jet_trkjet_m->clear();
-  v_jet_trkjet_ntrk->clear();
-  v_jet_trkjet_mv2c20->clear();
 
   // additions by andrea
   v_jet_mu_pt->clear();

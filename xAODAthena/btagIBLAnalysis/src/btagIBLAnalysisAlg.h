@@ -1,8 +1,14 @@
 #ifndef BTAGIBLANALYSIS_BTAGIBLANALYSISALG_H
 #define BTAGIBLANALYSIS_BTAGIBLANALYSISALG_H 1
 
+// Additions from Dan: classes to manage branches
+#include "ClusterBranches.hh"
+#include "SubjetBranches.hh"
+#include "TrackCovBranches.hh"
+#include "SubstructureMomentBranches.hh"
+
 #include "AthenaBaseComps/AthHistogramAlgorithm.h"
-#include "GaudiKernel/ToolHandle.h" 
+#include "GaudiKernel/ToolHandle.h"
 
 #include "TFile.h"
 #include "TTree.h"
@@ -241,9 +247,6 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<std::vector<float> > *v_jet_msv_vtx_cov3;
   std::vector<std::vector<float> > *v_jet_msv_vtx_cov4;
   std::vector<std::vector<float> > *v_jet_msv_vtx_cov5;
-  std::vector<std::vector<float> > *v_jet_msv_vtx_cov6;
-  std::vector<std::vector<float> > *v_jet_msv_vtx_cov7;
-  std::vector<std::vector<float> > *v_jet_msv_vtx_cov8;
   std::vector<std::vector<float> > *v_jet_msv_vtx_mass;
   std::vector<std::vector<float> > *v_jet_msv_vtx_efrc;
   std::vector<std::vector<float> > *v_jet_msv_vtx_ntrk;
@@ -258,12 +261,6 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<std::vector<float> > *v_jet_msv_vtx_ndf;
 
   // Exktbb
-  std::vector<std::vector<float> >  *v_jet_exktsubjet_pt;
-  std::vector<std::vector<float> >  *v_jet_exktsubjet_eta;
-  std::vector<std::vector<float> >  *v_jet_exktsubjet_phi;
-  std::vector<std::vector<float> >  *v_jet_exktsubjet_m;
-  std::vector<std::vector<int> >  *v_jet_exktsubjet_ntrk;
-  std::vector<std::vector<float> >  *v_jet_exktsubjet_mv2c20;
   std::vector<double> *v_jet_ExKtbb_Hbb_DoubleMV2c20;
   std::vector<double> *v_jet_ExKtbb_Hbb_SingleMV2c20;
   std::vector<double> *v_jet_ExKtbb_Hbb_MV2Only;
@@ -318,6 +315,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<std::vector<float> > *v_jet_trk_eta;
   std::vector<std::vector<float> > *v_jet_trk_theta;
   std::vector<std::vector<float> > *v_jet_trk_phi;
+  std::vector<std::vector<float> > *v_jet_trk_qoverp;
   std::vector<std::vector<float> > *v_jet_trk_dr;
   std::vector<std::vector<int> > *v_jet_trk_assoc_msv;
   std::vector<std::vector<float> > *v_jet_trk_chi2;
@@ -355,6 +353,10 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<std::vector<float> > *v_jet_trk_IP2D_llr;
   std::vector<std::vector<float> > *v_jet_trk_IP3D_llr;
 
+  // actual d0 variables (not lifetime-signed)
+  std::vector<std::vector<float> > *v_jet_trk_ip_d0;
+  std::vector<std::vector<float> > *v_jet_trk_ip_z0;
+
   std::vector<std::vector<int> > *v_jet_trk_jf_Vertex; //mod Remco
 
   // those are just quick accessors
@@ -369,14 +371,6 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_jet_trk3_z0sig;
   std::vector<float> *v_jet_sv_scaled_efc;
   std::vector<float> *v_jet_jf_scaled_efc;
-
-  // additions by Nikola
-  std::vector<std::vector<float> >  *v_jet_trkjet_pt;
-  std::vector<std::vector<float> >  *v_jet_trkjet_eta;
-  std::vector<std::vector<float> >  *v_jet_trkjet_phi;
-  std::vector<std::vector<float> >  *v_jet_trkjet_m;
-  std::vector<std::vector<int> >  *v_jet_trkjet_ntrk;
-  std::vector<std::vector<double> > *v_jet_trkjet_mv2c20;
 
   // additions by Andrea
   std::vector<float> *v_jet_mu_truthflav;
@@ -430,8 +424,19 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   bool m_cleanJets;
 
   std::string m_triggerLogic;
-  
- private: 
+
+ private:
+
+  // additions by Dan: branch collections
+  // cluster dumper
+  bool m_dumpCaloInfo;
+  ClusterBranches m_cluster_branches;
+  SubstructureMomentBranches m_substructure_moment_branches;
+  // subjet dumper
+  SubjetBranches m_exkt_branches;
+  SubjetBranches m_trkjet_branches;
+  // track dumper
+  TrackCovBranches m_track_branches;
 
   /// tool handle for jet cleaning tool
   ToolHandle< IJetSelector > m_jetCleaningTool;
