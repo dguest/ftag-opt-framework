@@ -13,7 +13,7 @@ JetCollections = [
   #'AntiKt4EMTopoJets', 
   #'AntiKt3PV0TrackJets',
   #'AntiKt2PV0TrackJets',
-  #'AntiKt4LCTopoJets', 
+  #'AntiKt4LCTopoJets',
   'AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets'
   ]
 
@@ -23,7 +23,7 @@ JetCollections = [
 ### Define input xAOD and output ntuple file name
 import glob
 from AthenaCommon.AthenaCommonFlags import jobproperties as jp
-jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1)
+jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(10)
 
 jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/n/nwhallon/public/xAOD_samples/mc15_13TeV.301523.MadGraphPythia8EvtGen_A14NNPDF23LO_RS_G_hh_bbbb_c20_M2000.merge.AOD.e3820_s2608_s2183_r6630_r6264_tid05471453_00/AOD.05471453._000002.pool.root.1" ]
 
@@ -101,7 +101,7 @@ print "geoFlags.isIBL() = "+str(  geoFlags.isIBL() )
 
 # Actually build AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets here
 from DerivationFrameworkJetEtMiss.ExtendedJetCommon import *
-addDefaultTrimmedJets(algSeq, "WhoCares")
+#addDefaultTrimmedJets(algSeq, "WhoCares")
 
 # make exkt subjet finding tool
 def buildExclusiveSubjets(JetCollectionName, nsubjet, ToolSvc = ToolSvc):
