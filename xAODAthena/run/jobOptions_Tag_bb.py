@@ -25,7 +25,9 @@ import glob
 from AthenaCommon.AthenaCommonFlags import jobproperties as jp
 jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(10)
 
-jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/n/nwhallon/public/xAOD_samples/mc15_13TeV.301523.MadGraphPythia8EvtGen_A14NNPDF23LO_RS_G_hh_bbbb_c20_M2000.merge.AOD.e3820_s2608_s2183_r6630_r6264_tid05471453_00/AOD.05471453._000002.pool.root.1" ]
+# nikola's input file with VR jets
+# (while we wait for a new derivation with these included)
+jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/n/nwhallon/public/VRDerivation/DAOD_VRJM.VRJM.pool.root"]
 
 svcMgr += CfgMgr.THistSvc()
 for jet in JetCollections:
@@ -100,7 +102,7 @@ print "geoFlags.isIBL() = "+str(  geoFlags.isIBL() )
 ### Qi: Jet Business
 
 # Actually build AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets here
-from DerivationFrameworkJetEtMiss.ExtendedJetCommon import *
+#from DerivationFrameworkJetEtMiss.ExtendedJetCommon import addDefaultTrimmedJets
 #addDefaultTrimmedJets(algSeq, "WhoCares")
 
 # make exkt subjet finding tool
@@ -228,14 +230,20 @@ FlavorTagInit(myTaggers      = defaultTaggers + specialTaggers,
 # JetCollections = JetCollections_BeforeBTag
 
 if doRetag:
+
   from BTagging.BTaggingConfiguration import getConfiguration
-  BTagConf = getConfiguration()
-  ip3d =BTagConf.getTool("IP3DTag", "BTagTrackToJetAssociator","AntiKt4EMTopo")
-  #ip3d.OutputLevel=DEBUG
-  #####ip3d.SortingMode="SortZ0D0"
-  
-  ip2d =BTagConf.getTool("IP2DTag", "BTagTrackToJetAssociator","AntiKt4EMTopo")
-  #####ip2d.SortingMode="SortPt"
+  btag_conf = getConfiguration()
+
+  # Stuff from Dan: dump more information on vertices
+  # replace JetFitter
+  from BTagging.BTaggingConfiguration import cloneToolCollection, getToolCollections
+  jfname = ("JetFitterCollection", "DG")
+  cloneToolCollection(*jfname)
+  for jc in JetCollections:
+    btag_conf.addTool('JetFitterTagNNDG', ToolSvc, "BTagTrackToJetAssociator",jc)
+    jfvx = btag_conf.getTool("NewJetFitterVxFinderDG", "BTagTrackToJetAssociator",jc)
+    jfvx.VertexClusteringProbabilityCut = 1.0
+
 
 ##########################################################################################################################################################
 ##########################################################################################################################################################
