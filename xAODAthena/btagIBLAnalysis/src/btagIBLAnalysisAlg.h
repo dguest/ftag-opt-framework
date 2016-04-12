@@ -6,6 +6,7 @@
 #include "SubjetBranches.hh"
 #include "TrackCovBranches.hh"
 #include "SubstructureMomentBranches.hh"
+#include "UnclusteredVertexBranches.hh"
 
 #include "AthenaBaseComps/AthHistogramAlgorithm.h"
 #include "GaudiKernel/ToolHandle.h"
@@ -444,6 +445,8 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   SubjetBranches m_trkjet_branches;
   // track dumper
   TrackCovBranches m_track_branches;
+  // unclustered vertices
+  UnclusteredVertexBranches m_unclustered_vertices;
 
   /// tool handle for jet cleaning tool
   ToolHandle< IJetSelector > m_jetCleaningTool;

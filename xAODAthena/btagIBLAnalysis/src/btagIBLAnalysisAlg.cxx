@@ -95,6 +95,7 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   m_exkt_branches(),
   m_trkjet_branches(),
   m_track_branches(),
+  m_unclustered_vertices(),
   m_jetCleaningTool("JetCleaningTool/JetCleaningTool", this),
   m_jetCalibrationTool(""),
   m_InDetTrackSelectorTool(""),
@@ -199,6 +200,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   }
   m_exkt_branches.set_tree(*tree, "jet_exktsubjet_");
   m_trkjet_branches.set_tree(*tree, "jet_trkjet_");
+  // FIXME: figure out how to retreve these!
+  // m_unclustered_vertices.set_tree(*tree, "jet_trkjet_");
   m_track_branches.set_tree(*tree, "jet_trk_");
 
   // Setup branches
@@ -2039,6 +2042,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
       jet->getAssociatedObjects<xAOD::Jet>("GhostAntiKt2TrackJet", ghostTrackJet2);
       if (ghostTrackJet2.size() >= 2) {
         m_trkjet_branches.fill(ghostTrackJet2);
+        // TODO: figure out how to retrieve these
+        // m_unclustered_vertices.fill(ghostTrackJet2);
       }
 
       std::vector<float> vrtrkjet_pt;
@@ -2733,6 +2738,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
   m_exkt_branches.clear();
   m_trkjet_branches.clear();
   m_track_branches.clear();
+  m_unclustered_vertices.clear();
 
   return StatusCode::SUCCESS;
 }
