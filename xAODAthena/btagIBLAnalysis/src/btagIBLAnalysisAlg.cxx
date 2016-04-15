@@ -200,8 +200,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   }
   m_exkt_branches.set_tree(*tree, "jet_exktsubjet_");
   m_trkjet_branches.set_tree(*tree, "jet_trkjet_");
-  // FIXME: figure out how to retreve these!
-  // m_unclustered_vertices.set_tree(*tree, "jet_trkjet_");
+  m_unclustered_vertices.set_tree(*tree, "jet_trkjet_");
   m_track_branches.set_tree(*tree, "jet_trk_");
 
   // Setup branches
@@ -2042,8 +2041,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       jet->getAssociatedObjects<xAOD::Jet>("GhostAntiKt2TrackJet", ghostTrackJet2);
       if (ghostTrackJet2.size() >= 2) {
         m_trkjet_branches.fill(ghostTrackJet2);
-        // TODO: figure out how to retrieve these
-        // m_unclustered_vertices.fill(ghostTrackJet2);
+        m_unclustered_vertices.fill(ghostTrackJet2);
       }
 
       std::vector<float> vrtrkjet_pt;

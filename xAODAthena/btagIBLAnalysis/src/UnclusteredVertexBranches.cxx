@@ -65,9 +65,10 @@ namespace {
     std::vector<int> jf_vx_n;
     for (const auto* jet: subjets) {
       const xAOD::BTagging* bjet = jet->btagging();
-      // get vertex counts
-      const auto& vertices = bjet->auxdata<BTagVertices>(
-        "JetFitterDG_JFvertices");
+      // get vertices
+      const BTagVertices vertices;
+      // const BTagVertices& vertices = bjet->auxdata<BTagVertices>(
+      //   "JetFitterDG_JFvertices");
       jf_vx_n.push_back(vertices.size());
       jf_vx_displacement.push_back(std::vector<float>());
       for (const auto& vx: vertices) {
