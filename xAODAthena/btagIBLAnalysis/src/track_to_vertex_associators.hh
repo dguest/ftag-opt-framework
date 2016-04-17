@@ -12,10 +12,13 @@ namespace xAOD {
 #include <string>
 
 namespace trkvx {
+  // map from the track particle to the vertex index
   typedef std::map<const xAOD::TrackParticle*, int> VxMap;
 
   VxMap get_jf_map(const xAOD::BTagging& btagging,
                    const std::string& name = "JetFitter");
+  VxMap get_msv_map(const xAOD::BTagging& btagging,
+                    const std::string& name = "MSV");
 }
 
 #endif

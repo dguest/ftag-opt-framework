@@ -4,6 +4,8 @@
 // Author(s): marx@cern.ch
 // Description: athena-based code to process xAODs
 ///////////////////////////////////////
+#include "track_to_vertex_associators.hh"
+
 #include <utility>
 #include "GaudiKernel/ITHistSvc.h"
 #include "GaudiKernel/ServiceHandle.h"
@@ -2442,6 +2444,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     ////////////////////////////////////////////////////////////////////////////////
     // Addition from Dan: first fill my track branches
     m_track_branches.fill(associated_tracks);
+    // build track to vertex maps (from track_to_vertex_associators)
+    auto msv_vtx_map = trkvx::get_msv_map(*bjet);
     // MAIN TRACK LOOP
     for (unsigned int iT = 0; iT < assocTracks.size(); iT++) {
       // std::cout << " .... trk link: " << iT << std::endl;
@@ -2470,27 +2474,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
       // if doing MSV, keep track of which MSV this track belongs to
       if (m_doMSV) {
-        int trk_assoc_msv = -1;
-
-        // get msv vertices
-        std::vector< ElementLink< xAOD::VertexContainer > > msvVertices;
-        bjet->variable<std::vector<ElementLink<xAOD::VertexContainer> > >("MSV", "vertices", msvVertices);
-
-        // loop over vertices
-        if (msvVertices.size() > 0) {
-          for (size_t vtx = 0; vtx < msvVertices.size(); vtx++) {
-            if (msvVertices.size() >= 10) continue;
-
-            // loop over tracks
-            int trk_num = (*msvVertices.at(vtx))->nTrackParticles();
-            for (int t = 0; t < trk_num; t++) {
-              const xAOD::TrackParticle *tmpMSVTrk = (*msvVertices.at(vtx))->trackParticle(t);
-              if (tmpMSVTrk == tmpTrk) {
-                trk_assoc_msv = vtx;
-              }
-            }
-          }
-        }
+        int trk_assoc_msv = msv_vtx_map.count(tmpTrk) ?
+          msv_vtx_map.at(tmpTrk) : -1;
         j_trk_assoc_msv.push_back(trk_assoc_msv);
       }
 
