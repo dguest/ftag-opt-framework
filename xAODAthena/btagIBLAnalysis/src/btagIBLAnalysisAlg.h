@@ -373,13 +373,6 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_jet_sv_scaled_efc;
   std::vector<float> *v_jet_jf_scaled_efc;
 
-  std::vector<std::vector<float> >  *v_jet_vrtrkjet_pt;
-  std::vector<std::vector<float> >  *v_jet_vrtrkjet_eta;
-  std::vector<std::vector<float> >  *v_jet_vrtrkjet_phi;
-  std::vector<std::vector<float> >  *v_jet_vrtrkjet_m;
-  std::vector<std::vector<int> >  *v_jet_vrtrkjet_ntrk;
-  std::vector<std::vector<double> > *v_jet_vrtrkjet_mv2c20;
-
   // additions by Andrea
   std::vector<float> *v_jet_mu_truthflav;
   std::vector<float> *v_jet_mu_dR;
@@ -442,7 +435,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   SubstructureMomentBranches m_substructure_moment_branches;
   // subjet dumper
   SubjetBranches m_exkt_branches;
-  SubjetBranches m_trkjet_branches;
+  SubjetBranches m_vrtrkjet_branches;
   // track dumper
   TrackCovBranches m_track_branches;
   // unclustered vertices
