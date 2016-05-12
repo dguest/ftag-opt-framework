@@ -1,0 +1,43 @@
+Index: jobOptions_tagdl1.py
+===================================================================
+--- jobOptions_tagdl1.py	(revision 321829)
++++ jobOptions_tagdl1.py	(working copy)
+@@ -11,9 +11,9 @@
+ JetCollections = [
+   ##"AntiKt10LCTopoJets"
+   'AntiKt4EMTopoJets',
+-  'AntiKt4PV0TrackJets',
+-  'AntiKt3PV0TrackJets',
+-  'AntiKt2PV0TrackJets',
++  # 'AntiKt4PV0TrackJets',
++  # 'AntiKt3PV0TrackJets',
++  # 'AntiKt2PV0TrackJets',
+   #'AntiKt4LCTopoJets',
+   ]
+ 
+@@ -143,9 +143,9 @@
+ ###############BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-10'
+ 
+ #### if you want to use your own calibration file use this part below
+-#BTaggingFlags.CalibrationFromLocalReplica = True
+-#BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
+-#BTaggingFlags.CalibrationTag = 'BTagCalibRUN2-test'
++BTaggingFlags.CalibrationFromLocalReplica = True
++BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
++BTaggingFlags.CalibrationTag = 'BTagCalibRUN2-test'
+ 
+ # if the calibration for DL1 is to be read in from a local JSON file
+ BTaggingFlags.DL1 = True
+@@ -156,6 +156,12 @@
+ svcMgr.THistSvc.Output.append(
+   "FTAG DATAFILE='tagger_inputs.root' OPT='RECREATE'")
+ 
++# blank second field means read from file
++BTaggingFlags.RNNIP = True
++BTaggingFlags.RNNIPConfig = {'rnnip': ''}
++                             # 'rnnip-config.json'}
++BTaggingFlags.OutputLevel = DEBUG
++
+ include("RetagFragment.py")
+ if doRetag:
+   from BTagging.BTaggingConfiguration import getConfiguration
