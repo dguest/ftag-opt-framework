@@ -35,6 +35,8 @@ namespace Trk  { class ITrackToVertexIPEstimator; }
 class IGoodRunsListSelectionTool;
 class IJetUpdateJvt;
 
+class ArbitraryJetBranches;
+
 enum TAGGERALGO{ IP2D=0,
 		 IP3D,
 		 SV0,
@@ -440,6 +442,9 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   TrackCovBranches m_track_branches;
   // unclustered vertices
   UnclusteredVertexBranches m_unclustered_vertices;
+  // must be initialized after the constructor
+  ArbitraryJetBranches* m_arb_branches;
+  std::vector<std::string> m_arb_branch_names;
 
   /// tool handle for jet cleaning tool
   ToolHandle< IJetSelector > m_jetCleaningTool;

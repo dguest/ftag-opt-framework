@@ -12,6 +12,7 @@
 
 #include "btagIBLAnalysisAlg.h"
 #include "GAFlavourLabel.h"
+#include "ArbitraryJetBranches.hh"
 
 #include "xAODEventInfo/EventInfo.h"
 #include "xAODTruth/TruthEventContainer.h"
@@ -98,6 +99,7 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   m_vrtrkjet_branches(),
   m_track_branches(),
   m_unclustered_vertices(),
+  m_arb_branches(0),
   m_jetCleaningTool("JetCleaningTool/JetCleaningTool", this),
   m_jetCalibrationTool(""),
   m_InDetTrackSelectorTool(""),
@@ -132,10 +134,12 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   declareProperty( "TriggerLogic", m_triggerLogic );
 
   declareProperty( "DumpCaloInfo", m_dumpCaloInfo);
+  declareProperty( "ArbitraryBranchNames", m_arb_branch_names);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 btagIBLAnalysisAlg::~btagIBLAnalysisAlg() {
+  delete m_arb_branches;
   // FIXME: we're leaking memory with all the vectors, that we never
   // delete, but I suppose there are bigger issues with this code.
 }
@@ -200,10 +204,16 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     m_cluster_branches.set_tree(*tree);
     m_substructure_moment_branches.set_tree(*tree);
   }
-  m_exkt_branches.set_tree(*tree, "jet_exktsubjet_");
-  m_vrtrkjet_branches.set_tree(*tree, "jet_vrtrkjet_");
-  m_unclustered_vertices.set_tree(*tree, "jet_trkjet_");
-  m_track_branches.set_tree(*tree, "jet_trk_");
+  if (!m_essentialInfo) {
+    m_exkt_branches.set_tree(*tree, "jet_exktsubjet_");
+    m_vrtrkjet_branches.set_tree(*tree, "jet_vrtrkjet_");
+    m_unclustered_vertices.set_tree(*tree, "jet_trkjet_");
+    m_track_branches.set_tree(*tree, "jet_trk_");
+  }
+  if (m_arb_branch_names.size() > 0) {
+    m_arb_branches = new ArbitraryJetBranches(m_arb_branch_names);
+    m_arb_branches->set_tree(*tree, "jet_");
+  }
 
   // Setup branches
   v_jet_pt = new std::vector<float>(); //v_jet_pt->reserve(15);
@@ -1142,6 +1152,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       m_cluster_branches.fill(jet->getConstituents());
       m_substructure_moment_branches.fill(*jet);
     }
+    if (m_arb_branches) m_arb_branches->fill(*jet);
 
     // additions by nikola
     const xAOD::Jet *jet_parent = 0;
@@ -2680,6 +2691,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
   m_vrtrkjet_branches.clear();
   m_track_branches.clear();
   m_unclustered_vertices.clear();
+
+  if (m_arb_branches) m_arb_branches->clear();
 
   return StatusCode::SUCCESS;
 }
