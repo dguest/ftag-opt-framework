@@ -11,9 +11,9 @@ doComputeReference=False
 JetCollections = [
   ##"AntiKt10LCTopoJets"
   'AntiKt4EMTopoJets',
-  'AntiKt4PV0TrackJets',
-  'AntiKt3PV0TrackJets',
-  'AntiKt2PV0TrackJets',
+  # 'AntiKt4PV0TrackJets',
+  # 'AntiKt3PV0TrackJets',
+  # 'AntiKt2PV0TrackJets',
   #'AntiKt4LCTopoJets',
   ]
 

@@ -310,6 +310,7 @@ for JetCollection in JetCollections:
   alg.DoMSV     =DoMSV
   alg.Rel20     =True
   alg.CleanJets = True
+  alg.SubjetInfo = True
   #alg.CleanParentJets = True
   alg.JetCleaningTool.CutLevel= "LooseBad" 
   alg.JetCleaningTool.DoUgly  = True
