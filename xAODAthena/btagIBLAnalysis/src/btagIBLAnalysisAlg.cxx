@@ -911,7 +911,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
   const xAOD::VertexContainer *vertices = 0;
   CHECK( evtStore()->retrieve(vertices, "PrimaryVertices") );
   npv = 0;
-  int m_indexPV = -1;
+  size_t indexPV = 0;
+  bool has_pv = false;
   xAOD::VertexContainer::const_iterator vtx_itr = vertices->begin();
   xAOD::VertexContainer::const_iterator vtx_end = vertices->end();
   int count = -1;
@@ -921,19 +922,20 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_PVz->push_back(  (*vtx_itr)->z() );
       npv++;
       if ((*vtx_itr)->vertexType() == 1) {
-	if (PV_x != -999) ATH_MSG_WARNING( ".... second PV in the events ...!!!!!!");
-	m_indexPV = count;
-	PV_x = (*vtx_itr)->x(); // VALERIO !!!!!!!!
- 	PV_y = (*vtx_itr)->y(); // VALERIO !!!!!!!!
-	PV_z = (*vtx_itr)->z();
+        if (PV_x != -999) ATH_MSG_WARNING( ".... second PV in the events ...!!!!!!");
+        indexPV = count;
+        has_pv = true;
+        PV_x = (*vtx_itr)->x(); // VALERIO !!!!!!!!
+        PV_y = (*vtx_itr)->y(); // VALERIO !!!!!!!!
+        PV_z = (*vtx_itr)->z();
       }
     }
   }
-  if (m_indexPV == -1) {
+  if (!has_pv) {
     ATH_MSG_WARNING( ".... rejecting the event due to missing PV!!!!");
     return StatusCode::SUCCESS;
   }
-  const xAOD::Vertex *myVertex = vertices->at(m_indexPV); // the (reco?) primary vertex
+  const xAOD::Vertex *myVertex = vertices->at(indexPV); // the (reco?) primary vertex
 
   //---------------------------------------------------------------------------------------------
   // Trigger part
@@ -1259,7 +1261,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     float jvfV = 0;
     std::vector<float> testjvf;
     bool jetHasJVF = jet->getAttribute<std::vector<float> >(xAOD::JetAttribute::JVF, testjvf);
-    if (jetHasJVF && testjvf.size() > m_indexPV) jvfV = testjvf.at(m_indexPV);
+    if (jetHasJVF && testjvf.size() > indexPV) jvfV = testjvf.at(indexPV);
 
     v_jet_JVF->push_back(jvfV);
     // JVT
@@ -2144,8 +2146,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
             float dr = deltaR(tmpMuon->eta(), jet->eta(), tmpMuon->phi(), jet->phi());
             const ElementLink< xAOD::TrackParticleContainer >& pMuIDTrack = tmpMuon->inDetTrackParticleLink();
             const ElementLink< xAOD::TrackParticleContainer >& pMuMSTrack = tmpMuon->muonSpectrometerTrackParticleLink();
-            const xAOD::Vertex *pVtx = (*pMuIDTrack)->vertex();
-            const std::vector<float>&cov = (*pMuIDTrack)->definingParametersCovMatrixVec();
+            // const xAOD::Vertex *pVtx = (*pMuIDTrack)->vertex();
+            // const std::vector<float>&cov = (*pMuIDTrack)->definingParametersCovMatrixVec();
             float momBalSignif0 = 999.;
             tmpMuon->parameter(momBalSignif0, xAOD::Muon::momentumBalanceSignificance);
             if (momBalSignif0 == 0) continue;
@@ -3086,7 +3088,7 @@ int btagIBLAnalysisAlg :: parent_classify(const xAOD::TruthParticle *theParticle
 int btagIBLAnalysisAlg :: getTrackOrigin(const xAOD::TrackParticle *tmpTrk,
                                          std::vector<const xAOD::TruthParticle*> tracksFromB,
                                          std::vector<const xAOD::TruthParticle*> tracksFromC,
-                                         std::vector<const xAOD::TruthParticle*> tracksFromCc,
+                                         std::vector<const xAOD::TruthParticle*> /*tracksFromCc*/,
                                          std::vector<const xAOD::TruthParticle*> tracksFromB1,
                                          std::vector<const xAOD::TruthParticle*> tracksFromB2,
                                          std::vector<const xAOD::TruthParticle*> tracksFromC1,
