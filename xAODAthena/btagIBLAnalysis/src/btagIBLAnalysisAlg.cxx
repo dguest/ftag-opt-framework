@@ -2144,7 +2144,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
             if (!assocMuons.at(iT).isValid()) continue;
             const xAOD::Muon *tmpMuon = *(assocMuons.at(iT));
             float dr = deltaR(tmpMuon->eta(), jet->eta(), tmpMuon->phi(), jet->phi());
-            const ElementLink< xAOD::TrackParticleContainer >& pMuIDTrack = tmpMuon->inDetTrackParticleLink();
+            // const ElementLink< xAOD::TrackParticleContainer >& pMuIDTrack = tmpMuon->inDetTrackParticleLink();
             const ElementLink< xAOD::TrackParticleContainer >& pMuMSTrack = tmpMuon->muonSpectrometerTrackParticleLink();
             // const xAOD::Vertex *pVtx = (*pMuIDTrack)->vertex();
             // const std::vector<float>&cov = (*pMuIDTrack)->definingParametersCovMatrixVec();
