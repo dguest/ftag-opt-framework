@@ -90,7 +90,6 @@ bool isFromWZ( const xAOD::TruthParticle* particle ) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pSvcLocator ) :
   AthHistogramAlgorithm(name, pSvcLocator),
-  m_SMT(false),
   m_stream("BTAGSTREAM"),
   m_dumpCaloInfo(false),
   m_cluster_branches(),
@@ -121,9 +120,10 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
 
   declareProperty( "EssentialInfo", m_essentialInfo =true );
   declareProperty( "ReduceInfo"   , m_reduceInfo=false );
+  declareProperty( "SubjetInfo"   , m_subjetInfo=false );
   declareProperty( "Rel20", m_rel20 = false );
   declareProperty( "DoMSV", m_doMSV = false );
-  declareProperty( "doSMT", m_SMT);
+  declareProperty( "doSMT", m_SMT = false );
   declareProperty( "CalibrateJets", m_calibrateJets = true );
   declareProperty( "CleanJets", m_cleanJets = true );
 
@@ -204,10 +204,12 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     m_cluster_branches.set_tree(*tree);
     m_substructure_moment_branches.set_tree(*tree);
   }
-  if (!m_essentialInfo) {
+  if (m_subjetInfo) {
     m_exkt_branches.set_tree(*tree, "jet_exktsubjet_");
     m_vrtrkjet_branches.set_tree(*tree, "jet_vrtrkjet_");
     m_unclustered_vertices.set_tree(*tree, "jet_trkjet_");
+  }
+  if (!m_reduceInfo) {
     m_track_branches.set_tree(*tree, "jet_trk_");
   }
   if (m_arb_branch_names.size() > 0) {
@@ -574,9 +576,9 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   if (!m_essentialInfo) tree->Branch("jet_ip2d_pu", &v_jet_ip2d_pu);
   tree->Branch("jet_ip2d_llr", &v_jet_ip2d_llr);
 
-  if (!m_essentialInfo) tree->Branch("jet_ip3d_pb", &v_jet_ip3d_pb);
-  if (!m_essentialInfo) tree->Branch("jet_ip3d_pc", &v_jet_ip3d_pc);
-  if (!m_essentialInfo) tree->Branch("jet_ip3d_pu", &v_jet_ip3d_pu);
+  tree->Branch("jet_ip3d_pb", &v_jet_ip3d_pb);
+  tree->Branch("jet_ip3d_pc", &v_jet_ip3d_pc);
+  tree->Branch("jet_ip3d_pu", &v_jet_ip3d_pu);
   tree->Branch("jet_ip3d_llr", &v_jet_ip3d_llr);
 
   tree->Branch("jet_sv0_sig3d", &v_jet_sv0_sig3d);
