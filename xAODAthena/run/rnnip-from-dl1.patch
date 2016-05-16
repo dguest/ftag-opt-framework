@@ -1,64 +1,64 @@
---- jobOptions_tagdl1.py	2016-05-16 18:53:40.000000001 +0200
-+++ ../xAODAthena/run/jobOptions_tagdl1.py	2016-05-15 17:37:18.000000001 +0200
+--- ../xAODAthena/run/jobOptions_tagdl1.py	2016-05-15 17:37:18.000000001 +0200
++++ jobOptions_tagdl1.py	2016-05-16 18:53:40.000000001 +0200
 @@ -2,7 +2,7 @@
  ##########################################################################################################################################################
  ### MAIN SWITCHES
  
--ONLYEssentialInfo =True   ## write minimal amount of info on the output file
-+ONLYEssentialInfo =False   ## write minimal amount of info on the output file
+-ONLYEssentialInfo =False   ## write minimal amount of info on the output file
++ONLYEssentialInfo =True   ## write minimal amount of info on the output file
  ReduceInfo        =False    ## write minimal amount of info on the output file
  DoMSV             =True   ## include variables for MSV tagger
  doSMT             =False   ## include variables for SMT tagger
-@@ -148,18 +148,13 @@
+@@ -148,13 +148,18 @@
  #BTaggingFlags.CalibrationTag = 'BTagCalibRUN2-test'
  
  # if the calibration for DL1 is to be read in from a local JSON file
--# BTaggingFlags.DL1 = True
--# BTaggingFlags.DL1LocalNNConfig = "BTagging_DL1_NNconfig.json"
-+BTaggingFlags.DL1 = True
-+BTaggingFlags.DL1LocalNNConfig = "BTagging_DL1_NNconfig.json"
+-BTaggingFlags.DL1 = True
+-BTaggingFlags.DL1LocalNNConfig = "BTagging_DL1_NNconfig.json"
++# BTaggingFlags.DL1 = True
++# BTaggingFlags.DL1LocalNNConfig = "BTagging_DL1_NNconfig.json"
  
--# BTaggingFlags.TagNtupleDumper = True
--# BTaggingFlags.TagNtupleStream = "FTAG"
--# svcMgr.THistSvc.Output.append(
--#   "FTAG DATAFILE='tagger_inputs.root' OPT='RECREATE'")
--
--# blank second field means read from file
--BTaggingFlags.RNNIP = True
--BTaggingFlags.RNNIPConfig = {'ipmp': 'ipmp.json'}
--BTaggingFlags.OutputLevel = INFO
-+BTaggingFlags.TagNtupleDumper = True
-+BTaggingFlags.TagNtupleStream = "FTAG"
-+svcMgr.THistSvc.Output.append(
-+  "FTAG DATAFILE='tagger_inputs.root' OPT='RECREATE'")
+-BTaggingFlags.TagNtupleDumper = True
+-BTaggingFlags.TagNtupleStream = "FTAG"
+-svcMgr.THistSvc.Output.append(
+-  "FTAG DATAFILE='tagger_inputs.root' OPT='RECREATE'")
++# BTaggingFlags.TagNtupleDumper = True
++# BTaggingFlags.TagNtupleStream = "FTAG"
++# svcMgr.THistSvc.Output.append(
++#   "FTAG DATAFILE='tagger_inputs.root' OPT='RECREATE'")
++
++# blank second field means read from file
++BTaggingFlags.RNNIP = True
++BTaggingFlags.RNNIPConfig = {'ipmp': 'ipmp.json'}
++BTaggingFlags.OutputLevel = INFO
  
  include("RetagFragment.py")
  if doRetag:
-@@ -210,13 +205,6 @@
+@@ -205,6 +210,13 @@
  ##########################################################################################################################################################
  ##########################################################################################################################################################
  
--ipnn_inputs = [
--  "d0", "d0sig", "z0", "z0sig", "d0z0sig", "grade", "fromV0", "pt", "dPhi",
--  "absEta", "chi2", "nInnHits", "nNextToInnHits", "nBLHits", "nsharedBLHits",
--  "nsplitBLHits", "nPixHits", "nsharedPixHits", "nsplitPixHits", "nSCTHits",
--  "nsharedSCTHits", "expectBLayerHit",
--]
--
++ipnn_inputs = [
++  "d0", "d0sig", "z0", "z0sig", "d0z0sig", "grade", "fromV0", "pt", "dPhi",
++  "absEta", "chi2", "nInnHits", "nNextToInnHits", "nBLHits", "nsharedBLHits",
++  "nsplitBLHits", "nPixHits", "nsharedPixHits", "nsplitPixHits", "nSCTHits",
++  "nsharedSCTHits", "expectBLayerHit",
++]
++
  ### Main Ntuple Dumper Algorithm
  for JetCollection in JetCollections:
    shortJetName=JetCollection.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr")
-@@ -249,13 +237,6 @@
+@@ -237,6 +249,13 @@
    alg.JetCleaningTool.DoUgly  = True
    if not doComputeReference: algSeq += alg
  
--  # add RNN outputs
--  for tagger in BTaggingFlags.RNNIPConfig:
--    for flav in ['pu', 'pc', 'pb', 'ptau']:
--      alg.ArbitraryDoubleBranches.append(tagger + '_' + flav)
--    for inpt in ipnn_inputs:
--      alg.ArbitraryFloatVectorBranches.append(tagger + '_' + inpt)
--
++  # add RNN outputs
++  for tagger in BTaggingFlags.RNNIPConfig:
++    for flav in ['pu', 'pc', 'pb', 'ptau']:
++      alg.ArbitraryDoubleBranches.append(tagger + '_' + flav)
++    for inpt in ipnn_inputs:
++      alg.ArbitraryFloatVectorBranches.append(tagger + '_' + inpt)
++
    ###print JetCollection
    calibfile        = "JES_Prerecommendation2015_Feb2015.config"
    collectionForTool="AntiKt4LCTopo"
