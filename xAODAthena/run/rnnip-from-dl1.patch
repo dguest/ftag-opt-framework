@@ -1,49 +1,41 @@
---- jobOptions_tagdl1.py	2016-05-15 17:34:32.000000001 +0200
-+++ ../../run/jobOptions_tagdl1.py	2016-05-15 16:20:51.000000001 +0200
-@@ -2,7 +2,7 @@
- ##########################################################################################################################################################
- ### MAIN SWITCHES
- 
--ONLYEssentialInfo =False   ## write minimal amount of info on the output file
-+ONLYEssentialInfo =True   ## write minimal amount of info on the output file
- ReduceInfo        =False    ## write minimal amount of info on the output file
- DoMSV             =True   ## include variables for MSV tagger
- doSMT             =False   ## include variables for SMT tagger
-@@ -148,13 +148,18 @@
- #BTaggingFlags.CalibrationTag = 'BTagCalibRUN2-test'
- 
- # if the calibration for DL1 is to be read in from a local JSON file
--BTaggingFlags.DL1 = True
--BTaggingFlags.DL1LocalNNConfig = "BTagging_DL1_NNconfig.json"
-+# BTaggingFlags.DL1 = True
-+# BTaggingFlags.DL1LocalNNConfig = "BTagging_DL1_NNconfig.json"
- 
--BTaggingFlags.TagNtupleDumper = True
--BTaggingFlags.TagNtupleStream = "FTAG"
--svcMgr.THistSvc.Output.append(
--  "FTAG DATAFILE='tagger_inputs.root' OPT='RECREATE'")
-+# BTaggingFlags.TagNtupleDumper = True
-+# BTaggingFlags.TagNtupleStream = "FTAG"
-+# svcMgr.THistSvc.Output.append(
-+#   "FTAG DATAFILE='tagger_inputs.root' OPT='RECREATE'")
-+
-+# blank second field means read from file
-+BTaggingFlags.RNNIP = True
-+BTaggingFlags.RNNIPConfig = {'ipmp': 'ipmp.json'}
-+BTaggingFlags.OutputLevel = INFO
- 
- include("RetagFragment.py")
- if doRetag:
-@@ -237,6 +242,12 @@
-   alg.JetCleaningTool.DoUgly  = True
-   if not doComputeReference: algSeq += alg
- 
-+  # add RNN outputs
-+  for tagger in BTaggingFlags.RNNIPConfig:
-+    for flav in ['pu', 'pc', 'pb', 'ptau']:
-+      alg.ArbitraryBranchNames.append(tagger + '_' + flav)
-+
-+
-   ###print JetCollection
-   calibfile        = "JES_Prerecommendation2015_Feb2015.config"
-   collectionForTool="AntiKt4LCTopo"
+5c5
+< ONLYEssentialInfo =True   ## write minimal amount of info on the output file
+---
+> ONLYEssentialInfo =False   ## write minimal amount of info on the output file
+151,152c151,152
+< # BTaggingFlags.DL1 = True
+< # BTaggingFlags.DL1LocalNNConfig = "BTagging_DL1_NNconfig.json"
+---
+> BTaggingFlags.DL1 = True
+> BTaggingFlags.DL1LocalNNConfig = "BTagging_DL1_NNconfig.json"
+154,162c154,157
+< # BTaggingFlags.TagNtupleDumper = True
+< # BTaggingFlags.TagNtupleStream = "FTAG"
+< # svcMgr.THistSvc.Output.append(
+< #   "FTAG DATAFILE='tagger_inputs.root' OPT='RECREATE'")
+< 
+< # blank second field means read from file
+< BTaggingFlags.RNNIP = True
+< BTaggingFlags.RNNIPConfig = {'ipmp': 'ipmp.json'}
+< BTaggingFlags.OutputLevel = INFO
+---
+> BTaggingFlags.TagNtupleDumper = True
+> BTaggingFlags.TagNtupleStream = "FTAG"
+> svcMgr.THistSvc.Output.append(
+>   "FTAG DATAFILE='tagger_inputs.root' OPT='RECREATE'")
+213,219d207
+< ipnn_inputs = [
+<   "d0", "d0sig", "z0", "z0sig", "d0z0sig", "grade", "fromV0", "pt", "dPhi",
+<   "absEta", "chi2", "nInnHits", "nNextToInnHits", "nBLHits", "nsharedBLHits",
+<   "nsplitBLHits", "nPixHits", "nsharedPixHits", "nsplitPixHits", "nSCTHits",
+<   "nsharedSCTHits", "expectBLayerHit",
+< ]
+< 
+252,258d239
+<   # add RNN outputs
+<   for tagger in BTaggingFlags.RNNIPConfig:
+<     for flav in ['pu', 'pc', 'pb', 'ptau']:
+<       alg.ArbitraryDoubleBranches.append(tagger + '_' + flav)
+<     for inpt in ipnn_inputs:
+<       alg.ArbitraryFloatVectorBranches.append(tagger + '_' + inpt)
+< 
