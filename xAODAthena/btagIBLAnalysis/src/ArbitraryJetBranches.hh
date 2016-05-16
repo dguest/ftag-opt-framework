@@ -16,7 +16,8 @@ class ArbitraryJetBranches
 {
 public:
   // might want to add a prefix to the constructor for the tree branches
-  ArbitraryJetBranches(const std::vector<std::string>& float_branches);
+  ArbitraryJetBranches(const std::vector<std::string>& double_branches,
+                       const std::vector<std::string>& float_vec_branches);
   ~ArbitraryJetBranches();
 
   // disable copying and assignment
@@ -27,7 +28,9 @@ public:
   void fill(const xAOD::Jet& jet);
   void clear();
 private:
-  std::vector<std::pair<std::string, std::vector<float>*  > > m_floats;
+  typedef std::vector<std::vector<float> > VecVecF;
+  std::vector<std::pair<std::string, std::vector<double>*  > > m_doubles;
+  std::vector<std::pair<std::string, VecVecF* > > m_vec_floats;
 };
 
 #endif // ARBITRARY_JET_BRANCHES_HH

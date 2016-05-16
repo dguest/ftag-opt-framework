@@ -445,7 +445,8 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   UnclusteredVertexBranches m_unclustered_vertices;
   // must be initialized after the constructor
   ArbitraryJetBranches* m_arb_branches;
-  std::vector<std::string> m_arb_branch_names;
+  std::vector<std::string> m_arb_double_names;
+  std::vector<std::string> m_arb_float_vec_names;
 
   /// tool handle for jet cleaning tool
   ToolHandle< IJetSelector > m_jetCleaningTool;

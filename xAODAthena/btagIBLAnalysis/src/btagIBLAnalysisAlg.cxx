@@ -134,7 +134,8 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   declareProperty( "TriggerLogic", m_triggerLogic );
 
   declareProperty( "DumpCaloInfo", m_dumpCaloInfo);
-  declareProperty( "ArbitraryBranchNames", m_arb_branch_names);
+  declareProperty( "ArbitraryDoubleBranches", m_arb_double_names);
+  declareProperty( "ArbitraryFloatVectorBranches", m_arb_float_vec_names);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -212,8 +213,9 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   if (!m_reduceInfo) {
     m_track_branches.set_tree(*tree, "jet_trk_");
   }
-  if (m_arb_branch_names.size() > 0) {
-    m_arb_branches = new ArbitraryJetBranches(m_arb_branch_names);
+  if (m_arb_double_names.size() + m_arb_float_vec_names.size() > 0) {
+    m_arb_branches = new ArbitraryJetBranches(m_arb_double_names,
+                                              m_arb_float_vec_names);
     m_arb_branches->set_tree(*tree, "jet_");
   }
 
@@ -1151,13 +1153,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
   for (unsigned int j = 0; j < selJets.size(); j++) {
     const xAOD::Jet *jet = selJets.at(j);
 
-    // addition from Dan: fill clusters
-    if (m_dumpCaloInfo) {
-      m_cluster_branches.fill(jet->getConstituents());
-      m_substructure_moment_branches.fill(*jet);
-    }
-    if (m_arb_branches) m_arb_branches->fill(*jet);
-
     // additions by nikola
     const xAOD::Jet *jet_parent = 0;
     if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(m_jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0) {
@@ -1208,6 +1203,14 @@ StatusCode btagIBLAnalysisAlg::execute() {
       if (dr < dRiso) dRiso = dr;
     }
     v_jet_dRiso->push_back(dRiso);
+
+    // addition from Dan: fill clusters
+    if (m_dumpCaloInfo) {
+      m_cluster_branches.fill(jet->getConstituents());
+      m_substructure_moment_branches.fill(*jet);
+    }
+    // and fill arbitrary branches
+    if (m_arb_branches) m_arb_branches->fill(*jet);
 
     // matching reco jets to truth jets and recording the truth jet pT
     // picking the highest pT truth jet (with pT > 7GeV) that satisfies dR < 0.3
