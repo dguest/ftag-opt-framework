@@ -1,5 +1,5 @@
---- ../xAODAthena/run/jobOptions_tagdl1.py	2016-05-15 17:37:18.000000001 +0200
-+++ jobOptions_tagdl1.py	2016-05-16 18:53:40.000000001 +0200
+--- jobOptions_tagdl1.py	2016-05-17 11:18:21.000000001 +0200
++++ ../../run/jobOptions_ipmp.py	2016-05-17 14:52:10.000000001 +0200
 @@ -2,7 +2,7 @@
  ##########################################################################################################################################################
  ### MAIN SWITCHES
@@ -9,13 +9,20 @@
  ReduceInfo        =False    ## write minimal amount of info on the output file
  DoMSV             =True   ## include variables for MSV tagger
  doSMT             =False   ## include variables for SMT tagger
-@@ -148,13 +148,18 @@
- #BTaggingFlags.CalibrationTag = 'BTagCalibRUN2-test'
+@@ -140,7 +140,7 @@
+ from BTagging.BTaggingFlags import BTaggingFlags
+ 
+ #### if the new file is already in the datatbase: simple edit the name
+-###############BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-10'
++BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-19'
+ 
+ #### if you want to use your own calibration file use this part below
+ #BTaggingFlags.CalibrationFromLocalReplica = True
+@@ -149,12 +149,17 @@
  
  # if the calibration for DL1 is to be read in from a local JSON file
--BTaggingFlags.DL1 = True
+ BTaggingFlags.DL1 = True
 -BTaggingFlags.DL1LocalNNConfig = "BTagging_DL1_NNconfig.json"
-+# BTaggingFlags.DL1 = True
 +# BTaggingFlags.DL1LocalNNConfig = "BTagging_DL1_NNconfig.json"
  
 -BTaggingFlags.TagNtupleDumper = True
@@ -48,7 +55,7 @@
  ### Main Ntuple Dumper Algorithm
  for JetCollection in JetCollections:
    shortJetName=JetCollection.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr")
-@@ -237,6 +249,13 @@
+@@ -237,6 +249,18 @@
    alg.JetCleaningTool.DoUgly  = True
    if not doComputeReference: algSeq += alg
  
@@ -58,6 +65,11 @@
 +      alg.ArbitraryDoubleBranches.append(tagger + '_' + flav)
 +    for inpt in ipnn_inputs:
 +      alg.ArbitraryFloatVectorBranches.append(tagger + '_' + inpt)
++
++  # DL1 outputs (only use if we have "essential info" turned on)
++  if ONLYEssentialInfo:
++    for flav in 'bcu':
++      alg.ArbitraryDoubleBranches.append('DL1_p' + flav)
 +
    ###print JetCollection
    calibfile        = "JES_Prerecommendation2015_Feb2015.config"
