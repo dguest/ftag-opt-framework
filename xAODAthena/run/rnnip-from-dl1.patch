@@ -1,5 +1,5 @@
 --- jobOptions_tagdl1.py	2016-05-17 11:18:21.000000001 +0200
-+++ ../../run/jobOptions_ipmp.py	2016-05-17 14:52:10.000000001 +0200
++++ ../../run/jobOptions_ipmp.py	2016-05-17 16:22:54.000000001 +0200
 @@ -2,7 +2,7 @@
  ##########################################################################################################################################################
  ### MAIN SWITCHES
@@ -36,8 +36,8 @@
 +
 +# blank second field means read from file
 +BTaggingFlags.RNNIP = True
-+BTaggingFlags.RNNIPConfig = {'ipmp': 'ipmp.json'}
-+BTaggingFlags.OutputLevel = INFO
++BTaggingFlags.RNNIPConfig = {'ipmp': 'ipmp.json', 'ipmk': 'ipmk.json'}
++BTaggingFlags.OutputLevel = DEBUG
  
  include("RetagFragment.py")
  if doRetag:
@@ -55,16 +55,19 @@
  ### Main Ntuple Dumper Algorithm
  for JetCollection in JetCollections:
    shortJetName=JetCollection.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr")
-@@ -237,6 +249,18 @@
+@@ -237,6 +249,21 @@
    alg.JetCleaningTool.DoUgly  = True
    if not doComputeReference: algSeq += alg
  
 +  # add RNN outputs
-+  for tagger in BTaggingFlags.RNNIPConfig:
++  for tagger in ['ipmp']:
 +    for flav in ['pu', 'pc', 'pb', 'ptau']:
 +      alg.ArbitraryDoubleBranches.append(tagger + '_' + flav)
 +    for inpt in ipnn_inputs:
 +      alg.ArbitraryFloatVectorBranches.append(tagger + '_' + inpt)
++
++  # SLAC version
++  alg.ArbitraryDoubleBranches.append('ipmk_pb')
 +
 +  # DL1 outputs (only use if we have "essential info" turned on)
 +  if ONLYEssentialInfo:
