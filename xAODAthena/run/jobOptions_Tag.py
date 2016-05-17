@@ -10,11 +10,11 @@ doRetag           =False   ## perform retagging
 doComputeReference=False
 JetCollections = [
   ##"AntiKt10LCTopoJets"
-  'AntiKt4EMTopoJets', 
+  'AntiKt4EMTopoJets',
   'AntiKt4PV0TrackJets',
   #'AntiKt3PV0TrackJets',
   'AntiKt2PV0TrackJets',
-  #'AntiKt4LCTopoJets', 
+  #'AntiKt4LCTopoJets',
   ]
 
 #### automatic AF2 switch
@@ -34,7 +34,7 @@ import glob
 from AthenaCommon.AthenaCommonFlags import jobproperties as jp
 jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock( vars().get('EVTMAX', -1) )
 
-jp.AthenaCommonFlags.FilesInput = [ 
+jp.AthenaCommonFlags.FilesInput = [
 "/afs/cern.ch/user/g/ggonella/ggonella/public/ForValerio/mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264_tid05419191_00/AOD.05419191._000184.pool.root.1"
   ##"/afs/cern.ch/user/v/vdao/mc15_8TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e3099_s2578_r7135_tid06628604_00/AOD.06628604._000221.pool.root.1",
   ##"/afs/cern.ch/user/v/vdao/valid1.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e3099_s2578_r7058_tid06432679_00/AOD.06432679._000066.pool.root.1",
@@ -57,7 +57,7 @@ if af.fileinfos.has_key("evt_type"):
     simType = af.fileinfos['metadata']['/Simulation/Parameters']['SimulationFlavour']
     if simType  == 'default' :
       print "VALERIO SAYS: THIS IS FS"
-    elif simType  == 'atlfast' : 
+    elif simType  == 'atlfast' :
       print "VALERIO SAYS: THIS IS AF2"
       isAF2=True
 
@@ -124,7 +124,7 @@ algSeq = AlgSequence()
 
 ##########################################################################################################################################################
 ##########################################################################################################################################################
-### GEO Business 
+### GEO Business
 from AthenaCommon.GlobalFlags import globalflags
 print "detDescr from global flags= "+str(globalflags.DetDescrVersion)
 from AtlasGeoModel.InDetGMJobProperties import GeometryFlags as geoFlags
@@ -198,7 +198,7 @@ ToolSvc += CfgMgr.CP__PileupReweightingTool("prw",
 ### Main Ntuple Dumper Algorithm
 for JetCollection in JetCollections:
   shortJetName=JetCollection.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr")
-  alg = CfgMgr.btagIBLAnalysisAlg("BTagDumpAlg_"+JetCollection, 
+  alg = CfgMgr.btagIBLAnalysisAlg("BTagDumpAlg_"+JetCollection,
                                   OutputLevel=INFO,
                                   Stream=shortJetName,
                                   InDetTrackSelectionTool   =ToolSvc.InDetTrackSelTool,
@@ -223,15 +223,15 @@ for JetCollection in JetCollections:
   alg.EssentialInfo=ONLYEssentialInfo
   alg.DoMSV     =DoMSV
   alg.Rel20     =True
-  alg.JetCleaningTool.CutLevel= "LooseBad" 
+  alg.JetCleaningTool.CutLevel= "LooseBad"
   alg.JetCleaningTool.DoUgly  = True
   if not doComputeReference: algSeq += alg
-  
+
   ###print JetCollection
   calibfile        = "JES_Prerecommendation2015_Feb2015.config"
   collectionForTool="AntiKt4LCTopo"
   calSeg           ="JetArea_Residual_EtaJES"
-  if "EM" in JetCollection: 
+  if "EM" in JetCollection:
     collectionForTool="AntiKt4EMTopo"
     calibfile  ="JES_MC15Prerecommendation_April2015.config"
     if isAF2: calibfile  ="JES_MC15Prerecommendation_AFII_June2015.config"
@@ -241,7 +241,7 @@ for JetCollection in JetCollections:
                                        IsData=False,
                                        ConfigFile=calibfile,
                                        CalibSequence=calSeg,
-                                       JetCollection=collectionForTool) 
+                                       JetCollection=collectionForTool)
 
 
 ###########################################################################################################################################################################
