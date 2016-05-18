@@ -27,7 +27,8 @@ jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(10)
 
 # nikola's input file with VR jets
 # (while we wait for a new derivation with these included)
-jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/n/nwhallon/public/VRDerivation/DAOD_VRJM.VRJM.pool.root"]
+#jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/n/nwhallon/public/VRDerivation/DAOD_VRJM.VRJM.pool.root" ]
+jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/user/n/nwhallon/work/public/DxAOD_samples/group.phys-exotics.301523.RS_G_hh_bbbb_c20_M2000.e3820_s2608_s2183_r7772_r7676.VRT5_EXT0/group.phys-exotics.8418217.EXT0._000001.DAOD_FTAG5.pool.root" ]
 
 svcMgr += CfgMgr.THistSvc()
 for jet in JetCollections:

@@ -95,6 +95,7 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   m_cluster_branches(),
   m_substructure_moment_branches(),
   m_exkt_branches(),
+  m_trkjet_branches(),
   m_vrtrkjet_branches(),
   m_track_branches(),
   m_unclustered_vertices(),
@@ -207,8 +208,9 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   }
   if (m_subjetInfo) {
     m_exkt_branches.set_tree(*tree, "jet_exktsubjet_");
+    m_trkjet_branches.set_tree(*tree, "jet_trkjet_");
     m_vrtrkjet_branches.set_tree(*tree, "jet_vrtrkjet_");
-    m_unclustered_vertices.set_tree(*tree, "jet_trkjet_");
+    m_unclustered_vertices.set_tree(*tree, "jet_unclustered_vertices_");
   }
   if (!m_reduceInfo) {
     m_track_branches.set_tree(*tree, "jet_trk_");
@@ -2045,13 +2047,13 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
 //      jet_parent->getAssociatedObjects<xAOD::Jet>("GhostAntiKt2TrackJet", ghostTrackJet2);
       jet->getAssociatedObjects<xAOD::Jet>("GhostAntiKt2TrackJet", ghostTrackJet2);
+      m_trkjet_branches.fill(ghostTrackJet2);
       if (ghostTrackJet2.size() >= 2) {
         m_unclustered_vertices.fill(ghostTrackJet2);
       }
 
       std::vector<const xAOD::Jet*> ghostVRTrackJet;
       jet->getAssociatedObjects<xAOD::Jet>("GhostVR50Rmax4Rmin0TrackJet", ghostVRTrackJet);
-
       m_vrtrkjet_branches.fill(ghostVRTrackJet);
     }
 
@@ -2695,6 +2697,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
   m_cluster_branches.clear();
   m_substructure_moment_branches.clear();
   m_exkt_branches.clear();
+  m_trkjet_branches.clear();
   m_vrtrkjet_branches.clear();
   m_track_branches.clear();
   m_unclustered_vertices.clear();

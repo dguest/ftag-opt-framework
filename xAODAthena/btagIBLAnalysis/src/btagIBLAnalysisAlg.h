@@ -438,6 +438,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   SubstructureMomentBranches m_substructure_moment_branches;
   // subjet dumper
   SubjetBranches m_exkt_branches;
+  SubjetBranches m_trkjet_branches;
   SubjetBranches m_vrtrkjet_branches;
   // track dumper
   TrackCovBranches m_track_branches;
