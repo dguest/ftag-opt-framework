@@ -10,9 +10,9 @@ doRetag           =True    ##False    ## perform retagging
 doComputeReference=False
 JetCollections = [
   #"AntiKt10LCTopoJets"
-  #'AntiKt4EMTopoJets', 
+  #'AntiKt4EMTopoJets',
   #'AntiKt3PV0TrackJets',
-  #'AntiKt2PV0TrackJets',
+  # 'AntiKt2PV0TrackJets',
   #'AntiKt4LCTopoJets',
   'AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets'
   ]
@@ -295,14 +295,17 @@ for JetCollection in JetCollections:
                                   TrackVertexAssociationTool=ToolSvc.TightVertexAssocTool,
                                   TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator,
                                   JVTtool=ToolSvc.JVT,
-                                  DumpCaloInfo=True,
+                                  # DumpCaloInfo=False,
                                   ) #DEBUG
+  alg.DumpCaloInfo = True
   alg.JetCollectionName = JetCollection
   alg.doSMT = doSMT
+  alg.CleanJets = True
   if "Track" in JetCollection or "Truth" in JetCollection:
     alg.JetPtCut = 5.e3
     alg.CleanJets = False
     alg.CalibrateJets = False
+    alg.DumpCaloInfo = False
   else:
     alg.JetPtCut = 20.e3
   alg.doSMT     =doSMT
@@ -310,7 +313,6 @@ for JetCollection in JetCollections:
   alg.EssentialInfo=ONLYEssentialInfo
   alg.DoMSV     =DoMSV
   alg.Rel20     =True
-  alg.CleanJets = True
   alg.SubjetInfo = True
   #alg.CleanParentJets = True
   alg.JetCleaningTool.CutLevel= "LooseBad" 
