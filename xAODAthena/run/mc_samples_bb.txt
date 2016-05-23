@@ -27,4 +27,21 @@
 #mc15_13TeV.301527.MadGraphPythia8EvtGen_A14NNPDF23LO_RS_G_hh_bbbb_c20_M3000.merge.AOD.e3820_s2608_s2183_r6630_r6264/
 
 # VR Derivation
-group.phys-exotics.301523.RS_G_hh_bbbb_c20_M2000.e3820_s2608_s2183_r6630_r6264.test10_DAOD_VRJM.VRJM.pool.root/
+#group.phys-exotics.301523.RS_G_hh_bbbb_c20_M2000.e3820_s2608_s2183_r6630_r6264.test10_DAOD_VRJM.VRJM.pool.root/
+
+group.phys-exotics.301508.RS_G_hh_bbbb_c20_M300.e3820_s2608_s2183_r7772_r7676.VRT5_EXT0/
+group.phys-exotics.301509.RS_G_hh_bbbb_c20_M400.e3820_s2608_s2183_r7772_r7676.VRT5_EXT0/
+group.phys-exotics.301513.RS_G_hh_bbbb_c20_M800.e3820_s2608_s2183_r7772_r7676.VRT5_EXT0/
+group.phys-exotics.301515.RS_G_hh_bbbb_c20_M1000.e3820_s2608_s2183_r7772_r7676.VRT5_EXT0/
+group.phys-exotics.301517.RS_G_hh_bbbb_c20_M1200.e3820_s2608_s2183_r7772_r7676.VRT5_EXT0/
+group.phys-exotics.301518.RS_G_hh_bbbb_c20_M1300.e3820_s2608_s2183_r7772_r7676.VRT5_EXT0/
+group.phys-exotics.301520.RS_G_hh_bbbb_c20_M1500.e3820_s2608_s2183_r7772_r7676.VRT5_EXT0/
+group.phys-exotics.301521.RS_G_hh_bbbb_c20_M1600.e3820_s2608_s2183_r7772_r7676.VRT5_EXT0/
+group.phys-exotics.301523.RS_G_hh_bbbb_c20_M2000.e3820_s2608_s2183_r7772_r7676.VRT5_EXT0/
+group.phys-exotics.301524.RS_G_hh_bbbb_c20_M2250.e3820_s2608_s2183_r7772_r7676.VRT5_EXT0/
+group.phys-exotics.301525.RS_G_hh_bbbb_c20_M2500.e3820_s2608_s2183_r7772_r7676.VRT5_EXT0/
+group.phys-exotics.301527.RS_G_hh_bbbb_c20_M3000.e3820_s2608_s2183_r7772_r7676.VRT5_EXT0/
+
+#group.phys-exotics.361028.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ8W.e3569_s2576_s2132_r7772_r7676.VRT5_EXT0/
+#group.phys-exotics.361029.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ9W.e3569_s2576_s2132_r7772_r7676.VRT5_EXT0/
+#group.phys-exotics.361030.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ10W.e3569_s2576_s2132_r7772_r7676.VRT5_EXT0/

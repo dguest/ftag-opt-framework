@@ -116,6 +116,11 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<int> *v_jet_nGhostCHadrFromParentNotFromB;
   std::vector<int> *v_jet_nGhostTauFromParent;
   std::vector<int> *v_jet_nGhostHBosoFromParent;
+  std::vector<int> *v_jet_nGhostBHadr;
+  std::vector<int> *v_jet_nGhostCHadr;
+  std::vector<int> *v_jet_nGhostCHadrNotFromB;
+  std::vector<int> *v_jet_nGhostTau;
+  std::vector<int> *v_jet_nGhostHBoso;
   std::vector<int> *v_jet_GhostL_q;
   std::vector<int> *v_jet_GhostL_HadI;
   std::vector<int> *v_jet_GhostL_HadF;
@@ -271,6 +276,24 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<double> *v_jet_ExKtbb_Hbb_MV2andTopos;
 
   // B hadron
+  std::vector<float> *v_bH1FromParent_pt;
+  std::vector<float> *v_bH1FromParent_eta;
+  std::vector<float> *v_bH1FromParent_phi;
+  std::vector<float> *v_bH1FromParent_Lxy;
+  std::vector<float> *v_bH1FromParent_x;
+  std::vector<float> *v_bH1FromParent_y;
+  std::vector<float> *v_bH1FromParent_z;
+  std::vector<float> *v_bH1FromParent_dRjet;
+
+  std::vector<float> *v_bH2FromParent_pt;
+  std::vector<float> *v_bH2FromParent_eta;
+  std::vector<float> *v_bH2FromParent_phi;
+  std::vector<float> *v_bH2FromParent_Lxy;
+  std::vector<float> *v_bH2FromParent_x;
+  std::vector<float> *v_bH2FromParent_y;
+  std::vector<float> *v_bH2FromParent_z;
+  std::vector<float> *v_bH2FromParent_dRjet;
+
   std::vector<float> *v_bH1_pt;
   std::vector<float> *v_bH1_eta;
   std::vector<float> *v_bH1_phi;

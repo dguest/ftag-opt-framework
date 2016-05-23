@@ -1,8 +1,8 @@
 import os
 import sys
 
-suffix    =".2016bbV1"
-isOfficial=False
+suffix    =".bbVRT4"
+isOfficial=True
 username  ="nwhallon"
 inputFile ="mc_samples_bb.txt"
 
@@ -20,8 +20,9 @@ def submitJob(ds) :
     
     com += "--inDS " + ds + " "
     oDS=""
-    if not isOfficial: oDS = "user."+username+"."+ds.replace("/","")+suffix
-    else             : oDS = "group.phys-exotics."+ds.replace("/","")+suffix
+#    if not isOfficial: oDS = "user."+username+"."+ds.replace("/","")+suffix
+#    else             : oDS = "group.phys-exotics."+ds.replace("/","")+suffix
+    oDS = ds.replace("/","")+suffix
 
     print oDS+" has length: "+str(len(oDS))
     while len(oDS) > 115 :
