@@ -13,6 +13,7 @@ JetCollections = [
   #'AntiKt4EMTopoJets', 
   #'AntiKt3PV0TrackJets',
   'AntiKt2PV0TrackJets',
+  'AntiKtVR50Rmax4Rmin0TrackJets',
   #'AntiKt4LCTopoJets',
   'AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets'
   ]
@@ -276,7 +277,7 @@ for JetCollection in JetCollections:
                                   TrackVertexAssociationTool=ToolSvc.TightVertexAssocTool,
                                   TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator,
                                   JVTtool=ToolSvc.JVT,
-                                  DumpCaloInfo=True,
+                                  #DumpCaloInfo=True,
                                   ) #DEBUG
   alg.JetCollectionName = JetCollection
   alg.doSMT = doSMT
