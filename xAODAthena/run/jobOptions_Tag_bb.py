@@ -2,17 +2,17 @@
 ##########################################################################################################################################################
 ### MAIN SWITCHES
 
-ONLYEssentialInfo =False   ## write minimal amount of info on the output file
-ReduceInfo        =False   ## write minimal amount of info on the output file
+ONLYEssentialInfo =False  ## write minimal amount of info on the output file
+ReduceInfo        =False  ## write minimal amount of info on the output file
 DoMSV             =True   ## include variables for MSV tagger
 doSMT             =True   ## include variables for SMT tagger
-doRetag           =True    ##False    ## perform retagging
+doRetag           =False  ##False    ## perform retagging
 doComputeReference=False
 JetCollections = [
   #"AntiKt10LCTopoJets"
-  #'AntiKt4EMTopoJets',
+  #'AntiKt4EMTopoJets', 
   #'AntiKt3PV0TrackJets',
-  # 'AntiKt2PV0TrackJets',
+  'AntiKt2PV0TrackJets',
   #'AntiKt4LCTopoJets',
   'AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets'
   ]
@@ -32,6 +32,7 @@ jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/user/n/nwhallon/work/public/Dx
 
 svcMgr += CfgMgr.THistSvc()
 for jet in JetCollections:
+  if "AntiKt2PV0T" in jet: continue
   shortJetName=jet.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr").replace("TrimmedPtFrac5SmallR20", "Trm")
   svcMgr.THistSvc.Output += [ shortJetName+" DATAFILE='flav_"+shortJetName+".root' OPT='RECREATE'"]
 #svcMgr.THistSvc.Output += ["BTAGSTREAM DATAFILE='flavntuple.root' OPT='RECREATE'"]
@@ -142,6 +143,7 @@ def buildExclusiveSubjets(JetCollectionName, nsubjet, ToolSvc = ToolSvc):
 # build exkt subjets here
 JetCollectionExKtSubJetList = []
 for JetCollectionExKt in JetCollections:
+  if "AntiKt2PV0T" in JetCollectionExKt: continue
   # build ExKtbbTagTool instance
   (ExKtbbTagToolInstance, SubjetContainerName) = buildExclusiveSubjets(JetCollectionExKt, 2)
   JetCollectionExKtSubJetList += [SubjetContainerName]
@@ -165,21 +167,21 @@ for JetCollectionExKt in JetCollections:
 print "Fat Jet Collection:",JetCollections
 print "Fat Jet ExKt SubJet Collection:",JetCollectionExKtSubJetList
 
+
 ##########################################################################################################################################################
 ##########################################################################################################################################################
 ### VD: this is if you want to re-tag with another calibration file
 from BTagging.BTaggingFlags import BTaggingFlags
 
 #### if the new file is already in the datatbase: simple edit the name
-# BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-13'
-BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-16incl'
+BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-17'
 
 #### if you want to use your own calibration file use this part below
 #BTaggingFlags.CalibrationFromLocalReplica = True
 #BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
 #BTaggingFlags.CalibrationTag = 'Run2DC14' ## '0801C' ##'k0002'
 
-defaultTaggers = ['IP2D', 'IP3D', 'SV0', 'MultiSVbb1', 'MultiSVbb2', 'SV1', 'BasicJetFitter', 'JetFitterTag', 'GbbNNTag', 'MV2c00', 'MV2c10', 'MV2c20', 'MV2c100', 'MV2m']
+defaultTaggers = ['IP2D', 'IP3D', 'SV0', 'MultiSVbb1', 'MultiSVbb2', 'SV1', 'BasicJetFitter', 'JetFitterTag', 'JetFitterNN', 'GbbNNTag', 'MV2c00', 'MV2c10', 'MV2c20', 'MV2c100', 'MV2m']
 specialTaggers = ['ExKtbb_Hbb_MV2Only', 'ExKtbb_Hbb_MV2andJFDRSig', 'ExKtbb_Hbb_MV2andTopos']
 
 ### setup calibration aliases ###
@@ -197,11 +199,7 @@ for JetCollectionExKtSubJet in JetCollectionExKtSubJetList:
   BTaggingFlags.CalibrationChannelAliases += [JetCollectionExKtSubJet[:-4]+"->AntiKt4LCTopo"]
 
 # For debugging 
-BTaggingFlags.OutputLevel = 1
-
-# For user-defined calibration file
-#BTaggingFlags.CalibrationFromLocalReplica = True 
-#BTaggingFlags.CalibrationTag = 'BTagCalibRUN2-08-99'
+###BTaggingFlags.OutputLevel = 1
 
 from DerivationFrameworkFlavourTag.FlavourTagCommon import FlavorTagInit
 FlavorTagInit(myTaggers      = defaultTaggers,
@@ -210,25 +208,6 @@ FlavorTagInit(myTaggers      = defaultTaggers,
 FlavorTagInit(myTaggers      = defaultTaggers + specialTaggers,
               JetCollections = JetCollections,
               Sequencer      = algSeq)
-
-
-# import copy
-# JetCollections_BeforeBTag = copy.deepcopy(JetCollections)
-
-# #########################################################################
-# ### First round of b-tagging on all jets except those exkt parent jet ###
-# #########################################################################
-# JetCollections = copy.deepcopy(JetCollectionExKtSubJetList)
-# _taggerList = defaultTaggers
-# include("RetagFragment_ExKt.py")
-# #########################################################
-# ### Second round of b-tagging on exkt parent jet only ###
-# #########################################################
-# JetCollections = copy.deepcopy(JetCollections_BeforeBTag)
-# _taggerList = defaultTaggers + specialTaggers
-# include("RetagFragment_ExKt.py")
-
-# JetCollections = JetCollections_BeforeBTag
 
 if doRetag:
 
@@ -287,6 +266,8 @@ ToolSvc += CfgMgr.CP__PileupReweightingTool("prw",
 ##########################################################################################################################################################
 ### Main Ntuple Dumper Algorithm
 for JetCollection in JetCollections:
+  if "AntiKt2PV0T" in JetCollection: continue
+
   shortJetName=JetCollection.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr").replace("TrimmedPtFrac5SmallR20", "Trm")
   alg = CfgMgr.btagIBLAnalysisAlg("BTagDumpAlg_"+JetCollection, 
                                   OutputLevel=INFO,
@@ -295,17 +276,14 @@ for JetCollection in JetCollections:
                                   TrackVertexAssociationTool=ToolSvc.TightVertexAssocTool,
                                   TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator,
                                   JVTtool=ToolSvc.JVT,
-                                  # DumpCaloInfo=False,
+                                  DumpCaloInfo=True,
                                   ) #DEBUG
-  alg.DumpCaloInfo = True
   alg.JetCollectionName = JetCollection
   alg.doSMT = doSMT
-  alg.CleanJets = True
   if "Track" in JetCollection or "Truth" in JetCollection:
     alg.JetPtCut = 5.e3
     alg.CleanJets = False
     alg.CalibrateJets = False
-    alg.DumpCaloInfo = False
   else:
     alg.JetPtCut = 20.e3
   alg.doSMT     =doSMT
