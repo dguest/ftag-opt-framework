@@ -89,12 +89,14 @@ void ClusterBranches::set_tree(TTree& output_tree) const {
 }
 
 void ClusterBranches::fill(const xAOD::JetConstituentVector& constituents) {
+
   std::vector<float> pt;
   std::vector<float> eta;
   std::vector<float> phi;
   std::vector<float> e;
 
   for (const auto& cluster: constituents) {
+    if (cluster->type() != xAOD::Type::CaloCluster) return;
     pt.push_back(cluster->pt());
     eta.push_back(cluster->eta());
     phi.push_back(cluster->phi());

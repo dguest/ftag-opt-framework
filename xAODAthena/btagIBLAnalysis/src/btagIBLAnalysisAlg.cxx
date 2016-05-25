@@ -2158,6 +2158,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sv_scaled_efc->push_back(sv_scaled_efc);
     v_jet_jf_scaled_efc->push_back(jf_scaled_efc);
 
+    // additions by nikola for ghost associated track jets
+    if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(m_jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0) {
     // ExKtbbTag
     if (bjet->isAvailable<double>("ExKtbb_Hbb_DoubleMV2c20")) {
       std::vector<const xAOD::Jet*> exKtJets;
@@ -2184,9 +2186,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
     else {
       ATH_MSG_DEBUG("WARNING! No ExKtbbTag run on " << m_jetCollectionName.c_str());
     }
-
-    // additions by nikola for ghost associated track jets
-    if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(m_jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0) {
       // ATH_MSG_INFO("this is a trimmed large-R jet collection, adding information (pt and mv2c00) of track jets associated to parent untrimmed jet collection");
 
       std::vector<const xAOD::Jet*> ghostTrackJet2;
