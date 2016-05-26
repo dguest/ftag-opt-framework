@@ -360,9 +360,11 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<std::vector<int> > *v_jet_trk_nsharedBLHits;
   std::vector<std::vector<int> > *v_jet_trk_nsplitBLHits;
   std::vector<std::vector<int> > *v_jet_trk_nPixHits;
+  std::vector<std::vector<int> > *v_jet_trk_nPixHoles;
   std::vector<std::vector<int> > *v_jet_trk_nsharedPixHits;
   std::vector<std::vector<int> > *v_jet_trk_nsplitPixHits;
   std::vector<std::vector<int> > *v_jet_trk_nSCTHits;
+  std::vector<std::vector<int> > *v_jet_trk_nSCTHoles;
   std::vector<std::vector<int> > *v_jet_trk_nsharedSCTHits;
   std::vector<std::vector<int> > *v_jet_trk_expectBLayerHit;
   std::vector<std::vector<float> > *v_jet_trk_d0;

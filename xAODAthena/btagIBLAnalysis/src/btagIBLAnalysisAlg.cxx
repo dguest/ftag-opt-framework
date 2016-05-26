@@ -467,9 +467,11 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_trk_nsharedBLHits = new std::vector<std::vector<int> >();
   v_jet_trk_nsplitBLHits = new std::vector<std::vector<int> >();
   v_jet_trk_nPixHits = new std::vector<std::vector<int> >();
+  v_jet_trk_nPixHoles = new std::vector<std::vector<int> >();
   v_jet_trk_nsharedPixHits = new std::vector<std::vector<int> >();
   v_jet_trk_nsplitPixHits = new std::vector<std::vector<int> >();
   v_jet_trk_nSCTHits = new std::vector<std::vector<int> >();
+  v_jet_trk_nSCTHoles = new std::vector<std::vector<int> >();
   v_jet_trk_nsharedSCTHits = new std::vector<std::vector<int> >();
   v_jet_trk_expectBLayerHit = new std::vector<std::vector<int> >();
   v_jet_trk_d0 = new std::vector<std::vector<float> >();
@@ -815,9 +817,11 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     tree->Branch("jet_trk_nsharedBLHits", &v_jet_trk_nsharedBLHits);
     tree->Branch("jet_trk_nsplitBLHits", &v_jet_trk_nsplitBLHits);
     tree->Branch("jet_trk_nPixHits", &v_jet_trk_nPixHits);
+    tree->Branch("jet_trk_nPixHoles", &v_jet_trk_nPixHoles);
     tree->Branch("jet_trk_nsharedPixHits", &v_jet_trk_nsharedPixHits);
     tree->Branch("jet_trk_nsplitPixHits", &v_jet_trk_nsplitPixHits);
     tree->Branch("jet_trk_nSCTHits", &v_jet_trk_nSCTHits);
+    tree->Branch("jet_trk_nSCTHoles", &v_jet_trk_nSCTHoles);
     tree->Branch("jet_trk_nsharedSCTHits", &v_jet_trk_nsharedSCTHits);
     tree->Branch("jet_trk_expectBLayerHit", &v_jet_trk_expectBLayerHit);
 
@@ -2225,9 +2229,11 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<int> j_trk_nsharedBLHits;
     std::vector<int> j_trk_nsplitBLHits;
     std::vector<int> j_trk_nPixHits;
+    std::vector<int> j_trk_nPixHoles;
     std::vector<int> j_trk_nsharedPixHits;
     std::vector<int> j_trk_nsplitPixHits;
     std::vector<int> j_trk_nSCTHits;
+    std::vector<int> j_trk_nSCTHoles;
     std::vector<int> j_trk_nsharedSCTHits;
     std::vector<int> j_trk_expectBLayerHit;
     std::vector<float> j_trk_vtx_X;
@@ -2697,6 +2703,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
       tmpTrk->summaryValue(getInt, xAOD::numberOfPixelHits);
       j_trk_nPixHits.push_back(getInt);
       getInt = 0;
+      tmpTrk->summaryValue(getInt, xAOD::numberOfPixelHoles);
+      j_trk_nPixHoles.push_back(getInt);
+      getInt = 0;
       tmpTrk->summaryValue(getInt, xAOD::numberOfPixelSharedHits);
       j_trk_nsharedPixHits.push_back(getInt);
       getInt = 0;
@@ -2706,6 +2715,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
       // SCT
       tmpTrk->summaryValue(getInt, xAOD::numberOfSCTHits);
       j_trk_nSCTHits.push_back(getInt);
+      getInt = 0;
+      tmpTrk->summaryValue(getInt, xAOD::numberOfSCTHoles);
+      j_trk_nSCTHoles.push_back(getInt);
       getInt = 0;
       tmpTrk->summaryValue(getInt, xAOD::numberOfSCTSharedHits);
       j_trk_nsharedSCTHits.push_back(getInt);
@@ -2796,9 +2808,11 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_trk_nsharedBLHits->push_back(j_trk_nsharedBLHits);
     v_jet_trk_nsplitBLHits->push_back(j_trk_nsplitBLHits);
     v_jet_trk_nPixHits->push_back(j_trk_nPixHits);
+    v_jet_trk_nPixHoles->push_back(j_trk_nPixHoles);
     v_jet_trk_nsharedPixHits->push_back(j_trk_nsharedPixHits);
     v_jet_trk_nsplitPixHits->push_back(j_trk_nsplitPixHits);
     v_jet_trk_nSCTHits->push_back(j_trk_nSCTHits);
+    v_jet_trk_nSCTHoles->push_back(j_trk_nSCTHoles);
     v_jet_trk_nsharedSCTHits->push_back(j_trk_nsharedSCTHits);
     v_jet_trk_expectBLayerHit->push_back(j_trk_expectBLayerHit);
     v_jet_trk_d0->push_back(j_trk_d0);
@@ -3173,9 +3187,11 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_trk_nsharedBLHits->clear();
   v_jet_trk_nsplitBLHits->clear();
   v_jet_trk_nPixHits->clear();
+  v_jet_trk_nPixHoles->clear();
   v_jet_trk_nsharedPixHits->clear();
   v_jet_trk_nsplitPixHits->clear();
   v_jet_trk_nSCTHits->clear();
+  v_jet_trk_nSCTHoles->clear();
   v_jet_trk_nsharedSCTHits->clear();
   v_jet_trk_expectBLayerHit->clear();
   v_jet_trk_d0->clear();
