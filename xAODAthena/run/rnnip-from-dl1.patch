@@ -14,7 +14,7 @@
  
  #### if the new file is already in the datatbase: simple edit the name
 -###############BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-10'
-+BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-19'
++BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-20'
  
  #### if you want to use your own calibration file use this part below
  #BTaggingFlags.CalibrationFromLocalReplica = True
