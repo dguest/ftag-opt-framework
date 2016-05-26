@@ -6,17 +6,10 @@ ONLYEssentialInfo =False  ## write minimal amount of info on the output file
 ReduceInfo        =False  ## write minimal amount of info on the output file
 DoMSV             =True   ## include variables for MSV tagger
 doSMT             =True   ## include variables for SMT tagger
-doRetag           =False  ##False    ## perform retagging
+doRetag           =True  ##False    ## perform retagging
 doComputeReference=False
-JetCollections = [
-  #"AntiKt10LCTopoJets"
-  #'AntiKt4EMTopoJets', 
-  #'AntiKt3PV0TrackJets',
-  'AntiKt2PV0TrackJets',
-  'AntiKtVR50Rmax4Rmin0TrackJets',
-  #'AntiKt4LCTopoJets',
-  'AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets'
-  ]
+#JetCollections = ['AntiKt2PV0TrackJets', 'AntiKtVR50Rmax4Rmin0TrackJets', 'AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets']
+JetCollections = ['AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets']
 
 
 #########################################################################################################################################################
@@ -24,7 +17,7 @@ JetCollections = [
 ### Define input xAOD and output ntuple file name
 import glob
 from AthenaCommon.AthenaCommonFlags import jobproperties as jp
-jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(10)
+jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1)
 
 # nikola's input file with VR jets
 # (while we wait for a new derivation with these included)

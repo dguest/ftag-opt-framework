@@ -26,6 +26,7 @@ SubjetBranches::SubjetBranches():
 
   m_branches->ntrk = new std::vector<std::vector<int> >;
   m_branches->mv2c20 = new std::vector<std::vector<float> >;
+  m_branches->mv2c10 = new std::vector<std::vector<float> >;
 
   m_branches->jf_m = new              std::vector<std::vector<float> >;
   m_branches->jf_mUncorr = new        std::vector<std::vector<float> >;
@@ -62,6 +63,7 @@ SubjetBranches::~SubjetBranches()
 
   delete m_branches->ntrk;
   delete m_branches->mv2c20;
+  delete m_branches->mv2c10;
 
   delete m_branches->jf_m;
   delete m_branches->jf_mUncorr;
@@ -104,6 +106,7 @@ void SubjetBranches::set_tree(TTree& output_tree,
   // general stuff
   ADD_SIMPLE(ntrk);
   ADD_SIMPLE(mv2c20);
+  ADD_SIMPLE(mv2c10);
 
   // jetfitter
   ADD_SIMPLE(jf_m);
@@ -142,6 +145,7 @@ void SubjetBranches::fill(const std::vector<const xAOD::Jet*>& subjets) {
   std::vector<float> m;
   std::vector<int> ntrk;
   std::vector<float> mv2c20;
+  std::vector<float> mv2c10;
 
   for (const auto* jet: subjets) {
     pt.push_back(jet->pt());
@@ -151,6 +155,7 @@ void SubjetBranches::fill(const std::vector<const xAOD::Jet*>& subjets) {
     ntrk.push_back(jet->numConstituents());
     const xAOD::BTagging *btag = jet->btagging();
     mv2c20.push_back(btag->auxdata<double>("MV2c20_discriminant"));
+    mv2c10.push_back(btag->auxdata<double>("MV2c10_discriminant"));
   }
 #define PUSH(var) m_branches->var->push_back(std::move(var))
   PUSH(pt);
@@ -159,6 +164,7 @@ void SubjetBranches::fill(const std::vector<const xAOD::Jet*>& subjets) {
   PUSH(m);
   PUSH(ntrk);
   PUSH(mv2c20);
+  PUSH(mv2c10);
 #undef PUSH
 
   // add other tagger info
@@ -178,6 +184,7 @@ void SubjetBranches::clear() {
   // general stuff
   CLEAR(ntrk);
   CLEAR(mv2c20);
+  CLEAR(mv2c10);
 
   // jetfitter
   CLEAR(jf_m);

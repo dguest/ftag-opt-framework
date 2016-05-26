@@ -10,6 +10,7 @@ struct SubjetBranchBuffer
   std::vector<std::vector<int> >* ntrk;
 
   std::vector<std::vector<float> >* mv2c20;
+  std::vector<std::vector<float> >* mv2c10;
 
   // jetfitter
   std::vector<std::vector<float> >* jf_m;
