@@ -8,8 +8,8 @@ DoMSV             =True   ## include variables for MSV tagger
 doSMT             =True   ## include variables for SMT tagger
 doRetag           =True  ##False    ## perform retagging
 doComputeReference=False
-#JetCollections = ['AntiKt2PV0TrackJets', 'AntiKtVR50Rmax4Rmin0TrackJets', 'AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets']
-JetCollections = ['AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets']
+JetCollections = ['AntiKt2PV0TrackJets', 'AntiKtVR50Rmax4Rmin0TrackJets', 'AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets']
+#JetCollections = ['AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets']
 
 
 #########################################################################################################################################################
@@ -27,6 +27,7 @@ jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/user/n/nwhallon/work/public/Dx
 svcMgr += CfgMgr.THistSvc()
 for jet in JetCollections:
   if "AntiKt2PV0T" in jet: continue
+  if "AntiKtVR" in jet: continue
   shortJetName=jet.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr").replace("TrimmedPtFrac5SmallR20", "Trm")
   svcMgr.THistSvc.Output += [ shortJetName+" DATAFILE='flav_"+shortJetName+".root' OPT='RECREATE'"]
 #svcMgr.THistSvc.Output += ["BTAGSTREAM DATAFILE='flavntuple.root' OPT='RECREATE'"]
@@ -138,6 +139,7 @@ def buildExclusiveSubjets(JetCollectionName, nsubjet, ToolSvc = ToolSvc):
 JetCollectionExKtSubJetList = []
 for JetCollectionExKt in JetCollections:
   if "AntiKt2PV0T" in JetCollectionExKt: continue
+  if "AntiKtVR" in JetCollectionExKt: continue
   # build ExKtbbTagTool instance
   (ExKtbbTagToolInstance, SubjetContainerName) = buildExclusiveSubjets(JetCollectionExKt, 2)
   JetCollectionExKtSubJetList += [SubjetContainerName]
@@ -168,7 +170,7 @@ print "Fat Jet ExKt SubJet Collection:",JetCollectionExKtSubJetList
 from BTagging.BTaggingFlags import BTaggingFlags
 
 #### if the new file is already in the datatbase: simple edit the name
-BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-17'
+BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-18'
 
 #### if you want to use your own calibration file use this part below
 #BTaggingFlags.CalibrationFromLocalReplica = True
@@ -261,6 +263,7 @@ ToolSvc += CfgMgr.CP__PileupReweightingTool("prw",
 ### Main Ntuple Dumper Algorithm
 for JetCollection in JetCollections:
   if "AntiKt2PV0T" in JetCollection: continue
+  if "AntiKtVR" in JetCollection: continue
 
   shortJetName=JetCollection.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr").replace("TrimmedPtFrac5SmallR20", "Trm")
   alg = CfgMgr.btagIBLAnalysisAlg("BTagDumpAlg_"+JetCollection, 
