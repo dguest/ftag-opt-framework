@@ -8,7 +8,9 @@ DoMSV             =True   ## include variables for MSV tagger
 doSMT             =True   ## include variables for SMT tagger
 doRetag           =True  ##False    ## perform retagging
 doComputeReference=False
-JetCollections = ['AntiKt2PV0TrackJets', 'AntiKtVR50Rmax4Rmin0TrackJets', 'AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets']
+subJetCollections = ['AntiKt2PV0TrackJets', 'AntiKtVR50Rmax4Rmin0TrackJets']
+fatJetCollections = ['AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets']
+# JetCollections = ['AntiKt2PV0TrackJets', 'AntiKtVR50Rmax4Rmin0TrackJets', 'AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets']
 #JetCollections = ['AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets']
 
 
@@ -17,7 +19,7 @@ JetCollections = ['AntiKt2PV0TrackJets', 'AntiKtVR50Rmax4Rmin0TrackJets', 'AntiK
 ### Define input xAOD and output ntuple file name
 import glob
 from AthenaCommon.AthenaCommonFlags import jobproperties as jp
-jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1)
+jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(10)
 
 # nikola's input file with VR jets
 # (while we wait for a new derivation with these included)
@@ -25,9 +27,7 @@ jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(-1)
 jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/user/n/nwhallon/work/public/DxAOD_samples/group.phys-exotics.301523.RS_G_hh_bbbb_c20_M2000.e3820_s2608_s2183_r7772_r7676.VRT5_EXT0/group.phys-exotics.8418217.EXT0._000001.DAOD_FTAG5.pool.root" ]
 
 svcMgr += CfgMgr.THistSvc()
-for jet in JetCollections:
-  if "AntiKt2PV0T" in jet: continue
-  if "AntiKtVR" in jet: continue
+for jet in fatJetCollections:
   shortJetName=jet.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr").replace("TrimmedPtFrac5SmallR20", "Trm")
   svcMgr.THistSvc.Output += [ shortJetName+" DATAFILE='flav_"+shortJetName+".root' OPT='RECREATE'"]
 #svcMgr.THistSvc.Output += ["BTAGSTREAM DATAFILE='flavntuple.root' OPT='RECREATE'"]
@@ -137,9 +137,7 @@ def buildExclusiveSubjets(JetCollectionName, nsubjet, ToolSvc = ToolSvc):
 
 # build exkt subjets here
 JetCollectionExKtSubJetList = []
-for JetCollectionExKt in JetCollections:
-  if "AntiKt2PV0T" in JetCollectionExKt: continue
-  if "AntiKtVR" in JetCollectionExKt: continue
+for JetCollectionExKt in fatJetCollections:
   # build ExKtbbTagTool instance
   (ExKtbbTagToolInstance, SubjetContainerName) = buildExclusiveSubjets(JetCollectionExKt, 2)
   JetCollectionExKtSubJetList += [SubjetContainerName]
@@ -160,7 +158,7 @@ for JetCollectionExKt in JetCollections:
                         )
 
 
-print "Fat Jet Collection:",JetCollections
+print "Fat Jet Collection:", fatJetCollections
 print "Fat Jet ExKt SubJet Collection:",JetCollectionExKtSubJetList
 
 
@@ -202,31 +200,8 @@ FlavorTagInit(myTaggers      = defaultTaggers,
               JetCollections = JetCollectionExKtSubJetList,
               Sequencer      = algSeq)
 FlavorTagInit(myTaggers      = defaultTaggers + specialTaggers,
-              JetCollections = JetCollections,
+              JetCollections = fatJetCollections,
               Sequencer      = algSeq)
-
-if doRetag:
-
-  from BTagging.BTaggingConfiguration import getConfiguration
-  btag_conf = getConfiguration()
-
-  # Stuff from Dan: dump more information on vertices
-  # replace JetFitter
-  # TODO: figure out if this is running,
-  #       and how to get the resulting vertices
-  from BTagging.BTaggingConfiguration import cloneToolCollection, getToolCollections
-  jfname = ("JetFitterCollection", "DG")
-  cloneToolCollection(*jfname)
-  for jc_long in JetCollections:
-    jc = jc_long[:-4]
-    btag_conf.addTool('JetFitterTagNNDG', ToolSvc, "BTagTrackToJetAssociator",jc)
-    jfvx = btag_conf.getTool("NewJetFitterVxFinderDG", "BTagTrackToJetAssociator",jc)
-    jfvx.VertexClusteringProbabilityCut = 1.0
-    apple = btag_conf.getJetCollectionSecVertexingTool(jc)
-    print "DANTAGGING!", jc
-    print "DANTAGGING!", apple.SecVtxFinderxAODBaseNameList
-    print "DANTAGGING!", apple.SecVtxFinderList
-    print jfvx
 
 
 ##########################################################################################################################################################
@@ -261,9 +236,7 @@ ToolSvc += CfgMgr.CP__PileupReweightingTool("prw",
 ##########################################################################################################################################################
 ##########################################################################################################################################################
 ### Main Ntuple Dumper Algorithm
-for JetCollection in JetCollections:
-  if "AntiKt2PV0T" in JetCollection: continue
-  if "AntiKtVR" in JetCollection: continue
+for JetCollection in fatJetCollections:
 
   shortJetName=JetCollection.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr").replace("TrimmedPtFrac5SmallR20", "Trm")
   alg = CfgMgr.btagIBLAnalysisAlg("BTagDumpAlg_"+JetCollection, 
