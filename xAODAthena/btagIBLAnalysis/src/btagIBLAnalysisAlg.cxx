@@ -122,6 +122,7 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   declareProperty( "EssentialInfo", m_essentialInfo =true );
   declareProperty( "ReduceInfo"   , m_reduceInfo=false );
   declareProperty( "SubjetInfo"   , m_subjetInfo=false );
+  declareProperty( "DumpTrackCovariance"   , m_dumpTrackCovariance=false );
   declareProperty( "Rel20", m_rel20 = false );
   declareProperty( "DoMSV", m_doMSV = false );
   declareProperty( "doSMT", m_SMT = false );
@@ -212,7 +213,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     m_vrtrkjet_branches.set_tree(*tree, "jet_vrtrkjet_");
     m_unclustered_vertices.set_tree(*tree, "jet_unclustered_vertices_");
   }
-  if (!m_reduceInfo) {
+  if (!m_dumpTrackCovariance) {
     m_track_branches.set_tree(*tree, "jet_trk_");
   }
   if (m_arb_double_names.size() + m_arb_float_vec_names.size() > 0) {

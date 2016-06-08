@@ -444,6 +444,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   bool m_reduceInfo;               // if set to true is allows to run over xAOD and not crashing when info are missing
   bool m_essentialInfo;            // basically as slim as possible ntuple which will only allow to make efficiency plots
   bool m_subjetInfo;
+  bool m_dumpTrackCovariance;
   bool m_doMSV;                    // if set to true it includes variables from multi SV tagger
   bool m_rel20;                    // if set to true code works for rel20, if set to false it will work for rel19
   bool m_SMT;
