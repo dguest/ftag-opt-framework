@@ -26,6 +26,11 @@ jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(10)
 #jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/n/nwhallon/public/VRDerivation/DAOD_VRJM.VRJM.pool.root" ]
 jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/user/n/nwhallon/work/public/DxAOD_samples/group.phys-exotics.301523.RS_G_hh_bbbb_c20_M2000.e3820_s2608_s2183_r7772_r7676.VRT5_EXT0/group.phys-exotics.8418217.EXT0._000001.DAOD_FTAG5.pool.root" ]
 
+# meehan's files
+# jp.AthenaCommonFlags.FilesInput = [ '/afs/cern.ch/work/m/meehan/public/VRJets_FTAG1_FTAG5_Compare/WorkArea/run/DAOD_FTAG5.mc15_13TeV.301490.MadGraphPythia8EvtGen_A14NNPDF23LO_RS_G_hh_bbbb_c10_M500.merge.AOD.e3820_s2608_s2183_r7772_r7676_AOD.08176518._000006_BTagCalibRUN12-08-15.pool.root' ]
+# jp.AthenaCommonFlags.FilesInput = [ '/afs/cern.ch/work/m/meehan/public/VRJets_FTAG1_FTAG5_Compare/WorkArea/run/DAOD_FTAG5.mc15_13TeV.301490.MadGraphPythia8EvtGen_A14NNPDF23LO_RS_G_hh_bbbb_c10_M500.merge.AOD.e3820_s2608_s2183_r7772_r7676_AOD.08176518._000006_BTagCalibRUN12-08-18.pool.root' ]
+
+
 svcMgr += CfgMgr.THistSvc()
 for jet in fatJetCollections:
   shortJetName=jet.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr").replace("TrimmedPtFrac5SmallR20", "Trm")
@@ -197,7 +202,7 @@ for JetCollectionExKtSubJet in JetCollectionExKtSubJetList:
 
 from DerivationFrameworkFlavourTag.FlavourTagCommon import FlavorTagInit
 FlavorTagInit(myTaggers      = defaultTaggers,
-              JetCollections = JetCollectionExKtSubJetList,
+              JetCollections = JetCollectionExKtSubJetList + subJetCollections,
               Sequencer      = algSeq)
 FlavorTagInit(myTaggers      = defaultTaggers + specialTaggers,
               JetCollections = fatJetCollections,
