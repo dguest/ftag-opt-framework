@@ -284,7 +284,7 @@ for JetCollection in fatJetCollections:
   elif "AntiKt10LCTopoTrimmedPtFrac5SmallR20" in JetCollection:
     collectionForTool = "AntiKt10LCTopoTrimmedPtFrac5SmallR20"
     calibfile = "JES_MC15recommendation_FatJet_June2015.config"
-    calSeg = "EtaJES"
+    calSeg = "EtaJES_JMS"
 
   print collectionForTool
   ToolSvc += CfgMgr.JetCalibrationTool("BTagDumpAlg_"+JetCollection+"_JCalib",
