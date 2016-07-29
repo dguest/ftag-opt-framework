@@ -2,12 +2,12 @@
 ##########################################################################################################################################################
 ### MAIN SWITCHES
 
-ONLYEssentialInfo =False  ## write minimal amount of info on the output file
-ReduceInfo        =False  ## write minimal amount of info on the output file
-DoMSV             =True   ## include variables for MSV tagger
-doSMT             =True   ## include variables for SMT tagger
-doRetag           =True  ##False    ## perform retagging
-doComputeReference=False
+ONLYEssentialInfo = False  ## write minimal amount of info on the output file
+ReduceInfo        = False  ## write minimal amount of info on the output file
+dumpCalo          = False  ## dump calo clusters
+dumpTrackCov      = False  ## dump track covariance matrices
+DoMSV             = True  ## include variables for MSV tagger
+doSMT             = True  ## include variables for SMT tagger
 subJetCollections = ['AntiKt2PV0TrackJets', 'AntiKtVR50Rmax4Rmin0TrackJets']
 fatJetCollections = ['AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets']
 # JetCollections = ['AntiKt2PV0TrackJets', 'AntiKtVR50Rmax4Rmin0TrackJets', 'AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets']
@@ -22,13 +22,7 @@ from AthenaCommon.AthenaCommonFlags import jobproperties as jp
 jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(10)
 
 # nikola's input file with VR jets
-# (while we wait for a new derivation with these included)
-#jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/n/nwhallon/public/VRDerivation/DAOD_VRJM.VRJM.pool.root" ]
 jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/user/d/dguest/afswork/data/group.phys-exotics.301488.RS_G_hh_bbbb_c10_M300.e3820_s2608_s2183_r7772_r7676.FTAG5.T3_EXT0/group.phys-exotics.9012214.EXT0._000003.DAOD_FTAG5.pool.root" ]
-
-# meehan's files
-# jp.AthenaCommonFlags.FilesInput = [ '/afs/cern.ch/work/m/meehan/public/VRJets_FTAG1_FTAG5_Compare/WorkArea/run/DAOD_FTAG5.mc15_13TeV.301490.MadGraphPythia8EvtGen_A14NNPDF23LO_RS_G_hh_bbbb_c10_M500.merge.AOD.e3820_s2608_s2183_r7772_r7676_AOD.08176518._000006_BTagCalibRUN12-08-15.pool.root' ]
-# jp.AthenaCommonFlags.FilesInput = [ '/afs/cern.ch/work/m/meehan/public/VRJets_FTAG1_FTAG5_Compare/WorkArea/run/DAOD_FTAG5.mc15_13TeV.301490.MadGraphPythia8EvtGen_A14NNPDF23LO_RS_G_hh_bbbb_c10_M500.merge.AOD.e3820_s2608_s2183_r7772_r7676_AOD.08176518._000006_BTagCalibRUN12-08-18.pool.root' ]
 
 
 svcMgr += CfgMgr.THistSvc()
@@ -38,26 +32,9 @@ for jet in fatJetCollections:
 #svcMgr.THistSvc.Output += ["BTAGSTREAM DATAFILE='flavntuple.root' OPT='RECREATE'"]
 
 
-
-##########################################################################################################################################################
-##########################################################################################################################################################
-### you should normally not need to touch this part
-
-doRecomputePV=False  ## do not touch unless you know what you are doing
-if doSMT: doRetag=True
-if doComputeReference:
-  ReduceInfo   =True
-  doRetag      =True
-  doRecomputePV=False
-
 ##########################################################################################################################################################
 ##########################################################################################################################################################
 ### VD: put first all the RecExCommon things, then the B-tagging stuff
-if doRecomputePV:
-  from InDetRecExample.InDetJobProperties import InDetFlags
-  InDetFlags.doVertexFinding.set_Value_and_Lock(True)
-  from InDetRecExample.InDetKeys import InDetKeys
-  InDetKeys.xAODVertexContainer.StoredValue='PrimaryVerticesValerio'
 
 ## from Anthony: needed to compute truth quantities of tracks
 from AthenaCommon.DetFlags import DetFlags
@@ -197,7 +174,7 @@ for aliased in aliased_collecions:
 for JetCollectionExKtSubJet in JetCollectionExKtSubJetList:
   BTaggingFlags.CalibrationChannelAliases += [JetCollectionExKtSubJet[:-4]+"->AntiKt4LCTopo"]
 
-# For debugging 
+# For debugging
 ###BTaggingFlags.OutputLevel = 1
 
 from DerivationFrameworkFlavourTag.FlavourTagCommon import FlavorTagInit
@@ -244,7 +221,7 @@ ToolSvc += CfgMgr.CP__PileupReweightingTool("prw",
 for JetCollection in fatJetCollections:
 
   shortJetName=JetCollection.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr").replace("TrimmedPtFrac5SmallR20", "Trm")
-  alg = CfgMgr.btagIBLAnalysisAlg("BTagDumpAlg_"+JetCollection, 
+  alg = CfgMgr.btagIBLAnalysisAlg("BTagDumpAlg_"+JetCollection,
                                   OutputLevel=INFO,
                                   Stream=shortJetName,
                                   InDetTrackSelectionTool   =ToolSvc.InDetTrackSelTool,
@@ -261,22 +238,21 @@ for JetCollection in fatJetCollections:
     alg.CalibrateJets = False
   else:
     alg.JetPtCut = 20.e3
-  alg.doSMT     =doSMT
   alg.ReduceInfo=ReduceInfo
   alg.EssentialInfo=ONLYEssentialInfo
+  alg.DumpCaloInfo=dumpCalo
   alg.DoMSV     =DoMSV
   alg.Rel20     =True
   alg.SubjetInfo = True
   #alg.CleanParentJets = True
-  alg.JetCleaningTool.CutLevel= "LooseBad" 
+  alg.JetCleaningTool.CutLevel= "LooseBad"
   alg.JetCleaningTool.DoUgly  = True
-  if not doComputeReference: algSeq += alg
-  
+
   ###print JetCollection
   calibfile        = "JES_Prerecommendation2015_Feb2015.config"
   collectionForTool="AntiKt4LCTopo"
   calSeg           ="JetArea_Residual_EtaJES"
-  if "EM" in JetCollection: 
+  if "EM" in JetCollection:
     collectionForTool="AntiKt4EMTopo"
     calibfile  ="JES_MC15Prerecommendation_April2015.config"
     #########################calibfile  ="JES_Prerecommendation2015_AFII_Apr2015.config"
@@ -291,7 +267,7 @@ for JetCollection in fatJetCollections:
                                        IsData=False,
                                        ConfigFile=calibfile,
                                        CalibSequence=calSeg,
-                                       JetCollection=collectionForTool) 
+                                       JetCollection=collectionForTool)
 
 
 ###########################################################################################################################################################################
