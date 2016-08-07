@@ -21,11 +21,21 @@ from AthenaCommon.AthenaCommonFlags import jobproperties as jp
 jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(10)
 
 # nikola's input file with VR jets
-jp.AthenaCommonFlags.FilesInput = [ "/afs/cern.ch/work/d/dguest/data/group.phys-exotics.301488.RS_G_hh_bbbb_c10_M300.e3820_s2608_s2183_r7772_r7676.FTAG5.T3_EXT0/group.phys-exotics.9012214.EXT0._000003.DAOD_FTAG5.pool.root" ]
+jp.AthenaCommonFlags.FilesInput = [
+  "/afs/cern.ch/work/d/dguest/data/group.phys-exotics.301488.RS_G_hh_bbbb_c10_M300.e3820_s2608_s2183_r7772_r7676.FTAG5.T3_EXT0/group.phys-exotics.9012214.EXT0._000003.DAOD_FTAG5.pool.root" ]
+
+# name shortener function
+_short_jet_names = [
+  ("AntiKt","Akt"), ("TrackJets","Tr"), ("TopoJets","To"),
+  ("TrimmedPtFrac5SmallR20", "Trm")]
+def get_short_name(jet_collection_name):
+  for pair in _short_jet_names:
+    jet_collection_name.replace(*pair)
+  return jet_collection_name
 
 svcMgr += CfgMgr.THistSvc()
 for jet in fatJetCollections:
-  shortJetName=jet.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr").replace("TrimmedPtFrac5SmallR20", "Trm")
+  shortJetName = get_short_name(jet)
   svcMgr.THistSvc.Output += [ shortJetName+" DATAFILE='flav_"+shortJetName+".root' OPT='RECREATE'"]
 #svcMgr.THistSvc.Output += ["BTAGSTREAM DATAFILE='flavntuple.root' OPT='RECREATE'"]
 
@@ -158,17 +168,17 @@ ToolSvc += CfgMgr.CP__PileupReweightingTool("prw",
 ##########################################################################################################################################################
 ### Main Ntuple Dumper Algorithm
 for JetCollection in fatJetCollections:
-
-  shortJetName=JetCollection.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr").replace("TrimmedPtFrac5SmallR20", "Trm")
-  alg = CfgMgr.btagIBLAnalysisAlg("BTagDumpAlg_"+JetCollection, 
-                                  OutputLevel=INFO,
-                                  Stream=shortJetName,
-                                  InDetTrackSelectionTool   =ToolSvc.InDetTrackSelTool,
-                                  TrackVertexAssociationTool=ToolSvc.TightVertexAssocTool,
-                                  TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator,
-                                  JVTtool=ToolSvc.JVT,
-                                  #DumpCaloInfo=True,
-                                  ) #DEBUG
+  shortJetName=get_short_name(JetCollection)
+  alg = CfgMgr.btagIBLAnalysisAlg(
+    "BTagDumpAlg_"+JetCollection,
+    OutputLevel=INFO,
+    Stream=shortJetName,
+    InDetTrackSelectionTool   =ToolSvc.InDetTrackSelTool,
+    TrackVertexAssociationTool=ToolSvc.TightVertexAssocTool,
+    TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator,
+    JVTtool=ToolSvc.JVT,
+    #DumpCaloInfo=True,
+  ) #DEBUG
   alg.JetCollectionName = JetCollection
   alg.doSMT = doSMT
   if "Track" in JetCollection or "Truth" in JetCollection:
@@ -184,15 +194,15 @@ for JetCollection in fatJetCollections:
   alg.Rel20     =True
   alg.SubjetInfo = True
   #alg.CleanParentJets = True
-  alg.JetCleaningTool.CutLevel= "LooseBad" 
+  alg.JetCleaningTool.CutLevel= "LooseBad"
   alg.JetCleaningTool.DoUgly  = True
   if not doComputeReference: algSeq += alg
-  
+
   ###print JetCollection
   calibfile        = "JES_Prerecommendation2015_Feb2015.config"
   collectionForTool="AntiKt4LCTopo"
   calSeg           ="JetArea_Residual_EtaJES"
-  if "EM" in JetCollection: 
+  if "EM" in JetCollection:
     collectionForTool="AntiKt4EMTopo"
     calibfile  ="JES_MC15Prerecommendation_April2015.config"
     #########################calibfile  ="JES_Prerecommendation2015_AFII_Apr2015.config"
@@ -203,11 +213,12 @@ for JetCollection in fatJetCollections:
     calSeg = "EtaJES_JMS"
 
   print collectionForTool
-  ToolSvc += CfgMgr.JetCalibrationTool("BTagDumpAlg_"+JetCollection+"_JCalib",
-                                       IsData=False,
-                                       ConfigFile=calibfile,
-                                       CalibSequence=calSeg,
-                                       JetCollection=collectionForTool) 
+  ToolSvc += CfgMgr.JetCalibrationTool(
+    "BTagDumpAlg_"+JetCollection+"_JCalib",
+    IsData=False,
+    ConfigFile=calibfile,
+    CalibSequence=calSeg,
+    JetCollection=collectionForTool)
 
 
 ###########################################################################################################################################################################
