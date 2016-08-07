@@ -6,6 +6,7 @@ ONLYEssentialInfo =False  ## write minimal amount of info on the output file
 ReduceInfo        =False  ## write minimal amount of info on the output file
 DoMSV             =True   ## include variables for MSV tagger
 doSMT             =True   ## include variables for SMT tagger
+doRetag           =True  ##False    ## perform retagging
 doComputeReference=False
 subJetCollections = ['AntiKt2PV0TrackJets', 'AntiKtVR50Rmax4Rmin0TrackJets']
 fatJetCollections = ['AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets']
@@ -36,8 +37,10 @@ for jet in fatJetCollections:
 ### you should normally not need to touch this part
 
 doRecomputePV=False  ## do not touch unless you know what you are doing
+if doSMT: doRetag=True
 if doComputeReference:
   ReduceInfo   =True
+  doRetag      =True
   doRecomputePV=False
 
 ##########################################################################################################################################################
@@ -82,14 +85,79 @@ algSeq = AlgSequence()
 
 ##########################################################################################################################################################
 ##########################################################################################################################################################
-### GEO Business
+### GEO Business 
 from AthenaCommon.GlobalFlags import globalflags
 print "detDescr from global flags= "+str(globalflags.DetDescrVersion)
 from AtlasGeoModel.InDetGMJobProperties import GeometryFlags as geoFlags
 print "geoFlags.Run()   = "+geoFlags.Run()
 print "geoFlags.isIBL() = "+str(  geoFlags.isIBL() )
 
+##########################################################################################################################################################
+##########################################################################################################################################################
+### Qi: Jet Business
+
+# Actually build AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets here
+#from DerivationFrameworkJetEtMiss.ExtendedJetCommon import addDefaultTrimmedJets
+#addDefaultTrimmedJets(algSeq, "WhoCares")
+
+# make exkt subjet finding tool
+def buildExclusiveSubjets(JetCollectionName, nsubjet, ToolSvc = ToolSvc):
+    from JetSubStructureMomentTools.JetSubStructureMomentToolsConf import SubjetFinderTool
+    from JetSubStructureMomentTools.JetSubStructureMomentToolsConf import SubjetRecorderTool
+
+    SubjetContainerName = "%sExKt%iSubJets" % (JetCollectionName.replace("Jets", ""), nsubjet)
+
+    subjetrecorder = SubjetRecorderTool("subjetrecorder%i_%s" % (nsubjet, JetCollectionName))
+    ToolSvc += subjetrecorder
+
+    subjetlabel = "ExKt%iSubJets" % (nsubjet)
+
+    subjetrecorder.SubjetLabel = subjetlabel
+    subjetrecorder.SubjetContainerName = SubjetContainerName
+
+    from JetTagTools.JetTagToolsConf import Analysis__ExKtbbTagTool
+    ExKtbbTagToolInstance = Analysis__ExKtbbTagTool(
+      name = "ExKtbbTagTool%i_%s" % (nsubjet, JetCollectionName),
+      JetAlgorithm = "Kt",
+      JetRadius = 10.0,
+      PtMin = 5000,
+      ExclusiveNJets = 2,
+      SubjetContainerName = SubjetContainerName,
+      # SubjetFinder = subjetfinder,
+      SubjetRecorder = subjetrecorder,
+      SubjetLabel = subjetlabel,
+      SubjetAlgorithm_BTAG = "AntiKt",
+      SubjetRadius_BTAG = 0.4
+    )
+    ToolSvc += ExKtbbTagToolInstance
+
+    return (ExKtbbTagToolInstance, SubjetContainerName)
+
+# build exkt subjets here
+JetCollectionExKtSubJetList = []
+for JetCollectionExKt in fatJetCollections:
+  # build ExKtbbTagTool instance
+  (ExKtbbTagToolInstance, SubjetContainerName) = buildExclusiveSubjets(JetCollectionExKt, 2)
+  JetCollectionExKtSubJetList += [SubjetContainerName]
+  
+  # approach 2: existing JetRecTool
+  from JetRec.JetRecConf import JetRecTool
+  jetrec = JetRecTool(
+                       name = "JetRecTool_ExKtbb_%s" % (JetCollectionExKt),
+                       OutputContainer = JetCollectionExKt,
+                       InputContainer = JetCollectionExKt,
+                       JetModifiers = [ExKtbbTagToolInstance],
+                     )
+  ToolSvc += jetrec
+  from JetRec.JetRecConf import JetAlgorithm
+  algSeq += JetAlgorithm(
+                          name = "JetAlgorithm_ExKtbb_%s" % (JetCollectionExKt),
+                          Tools = [jetrec],
+                        )
+
+
 print "Fat Jet Collection:", fatJetCollections
+print "Fat Jet ExKt SubJet Collection:",JetCollectionExKtSubJetList
 
 
 ##########################################################################################################################################################
@@ -106,10 +174,12 @@ BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-18'
 #BTaggingFlags.CalibrationTag = 'Run2DC14' ## '0801C' ##'k0002'
 
 defaultTaggers = ['IP2D', 'IP3D', 'SV0', 'MultiSVbb1', 'MultiSVbb2', 'SV1', 'BasicJetFitter', 'JetFitterTag', 'JetFitterNN', 'GbbNNTag', 'MV2c00', 'MV2c10', 'MV2c20', 'MV2c100', 'MV2m']
+specialTaggers = ['ExKtbb_Hbb_MV2Only', 'ExKtbb_Hbb_MV2andJFDRSig', 'ExKtbb_Hbb_MV2andTopos']
 
 ### setup calibration aliases ###
 aliased_collecions = [
   'AntiKt10LCTopoTrimmedPtFrac5SmallR20',
+  'AntiKt10LCTopoTrimmedPtFrac5SmallR20ExKt2Sub',
   ]
 aliases = ['AntiKt10LCTopo', 'AntiKt6LCTopo', 'AntiKt6TopoEM',
            'AntiKt4LCTopo', 'AntiKt4TopoEM', 'AntiKt4EMTopo']
@@ -117,13 +187,20 @@ for aliased in aliased_collecions:
   BTaggingFlags.CalibrationChannelAliases.append(
     "{}->{}".format(aliased, ','.join(aliases)))
 
-# For debugging
+for JetCollectionExKtSubJet in JetCollectionExKtSubJetList:
+  BTaggingFlags.CalibrationChannelAliases += [JetCollectionExKtSubJet[:-4]+"->AntiKt4LCTopo"]
+
+# For debugging 
 ###BTaggingFlags.OutputLevel = 1
 
 from DerivationFrameworkFlavourTag.FlavourTagCommon import FlavorTagInit
 FlavorTagInit(myTaggers      = defaultTaggers,
-              JetCollections = subJetCollections + fatJetCollections,
+              JetCollections = JetCollectionExKtSubJetList + subJetCollections,
               Sequencer      = algSeq)
+FlavorTagInit(myTaggers      = defaultTaggers + specialTaggers,
+              JetCollections = fatJetCollections,
+              Sequencer      = algSeq)
+
 
 ##########################################################################################################################################################
 ##########################################################################################################################################################
