@@ -1203,7 +1203,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
   ATH_MSG_DEBUG( "Total number of jets is: "<< njets );
   uint8_t getInt(0);   // for accessing summary information
 
-  /////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // MAIN JET LOOP
   // Now run over the selected jets and do whatever else needs doing
   for (unsigned int j = 0; j < selJets.size(); j++) {
@@ -1259,6 +1260,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
       if (dr < dRiso) dRiso = dr;
     }
     v_jet_dRiso->push_back(dRiso);
+
+    // new way to save b-hadron quantities ...
+    m_bhadron_branches.fill(*jet);
 
     // addition from Dan: fill clusters
     if (m_dumpCaloInfo) {
@@ -2857,6 +2861,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
   selJets.clear();
 
   // addition from Dan: clear branch collections
+  m_bhadron_branches.clear();
   m_cluster_branches.clear();
   m_substructure_moment_branches.clear();
   m_exkt_branches.clear();

@@ -1,10 +1,13 @@
 #ifndef BHADRON_BRANCHES_HH
 #define BHADRON_BRANCHES_HH
 
+#include "xAODJet/Jet.h"
+
 class TTree;
 
 namespace xAOD {
-  class JetConstituentVector;
+  class Jet_v1;
+  typedef Jet_v1 Jet;
 }
 
 // branch buffers are stored as an external class to cut down on
@@ -23,7 +26,7 @@ public:
   BHadronBranches(const BHadronBranches&) = delete;
 
   void set_tree(TTree& output_tree) const;
-  void fill(); // how many info do I need here?
+  void fill(const xAOD::Jet& jet); // how many info do I need here?
   void clear();
 private:
   BHadronBranchBuffer* m_branches;
