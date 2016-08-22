@@ -92,6 +92,7 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   AthHistogramAlgorithm(name, pSvcLocator),
   m_stream("BTAGSTREAM"),
   m_dumpCaloInfo(false),
+  m_bhadron_branches(),
   m_cluster_branches(),
   m_substructure_moment_branches(),
   m_exkt_branches(),
@@ -201,6 +202,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   CHECK( m_PUtool.retrieve() );
 
   ATH_CHECK(m_tdt.retrieve());
+
+  m_bhadron_branches.set_tree(*tree);
 
   // addition from Dan: create cluster branches
   if (m_dumpCaloInfo) {

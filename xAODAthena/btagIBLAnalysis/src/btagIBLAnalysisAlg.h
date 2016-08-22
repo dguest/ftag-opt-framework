@@ -5,6 +5,7 @@
 #include "ClusterBranches.hh"
 #include "SubjetBranches.hh"
 #include "TrackCovBranches.hh"
+#include "BHadronBranches.hh"
 #include "SubstructureMomentBranches.hh"
 #include "UnclusteredVertexBranches.hh"
 
@@ -458,6 +459,10 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
  private:
 
   // additions by Dan: branch collections
+  
+  // B-hadron quantities
+  BHadronBranches m_bhadron_branches;
+
   // cluster dumper
   bool m_dumpCaloInfo;
   ClusterBranches m_cluster_branches;
