@@ -350,6 +350,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 
   std::vector<std::vector<int> > *v_jet_trk_algo;
   std::vector<std::vector<int> > *v_jet_trk_orig;
+  std::vector<std::vector<int> > *v_jet_trk_is_tracking_cp_loose;
   std::vector<std::vector<float> > *v_jet_trk_vtx_dx;
   std::vector<std::vector<float> > *v_jet_trk_vtx_dy;
   std::vector<std::vector<float> > *v_jet_trk_vtx_X;
@@ -488,6 +489,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 
   /** InDetTrackSelectorTool (temporary: to be moved to a separate Tool) */
   ToolHandle< InDet::IInDetTrackSelectionTool > m_InDetTrackSelectorTool;
+  ToolHandle< InDet::IInDetTrackSelectionTool > m_CPTrackingLooseLabel;
 
   /** TrackVertex associator (temporary: to be moved to a separate Tool) */
   ToolHandle< CP::ITrackVertexAssociationTool > m_TightTrackVertexAssociationTool;

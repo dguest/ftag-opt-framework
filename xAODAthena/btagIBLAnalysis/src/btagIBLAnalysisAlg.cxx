@@ -104,6 +104,7 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   m_jetCleaningTool("JetCleaningTool/JetCleaningTool", this),
   m_jetCalibrationTool(""),
   m_InDetTrackSelectorTool(""),
+  m_CPTrackingLooseLabel(""),
   m_TightTrackVertexAssociationTool(""),
   m_tdt("Trig::TrigDecisionTool/TrigDecisionTool"),
   m_GRLSelectionTool("GoodRunsListSelectionTool/GoodRunsListSelectionTool", this),
@@ -116,6 +117,7 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   declareProperty( "JetCalibrationTool", m_jetCalibrationTool );
 
   declareProperty( "InDetTrackSelectionTool", m_InDetTrackSelectorTool );
+  declareProperty( "CPTrackingLooseLabel", m_CPTrackingLooseLabel);
   declareProperty( "TrackVertexAssociationTool", m_TightTrackVertexAssociationTool );
   declareProperty( "TrackToVertexIPEstimator", m_trackToVertexIPEstimator );
   declareProperty( "JVTtool", m_jvt );
@@ -185,6 +187,17 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   }
   else {
     ATH_MSG_DEBUG("#BTAG# Retrieved tool " << m_InDetTrackSelectorTool);
+  }
+  if (!m_CPTrackingLooseLabel.empty()) {
+    if (m_CPTrackingLooseLabel.retrieve().isFailure()) {
+      ATH_MSG_FATAL("#BTAG# Failed to retrieve tool " << m_CPTrackingLooseLabel);
+      return StatusCode::FAILURE;
+    } else {
+      ATH_MSG_DEBUG("#BTAG# Retrieved tool " << m_CPTrackingLooseLabel);
+    }
+  } else {
+    ATH_MSG_WARNING("#BTAG# tracking cp loose tool not specified, "
+                    "will not fill that branch");
   }
   if (m_TightTrackVertexAssociationTool.retrieve().isFailure())  {
     ATH_MSG_FATAL("#BTAG# Failed to retrieve tool " <<  m_TightTrackVertexAssociationTool);
@@ -459,6 +472,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_trk_ndf = new std::vector<std::vector<float> >();
   v_jet_trk_algo = new std::vector<std::vector<int> >();
   v_jet_trk_orig = new std::vector<std::vector<int> >();
+  v_jet_trk_is_tracking_cp_loose = new std::vector<std::vector<int> >();
 
   v_jet_trk_vtx_X = new std::vector<std::vector<float> >();
   v_jet_trk_vtx_Y = new std::vector<std::vector<float> >();
@@ -809,6 +823,10 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     tree->Branch("jet_trk_ndf", &v_jet_trk_ndf);
     tree->Branch("jet_trk_algo", &v_jet_trk_algo);
     tree->Branch("jet_trk_orig", &v_jet_trk_orig);
+    if (!m_CPTrackingLooseLabel.empty()) {
+      tree->Branch("jet_trk_is_tracking_cp_loose",
+                   &v_jet_trk_is_tracking_cp_loose);
+    }
 
     tree->Branch("jet_trk_vtx_X", &v_jet_trk_vtx_X);
     tree->Branch("jet_trk_vtx_Y", &v_jet_trk_vtx_Y);
@@ -2231,6 +2249,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> j_trk_ndf;
     std::vector<int> j_trk_algo;
     std::vector<int> j_trk_orig;
+    std::vector<int> j_trk_cploose;
     std::vector<int> j_trk_nInnHits;
     std::vector<int> j_trk_nNextToInnHits;
     std::vector<int> j_trk_nBLHits;
@@ -2686,6 +2705,11 @@ StatusCode btagIBLAnalysisAlg::execute() {
         j_trk_vtx_Y.push_back(-999);
       }
       j_trk_orig.push_back(origin);
+
+      if (!m_CPTrackingLooseLabel.empty()) {
+        bool is_cp_loose = m_CPTrackingLooseLabel->accept(*tmpTrk, myVertex);
+        j_trk_cploose.push_back(is_cp_loose ? 1 : 0);
+      }
       // std::cout << " ..... after origin" << std::endl;
 
       // hit content
@@ -2808,6 +2832,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_trk_ndf->push_back(j_trk_ndf);
     v_jet_trk_algo->push_back(j_trk_algo);
     v_jet_trk_orig->push_back(j_trk_orig);
+    v_jet_trk_is_tracking_cp_loose->push_back(j_trk_cploose);
     v_jet_trk_vtx_X->push_back(j_trk_vtx_X);
     v_jet_trk_vtx_Y->push_back(j_trk_vtx_Y);
     v_jet_trk_nInnHits->push_back(j_trk_nInnHits);
@@ -3190,6 +3215,7 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_trk_ndf->clear();
   v_jet_trk_algo->clear();
   v_jet_trk_orig->clear();
+  v_jet_trk_is_tracking_cp_loose->clear();
   v_jet_trk_nInnHits->clear();
   v_jet_trk_nNextToInnHits->clear();
   v_jet_trk_nBLHits->clear();

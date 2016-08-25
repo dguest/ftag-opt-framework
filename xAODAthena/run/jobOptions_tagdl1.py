@@ -178,27 +178,8 @@ if doRetag:
 ##########################################################################################################################################################
 ##########################################################################################################################################################
 ### Additional Tools needed by the dumper
-from TrackVertexAssociationTool.TrackVertexAssociationToolConf import CP__TightTrackVertexAssociationTool
-ToolSvc+=CP__TightTrackVertexAssociationTool("TightVertexAssocTool",dzSinTheta_cut=3, doPV=True)
-
-from InDetTrackSelectionTool.InDetTrackSelectionToolConf import InDet__InDetTrackSelectionTool
-ToolSvc+=InDet__InDetTrackSelectionTool("InDetTrackSelTool", CutLevel="Loose", maxZ0SinTheta=3)
-
-from TrkVertexFitterUtils.TrkVertexFitterUtilsConf import Trk__TrackToVertexIPEstimator
-ToolSvc+=Trk__TrackToVertexIPEstimator("trkIPEstimator")
-
-from TrigDecisionTool.TrigDecisionToolConf import Trig__TrigDecisionTool
-ToolSvc += Trig__TrigDecisionTool( "TrigDecisionTool" )
-from TrigEDMConfig.TriggerEDM import EDMLibraries
-ToolSvc.TrigDecisionTool.Navigation.Dlls = EDMLibraries
-
-jvt = CfgMgr.JetVertexTaggerTool('JVT')
-ToolSvc += jvt
-
-ToolSvc += CfgMgr.CP__PileupReweightingTool("prw",
-                                            OutputLevel = INFO,
-                                            UsePeriodConfig= "MC15"
-                                            )
+from btagIBLAnalysis.configHelpers import setupTools
+setupTools(ToolSvc, CfgMgr)
 
 ##########################################################################################################################################################
 ##########################################################################################################################################################
@@ -208,13 +189,15 @@ ToolSvc += CfgMgr.CP__PileupReweightingTool("prw",
 ### Main Ntuple Dumper Algorithm
 for JetCollection in JetCollections:
   shortJetName=JetCollection.replace("AntiKt","Akt").replace("TopoJets","To").replace("TrackJets","Tr")
-  alg = CfgMgr.btagIBLAnalysisAlg("BTagDumpAlg_"+JetCollection,
-                                  OutputLevel=INFO,
-                                  Stream=shortJetName,
-                                  InDetTrackSelectionTool   =ToolSvc.InDetTrackSelTool,
-                                  TrackVertexAssociationTool=ToolSvc.TightVertexAssocTool,
-                                  TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator,
-                                  JVTtool=ToolSvc.JVT,
+  alg = CfgMgr.btagIBLAnalysisAlg(
+    "BTagDumpAlg_"+JetCollection,
+    OutputLevel=INFO,
+    Stream=shortJetName,
+    InDetTrackSelectionTool   =ToolSvc.InDetTrackSelTool,
+    CPTrackingLooseLabel = ToolSvc.CPTrackingLooseLabel,
+    TrackVertexAssociationTool=ToolSvc.TightVertexAssocTool,
+    TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator,
+    JVTtool=ToolSvc.JVT,
                                   ) #DEBUG
   alg.JetCollectionName = JetCollection
   alg.doSMT = doSMT
