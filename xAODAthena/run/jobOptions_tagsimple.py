@@ -116,6 +116,9 @@ from BTagging.BTaggingFlags import BTaggingFlags
 #BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
 #BTaggingFlags.CalibrationTag = 'BTagCalibRUN2-test'
 
+# some globals have to be defined for this to work
+doComputeReference = False
+doRecomputePV = False
 include("RetagFragment.py")
 
 ##########################################################################################################################################################

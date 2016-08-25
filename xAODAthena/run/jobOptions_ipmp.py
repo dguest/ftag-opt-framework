@@ -51,6 +51,7 @@ evtPrintoutInterval = vars().get('EVTPRINT', 5000)
 svcMgr += CfgMgr.AthenaEventLoopMgr( EventPrintoutInterval=evtPrintoutInterval )
 
 svcMgr += CfgMgr.THistSvc()
+from btagIBLAnalysis.configHelpers import get_short_name
 for jet in JetCollections:
   shortJetName=get_short_name(jet)
   svcMgr.THistSvc.Output += [ shortJetName+" DATAFILE='flav_"+shortJetName+".root' OPT='RECREATE'"]
@@ -120,6 +121,9 @@ BTaggingFlags.RNNIP = True
 BTaggingFlags.RNNIPConfig = {'ipmp': 'ipmp.json', 'ipmk': 'ipmk.json'}
 BTaggingFlags.OutputLevel = DEBUG
 
+# some globals have to be defined for this to work
+doComputeReference = False
+doRecomputePV = False
 include("RetagFragment.py")
 
 ##########################################################################################################################################################

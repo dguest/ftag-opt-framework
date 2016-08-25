@@ -1,4 +1,7 @@
+# include the info flags
+from AthenaCommon.Constants import *
 
+# short names for jet collections
 _short_jet_names = [
   ("AntiKt","Akt"), ("TrackJets","Tr"), ("TopoJets","To"),
   ("TrimmedPtFrac5SmallR20", "Trm")]
@@ -21,8 +24,6 @@ def is_af2(af):
 
 
 def setupTools(ToolSvc, CfgMgr):
-    # TRUE, FALSE, other constants
-    from AthenaCommon.Constants import *
 
     from TrackVertexAssociationTool.TrackVertexAssociationToolConf import CP__TightTrackVertexAssociationTool
     ToolSvc+=CP__TightTrackVertexAssociationTool("TightVertexAssocTool",dzSinTheta_cut=3, doPV=True)
