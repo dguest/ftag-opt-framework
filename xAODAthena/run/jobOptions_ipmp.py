@@ -50,7 +50,6 @@ isAF2=is_af2(af)
 evtPrintoutInterval = vars().get('EVTPRINT', 5000)
 svcMgr += CfgMgr.AthenaEventLoopMgr( EventPrintoutInterval=evtPrintoutInterval )
 
-from btagIBLAnalysis.configHelpers import get_short_name
 svcMgr += CfgMgr.THistSvc()
 for jet in JetCollections:
   shortJetName=get_short_name(jet)
@@ -109,12 +108,17 @@ print "geoFlags.isIBL() = "+str(  geoFlags.isIBL() )
 from BTagging.BTaggingFlags import BTaggingFlags
 
 #### if the new file is already in the datatbase: simple edit the name
-###############BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-10'
+BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-18'
 
 #### if you want to use your own calibration file use this part below
 #BTaggingFlags.CalibrationFromLocalReplica = True
 #BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
 #BTaggingFlags.CalibrationTag = 'BTagCalibRUN2-test'
+
+# blank second field means read from file
+BTaggingFlags.RNNIP = True
+BTaggingFlags.RNNIPConfig = {'ipmp': 'ipmp.json', 'ipmk': 'ipmk.json'}
+BTaggingFlags.OutputLevel = DEBUG
 
 include("RetagFragment.py")
 
@@ -131,6 +135,13 @@ setupTools(ToolSvc, CfgMgr)
 ##########################################################################################################################################################
 ##########################################################################################################################################################
 
+ipnn_inputs = [
+  "d0", "d0sig", "z0", "z0sig", "d0z0sig", "grade", "fromV0", "pt", "dPhi",
+  "absEta", "chi2", "nInnHits", "nNextToInnHits", "nBLHits", "nsharedBLHits",
+  "nsplitBLHits", "nPixHits", "nsharedPixHits", "nsplitPixHits", "nSCTHits",
+  "nsharedSCTHits", "expectBLayerHit",
+]
+
 ### Main Ntuple Dumper Algorithm
 for JetCollection in JetCollections:
   shortJetName=get_short_name(JetCollection)
@@ -143,7 +154,7 @@ for JetCollection in JetCollections:
     TrackVertexAssociationTool=ToolSvc.TightVertexAssocTool,
     TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator,
     JVTtool=ToolSvc.JVT,
-                                  ) #DEBUG
+  ) #DEBUG
   alg.JetCollectionName = JetCollection
   alg.doSMT = doSMT
   if "AntiKt2PV0TrackJets" in JetCollection or "Truth" in JetCollection:
@@ -164,6 +175,16 @@ for JetCollection in JetCollections:
   alg.JetCleaningTool.CutLevel= "LooseBad"
   alg.JetCleaningTool.DoUgly  = True
   algSeq += alg
+
+  # add RNN outputs
+  for tagger in ['ipmp']:
+    for flav in ['pu', 'pc', 'pb', 'ptau']:
+      alg.ArbitraryDoubleBranches.append(tagger + '_' + flav)
+    for inpt in ipnn_inputs:
+      alg.ArbitraryFloatVectorBranches.append(tagger + '_' + inpt)
+
+  # SLAC version
+  alg.ArbitraryDoubleBranches.append('ipmk_pb')
 
   ###print JetCollection
   from btagIBLAnalysis.configHelpers import get_calibration_tool
