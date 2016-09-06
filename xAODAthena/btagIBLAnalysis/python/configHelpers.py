@@ -7,7 +7,7 @@ _short_jet_names = [
   ("TrimmedPtFrac5SmallR20", "Trm")]
 def get_short_name(jet_collection_name):
   for pair in _short_jet_names:
-    jet_collection_name.replace(*pair)
+    jet_collection_name = jet_collection_name.replace(*pair)
   return jet_collection_name
 
 def is_af2(af):
