@@ -98,7 +98,8 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   m_exkt_branches(),
   m_trkjet_branches(),
   m_vrtrkjet_branches(),
-  m_track_branches(),
+  m_track_cov_branches(),
+  m_ga_track_branches(),
   m_unclustered_vertices(),
   m_arb_branches(0),
   m_jetCleaningTool("JetCleaningTool/JetCleaningTool", this),
@@ -126,6 +127,7 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   declareProperty( "ReduceInfo"   , m_reduceInfo=false );
   declareProperty( "SubjetInfo"   , m_subjetInfo=false );
   declareProperty( "DumpTrackCovariance"   , m_dumpTrackCovariance=false );
+  declareProperty( "DumpGATracks"   , m_dumpGATracks=false );
   declareProperty( "Rel20", m_rel20 = false );
   declareProperty( "DoMSV", m_doMSV = false );
   declareProperty( "doSMT", m_SMT = false );
@@ -230,7 +232,10 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     m_unclustered_vertices.set_tree(*tree, "jet_unclustered_vertices_");
   }
   if (!m_dumpTrackCovariance) {
-    m_track_branches.set_tree(*tree, "jet_trk_");
+    m_track_cov_branches.set_tree(*tree, "jet_trk_");
+  }
+  if (!m_dumpGATracks) {
+    m_ga_track_branches.set_tree(*tree, "jet_ga_trk_");
   }
   if (m_arb_double_names.size() + m_arb_float_vec_names.size() > 0) {
     m_arb_branches = new ArbitraryJetBranches(m_arb_double_names,
@@ -1800,14 +1805,11 @@ StatusCode btagIBLAnalysisAlg::execute() {
       assocTracks = bjet->auxdata<std::vector<ElementLink<xAOD::TrackParticleContainer> > >("BTagTrackToJetAssociator");
     }
 
-    // build vector of tracks to simplify interface
-    std::vector<const xAOD::TrackParticle*> associated_tracks;
     // temporary track loop - sums up the 4vectors of all valid b-tag tracks and outputs
     TLorentzVector pseudoTrackJet(0, 0, 0, 0);
     for (unsigned int iT = 0; iT < assocTracks.size(); iT++) {
       if (!assocTracks.at(iT).isValid()) continue;
       const xAOD::TrackParticle *tmpTrk = *(assocTracks.at(iT));
-      associated_tracks.push_back(tmpTrk);
 
       if (m_InDetTrackSelectorTool->accept(*tmpTrk, myVertex) && m_TightTrackVertexAssociationTool->isCompatible(*tmpTrk, *myVertex) ) {
 	TLorentzVector tmpTrack(0, 0, 0, 0);
@@ -2599,7 +2601,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     ////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////
     // Addition from Dan: first fill my track branches
-    m_track_branches.fill(associated_tracks);
+    m_track_cov_branches.fill(assocTracks);
+
     // build track to vertex maps (from track_to_vertex_associators)
     auto msv_vtx_map = trkvx::get_msv_map(*bjet);
     // MAIN TRACK LOOP
@@ -2892,7 +2895,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
   m_exkt_branches.clear();
   m_trkjet_branches.clear();
   m_vrtrkjet_branches.clear();
-  m_track_branches.clear();
+  m_track_cov_branches.clear();
+  m_ga_track_branches.clear();
   m_unclustered_vertices.clear();
 
   if (m_arb_branches) m_arb_branches->clear();

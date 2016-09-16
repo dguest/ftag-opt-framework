@@ -47,7 +47,8 @@ void TrackCovBranches::fill(const TrackCovBranches::Tracks& tracks) {
   for (auto& pair: m_branches->cov) {
     pair.second->push_back(std::vector<float>());
   }
-  for (const auto* track: tracks) {
+  for (const TrackLink& tl: tracks) {
+    const auto* track = *tl;
     const auto cov_matrix = track->definingParametersCovMatrix();
     for (auto& pair: m_branches->cov) {
       const auto& idx = pair.first;

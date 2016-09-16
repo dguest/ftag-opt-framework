@@ -5,6 +5,7 @@
 #include "ClusterBranches.hh"
 #include "SubjetBranches.hh"
 #include "TrackCovBranches.hh"
+#include "TrackBranches.hh"
 #include "BHadronBranches.hh"
 #include "SubstructureMomentBranches.hh"
 #include "UnclusteredVertexBranches.hh"
@@ -447,6 +448,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   bool m_essentialInfo;            // basically as slim as possible ntuple which will only allow to make efficiency plots
   bool m_subjetInfo;
   bool m_dumpTrackCovariance;
+  bool m_dumpGATracks;
   bool m_doMSV;                    // if set to true it includes variables from multi SV tagger
   bool m_rel20;                    // if set to true code works for rel20, if set to false it will work for rel19
   bool m_SMT;
@@ -460,7 +462,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
  private:
 
   // additions by Dan: branch collections
-  
+
   // B-hadron quantities
   BHadronBranches m_bhadron_branches;
 
@@ -473,7 +475,8 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   SubjetBranches m_trkjet_branches;
   SubjetBranches m_vrtrkjet_branches;
   // track dumper
-  TrackCovBranches m_track_branches;
+  TrackCovBranches m_track_cov_branches;
+  TrackBranches m_ga_track_branches;
   // unclustered vertices
   UnclusteredVertexBranches m_unclustered_vertices;
   // must be initialized after the constructor
