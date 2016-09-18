@@ -92,14 +92,19 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   AthHistogramAlgorithm(name, pSvcLocator),
   m_stream("BTAGSTREAM"),
   m_dumpCaloInfo(false),
+  m_subjetInfo(false),
+  m_dumpTrackCovariance(false),
+  m_dumpGATracks(false),
+  m_doMSV(false),
   m_bhadron_branches(),
   m_cluster_branches(),
   m_substructure_moment_branches(),
   m_exkt_branches(),
   m_trkjet_branches(),
   m_vrtrkjet_branches(),
-  m_track_cov_branches(),
+  // m_track_cov_branches(),
   m_ga_track_branches(),
+  m_ga_track_cov_branches(),
   m_unclustered_vertices(),
   m_arb_branches(0),
   m_jetCleaningTool("JetCleaningTool/JetCleaningTool", this),
@@ -231,11 +236,14 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     m_vrtrkjet_branches.set_tree(*tree, "jet_vrtrkjet_");
     m_unclustered_vertices.set_tree(*tree, "jet_unclustered_vertices_");
   }
-  if (!m_dumpTrackCovariance) {
-    m_track_cov_branches.set_tree(*tree, "jet_trk_");
+  if (m_dumpTrackCovariance) {
+    // m_track_cov_branches.set_tree(*tree, "jet_trk_");
   }
-  if (!m_dumpGATracks) {
+  if (m_dumpGATracks) {
     m_ga_track_branches.set_tree(*tree, "jet_ga_trk_");
+    if (m_dumpTrackCovariance) {
+      m_ga_track_cov_branches.set_tree(*tree, "jet_ga_trk_");
+    }
   }
   if (m_arb_double_names.size() + m_arb_float_vec_names.size() > 0) {
     m_arb_branches = new ArbitraryJetBranches(m_arb_double_names,
@@ -2518,7 +2526,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_mu_fatjet_pTmax_pTrelFrac->push_back(jet_mu_fatjet_pTmax_pTrelFrac);
     }
 
-    if (m_reduceInfo) continue;
+    // if (m_reduceInfo) continue;
 
     std::vector<float> fittedPosition = bjet->auxdata<std::vector<float> >("JetFitter_fittedPosition"); // mod Remco
     std::vector<float> fittedCov = bjet->auxdata<std::vector<float> >("JetFitter_fittedCov"); // mod Remco
@@ -2588,9 +2596,16 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     // std::cout << "TOT tracks: " << assocTracks.size() << " IP3D: " << j_ip3d_ntrk << " ... grade: " << tmpGrading.size() << std::endl;
 
-    if (m_reduceInfo) continue; // if using reduceInfo, don't output track information
     // if (is8TeV) continue;
 
+    ////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+
+    if (m_dumpGATracks) {
+      fillGhostTracks(*jet, *myVertex);
+    }
+
+    if (m_reduceInfo) continue; // if using reduceInfo, don't output track information
     // jet direction:
     TLorentzVector jetDir;
     jetDir.SetPtEtaPhiE(v_jet_pt_orig->at(j), v_jet_eta_orig->at(j), v_jet_phi_orig->at(j), v_jet_E_orig->at(j));
@@ -2598,10 +2613,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     Amg::Vector3D jetDirection(jetDir.Px(),jetDir.Py(),jetDir.Pz());
     Amg::Vector3D unit = jetDirection.unit();
 
-    ////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////
-    // Addition from Dan: first fill my track branches
-    m_track_cov_branches.fill(assocTracks);
+    // m_track_cov_branches.fill(assocTracks);
 
     // build track to vertex maps (from track_to_vertex_associators)
     auto msv_vtx_map = trkvx::get_msv_map(*bjet);
@@ -2895,8 +2907,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
   m_exkt_branches.clear();
   m_trkjet_branches.clear();
   m_vrtrkjet_branches.clear();
-  m_track_cov_branches.clear();
+  // m_track_cov_branches.clear();
   m_ga_track_branches.clear();
+  m_ga_track_cov_branches.clear();
   m_unclustered_vertices.clear();
 
   if (m_arb_branches) m_arb_branches->clear();
@@ -3390,3 +3403,23 @@ int btagIBLAnalysisAlg :: getTrackOrigin(const xAOD::TrackParticle *tmpTrk,
   return origin;
 }
 
+void btagIBLAnalysisAlg::fillGhostTracks(const xAOD::Jet& jet,
+                                         const xAOD::Vertex& vx) {
+
+  typedef ElementLink<DataVector<xAOD::IParticle> > ParticleLink;
+  typedef std::vector<ParticleLink> PartLinks;
+  typedef std::vector<const xAOD::IParticle*> PartVector;
+  PartLinks loose_tracks;
+  for (const ParticleLink& trk: jet.auxdata<PartLinks>("GhostTrack")) {
+    const auto* track = dynamic_cast<const xAOD::TrackParticle*>(*trk);
+    if (!track) throw std::runtime_error("this isn't a track particle");
+    if (!m_CPTrackingLooseLabel.empty()) {
+      bool is_cp_loose = m_CPTrackingLooseLabel->accept(*track, &vx);
+      if (is_cp_loose) {
+        loose_tracks.push_back(trk);
+      }
+    }
+  }
+  m_ga_track_branches.fill(loose_tracks, vx, *m_trackToVertexIPEstimator);
+  m_ga_track_cov_branches.fill(loose_tracks);
+}

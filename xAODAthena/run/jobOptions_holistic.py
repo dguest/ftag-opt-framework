@@ -3,7 +3,6 @@
 ### MAIN SWITCHES
 
 ONLYEssentialInfo =False  ## write minimal amount of info on the output file
-ReduceInfo        =False  ## write minimal amount of info on the output file
 DoMSV             =True   ## include variables for MSV tagger
 doSMT             =True   ## include variables for SMT tagger
 doComputeReference=False
@@ -40,7 +39,6 @@ for jet in fatJetCollections:
 
 doRecomputePV=False  ## do not touch unless you know what you are doing
 if doComputeReference:
-  ReduceInfo   =True
   doRecomputePV=False
 
 ##########################################################################################################################################################
@@ -151,7 +149,9 @@ for JetCollection in fatJetCollections:
     TrackVertexAssociationTool=ToolSvc.TightVertexAssocTool,
     TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator,
     JVTtool=ToolSvc.JVT,
-    #DumpCaloInfo=True,
+    DumpCaloInfo=True,
+    DumpTrackCovariance=True,
+    DumpGATracks=True
   ) #DEBUG
   alg.JetCollectionName = JetCollection
   alg.doSMT = doSMT
@@ -162,7 +162,7 @@ for JetCollection in fatJetCollections:
   else:
     alg.JetPtCut = 20.e3
   alg.doSMT     =doSMT
-  alg.ReduceInfo=ReduceInfo
+  alg.ReduceInfo = True
   alg.EssentialInfo=ONLYEssentialInfo
   alg.DoMSV     =DoMSV
   alg.Rel20     =True

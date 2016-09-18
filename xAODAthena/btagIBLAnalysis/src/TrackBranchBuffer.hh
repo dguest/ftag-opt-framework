@@ -12,10 +12,8 @@ struct TrackBranchBuffer {
   std::vector<std::vector<float> > *phi;
   std::vector<std::vector<float> > *qoverp;
 
-  std::vector<std::vector<float> > *dr;
   std::vector<std::vector<float> > *chi2;
   std::vector<std::vector<float> > *ndf;
-  std::vector<std::vector<int> > *is_tracking_cp_loose;
 
   std::vector<std::vector<int> > *nNextToInnHits;
   std::vector<std::vector<int> > *nInnHits;
@@ -36,16 +34,8 @@ struct TrackBranchBuffer {
   // actual d0 variables (not lifetime-signed)
   std::vector<std::vector<float> > *ip_d0;
   std::vector<std::vector<float> > *ip_z0;
-
-  std::vector<std::vector<int> > *IP3D_grade;
-  std::vector<std::vector<float> > *IP3D_d0;
-  std::vector<std::vector<float> > *IP3D_d02D;
-  std::vector<std::vector<float> > *IP3D_z0;
-  std::vector<std::vector<float> > *IP3D_d0sig;
-  std::vector<std::vector<float> > *IP3D_z0sig;
-  std::vector<std::vector<float> > *IP2D_llr;
-  std::vector<std::vector<float> > *IP3D_llr;
-
+  std::vector<std::vector<float> > *ip_d0sig;
+  std::vector<std::vector<float> > *ip_z0sig;
 
 };
 

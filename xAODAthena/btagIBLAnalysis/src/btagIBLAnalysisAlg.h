@@ -34,6 +34,11 @@ namespace CP {
 namespace Reco { class ITrackToVertex; }
 namespace Trk  { class ITrackToVertexIPEstimator; }
 
+namespace xAOD {
+  class Jet_v1;
+  typedef Jet_v1 Jet;
+}
+
 class IGoodRunsListSelectionTool;
 class IJetUpdateJvt;
 
@@ -438,6 +443,8 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   int parent_classify(const xAOD::TruthParticle * theParticle);
   //bool particleInCollection( const xAOD::TrackParticle *trkPart,
   //std::vector< ElementLink< xAOD::TrackParticleContainer > > trkColl);
+  void fillGhostTracks(const xAOD::Jet& jet,
+                       const xAOD::Vertex& vx);
 
 
 #endif // not __MAKECINT__
@@ -446,6 +453,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   /// from outside
   bool m_reduceInfo;               // if set to true is allows to run over xAOD and not crashing when info are missing
   bool m_essentialInfo;            // basically as slim as possible ntuple which will only allow to make efficiency plots
+  bool m_dumpCaloInfo;
   bool m_subjetInfo;
   bool m_dumpTrackCovariance;
   bool m_dumpGATracks;
@@ -467,7 +475,6 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   BHadronBranches m_bhadron_branches;
 
   // cluster dumper
-  bool m_dumpCaloInfo;
   ClusterBranches m_cluster_branches;
   SubstructureMomentBranches m_substructure_moment_branches;
   // subjet dumper
@@ -475,8 +482,9 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   SubjetBranches m_trkjet_branches;
   SubjetBranches m_vrtrkjet_branches;
   // track dumper
-  TrackCovBranches m_track_cov_branches;
+  // TrackCovBranches m_track_cov_branches;
   TrackBranches m_ga_track_branches;
+  TrackCovBranches m_ga_track_cov_branches;
   // unclustered vertices
   UnclusteredVertexBranches m_unclustered_vertices;
   // must be initialized after the constructor

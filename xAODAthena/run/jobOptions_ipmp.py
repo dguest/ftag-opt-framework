@@ -118,7 +118,7 @@ BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-18'
 
 # blank second field means read from file
 BTaggingFlags.RNNIP = True
-BTaggingFlags.RNNIPConfig = {'ipmp': 'ipmp.json', 'ipmk': 'ipmk.json'}
+BTaggingFlags.RNNIPConfig = {'ipmp': 'ipmp.json', 'ipz': 'ipz.json'}
 BTaggingFlags.OutputLevel = DEBUG
 
 # some globals have to be defined for this to work
@@ -181,14 +181,11 @@ for JetCollection in JetCollections:
   algSeq += alg
 
   # add RNN outputs
-  for tagger in ['ipmp']:
+  for tagger in ['ipmp', 'ipz']:
     for flav in ['pu', 'pc', 'pb', 'ptau']:
       alg.ArbitraryDoubleBranches.append(tagger + '_' + flav)
     for inpt in ipnn_inputs:
       alg.ArbitraryFloatVectorBranches.append(tagger + '_' + inpt)
-
-  # SLAC version
-  alg.ArbitraryDoubleBranches.append('ipmk_pb')
 
   ###print JetCollection
   from btagIBLAnalysis.configHelpers import get_calibration_tool

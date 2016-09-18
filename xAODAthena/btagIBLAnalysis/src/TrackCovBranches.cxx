@@ -1,7 +1,7 @@
 #include "TrackCovBranches.hh"
 #include "TrackCovBranchBuffer.hh"
 
-#include "xAODTracking/TrackParticle.h"
+#include "xAODTracking/TrackParticleContainer.h"
 #include "TTree.h"
 
 #include <string>
@@ -13,7 +13,8 @@ namespace {
 }
 
 TrackCovBranches::TrackCovBranches():
-  m_branches(new TrackCovBranchBuffer)
+  m_branches(new TrackCovBranchBuffer),
+  m_active(false)
 {
   typedef std::vector<std::vector<float> > VVF;
   size_t n_pars = TRK_PAR.size();
@@ -34,6 +35,8 @@ TrackCovBranches::~TrackCovBranches()
 
 void TrackCovBranches::set_tree(TTree& output_tree,
                              const std::string& prefix) const {
+  if (m_active) throw std::logic_error("tried to set tree twice");
+  m_active = true;
   for (auto& pair: m_branches->cov) {
     std::string par1 = TRK_PAR.at(pair.first.first);
     std::string par2 = TRK_PAR.at(pair.first.second);
@@ -42,13 +45,17 @@ void TrackCovBranches::set_tree(TTree& output_tree,
   }
 }
 
-void TrackCovBranches::fill(const TrackCovBranches::Tracks& tracks) {
+void TrackCovBranches::fill(const TrackCovBranches::PartLinks& tracks) {
+  if (!m_active) return;
+
   // add a vector to each branch
   for (auto& pair: m_branches->cov) {
     pair.second->push_back(std::vector<float>());
   }
-  for (const TrackLink& tl: tracks) {
-    const auto* track = *tl;
+  for (const PartLink& tl: tracks) {
+    const auto* track = dynamic_cast<const xAOD::TrackParticle*>(*tl);
+    if (!track) throw std::logic_error("This isn't a track particle");
+
     const auto cov_matrix = track->definingParametersCovMatrix();
     for (auto& pair: m_branches->cov) {
       const auto& idx = pair.first;
@@ -62,4 +69,18 @@ void TrackCovBranches::clear() {
   for (auto& pair: m_branches->cov) {
     pair.second->clear();
   }
+}
+
+namespace {
+  // typedef std::vector<ElementLink<xAOD::TrackParticleContainer> > Tracks;
+  // const TrackCovBranches::PartLinks partFromTrack(const Tracks& trk) {
+  //   DataVector<const xAOD::IParticle> pdv;
+  //   for (ElementLink<xAOD::TrackParticleContainer> el: trk) {
+  //     const xAOD::TrackParticle* tp = *el;
+  //     const xAOD::IParticle* ip = tp;
+  //     pdv.push_back(ip);
+  //   }
+  //   TrackCovBranches::PartLinks plinks;
+  //   return plinks;
+  // }
 }
