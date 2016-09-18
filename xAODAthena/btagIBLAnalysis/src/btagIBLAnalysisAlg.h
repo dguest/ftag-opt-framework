@@ -482,7 +482,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   SubjetBranches m_trkjet_branches;
   SubjetBranches m_vrtrkjet_branches;
   // track dumper
-  // TrackCovBranches m_track_cov_branches;
+  TrackCovBranches m_track_cov_branches;
   TrackBranches m_ga_track_branches;
   TrackCovBranches m_ga_track_cov_branches;
   // unclustered vertices

@@ -102,7 +102,7 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   m_exkt_branches(),
   m_trkjet_branches(),
   m_vrtrkjet_branches(),
-  // m_track_cov_branches(),
+  m_track_cov_branches(),
   m_ga_track_branches(),
   m_ga_track_cov_branches(),
   m_unclustered_vertices(),
@@ -236,8 +236,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     m_vrtrkjet_branches.set_tree(*tree, "jet_vrtrkjet_");
     m_unclustered_vertices.set_tree(*tree, "jet_unclustered_vertices_");
   }
-  if (m_dumpTrackCovariance) {
-    // m_track_cov_branches.set_tree(*tree, "jet_trk_");
+  if (m_dumpTrackCovariance && !m_reduceInfo) {
+    m_track_cov_branches.set_tree(*tree, "jet_trk_");
   }
   if (m_dumpGATracks) {
     m_ga_track_branches.set_tree(*tree, "jet_ga_trk_");
@@ -936,6 +936,12 @@ StatusCode btagIBLAnalysisAlg::finalize() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
+
+namespace {
+  typedef std::vector<const xAOD::TrackParticle*> Tracks;
+  typedef std::vector<const xAOD::IParticle*> Particles;
+}
+
 StatusCode btagIBLAnalysisAlg::execute() {
   ATH_MSG_DEBUG ("Executing " << name() << "...");
 
@@ -2613,11 +2619,11 @@ StatusCode btagIBLAnalysisAlg::execute() {
     Amg::Vector3D jetDirection(jetDir.Px(),jetDir.Py(),jetDir.Pz());
     Amg::Vector3D unit = jetDirection.unit();
 
-    // m_track_cov_branches.fill(assocTracks);
 
     // build track to vertex maps (from track_to_vertex_associators)
     auto msv_vtx_map = trkvx::get_msv_map(*bjet);
     // MAIN TRACK LOOP
+    std::vector<const xAOD::TrackParticle*> selectedTracks;
     for (unsigned int iT = 0; iT < assocTracks.size(); iT++) {
       // std::cout << " .... trk link: " << iT << std::endl;
       if (!assocTracks.at(iT).isValid()) continue;
@@ -2627,7 +2633,14 @@ StatusCode btagIBLAnalysisAlg::execute() {
       tmpTrk->summaryValue(getInt, xAOD::numberOfSCTHits);
       nSi += getInt;
       if (nSi < 2) continue;
+      selectedTracks.push_back(tmpTrk);
+    }
 
+    // fill cov branches
+    m_track_cov_branches.fill(Particles(selectedTracks.begin(),
+                                        selectedTracks.end()));
+
+    for (const auto* tmpTrk: selectedTracks) {
       j_btag_ntrk++;
       j_trk_pt.push_back(tmpTrk->pt());
       j_trk_eta.push_back(tmpTrk->eta());
@@ -2907,7 +2920,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
   m_exkt_branches.clear();
   m_trkjet_branches.clear();
   m_vrtrkjet_branches.clear();
-  // m_track_cov_branches.clear();
+  m_track_cov_branches.clear();
   m_ga_track_branches.clear();
   m_ga_track_cov_branches.clear();
   m_unclustered_vertices.clear();
@@ -3407,17 +3420,20 @@ void btagIBLAnalysisAlg::fillGhostTracks(const xAOD::Jet& jet,
                                          const xAOD::Vertex& vx) {
 
   typedef ElementLink<DataVector<xAOD::IParticle> > ParticleLink;
+  typedef ElementLink<xAOD::TrackParticleContainer> TrackLink;
   typedef std::vector<ParticleLink> PartLinks;
+  typedef std::vector<TrackLink> TrackLinks;
   typedef std::vector<const xAOD::IParticle*> PartVector;
-  PartLinks loose_tracks;
+  PartVector loose_tracks;
   for (const ParticleLink& trk: jet.auxdata<PartLinks>("GhostTrack")) {
     const auto* track = dynamic_cast<const xAOD::TrackParticle*>(*trk);
     if (!track) throw std::runtime_error("this isn't a track particle");
-    if (!m_CPTrackingLooseLabel.empty()) {
-      bool is_cp_loose = m_CPTrackingLooseLabel->accept(*track, &vx);
-      if (is_cp_loose) {
-        loose_tracks.push_back(trk);
-      }
+    if (m_CPTrackingLooseLabel.empty()) {
+      throw std::logic_error("you need the tracking cp tool for loose");
+    }
+    bool is_cp_loose = m_CPTrackingLooseLabel->accept(*track, &vx);
+    if (is_cp_loose) {
+      loose_tracks.push_back(track);
     }
   }
   m_ga_track_branches.fill(loose_tracks, vx, *m_trackToVertexIPEstimator);

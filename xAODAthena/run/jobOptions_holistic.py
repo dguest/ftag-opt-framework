@@ -146,6 +146,7 @@ for JetCollection in fatJetCollections:
     OutputLevel=INFO,
     Stream=shortJetName,
     InDetTrackSelectionTool   =ToolSvc.InDetTrackSelTool,
+    CPTrackingLooseLabel = ToolSvc.CPTrackingLooseLabel,
     TrackVertexAssociationTool=ToolSvc.TightVertexAssocTool,
     TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator,
     JVTtool=ToolSvc.JVT,

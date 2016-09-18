@@ -147,7 +147,7 @@ namespace {
   }
 }
 
-void TrackBranches::fill(const TrackBranches::PartLinks& tracks,
+void TrackBranches::fill(const TrackBranches::PartVector& tracks,
                          const xAOD::Vertex& vxp,
                          const Trk::ITrackToVertexIPEstimator& trk2vrt) {
   if (!m_active) return;
@@ -182,8 +182,8 @@ void TrackBranches::fill(const TrackBranches::PartLinks& tracks,
   std::vector<float> ip_d0sig;
   std::vector<float> ip_z0sig;
 
-  for (const PartLink& tl: tracks) {
-    const auto* tmpTrk = dynamic_cast<const xAOD::TrackParticle*>(*tl);
+  for (const auto* part: tracks) {
+    const auto* tmpTrk = dynamic_cast<const xAOD::TrackParticle*>(part);
     if (!tmpTrk) throw std::logic_error("This isn't a track particle");
     const auto& track = *tmpTrk;
     pt.push_back(tmpTrk->pt());
@@ -191,7 +191,6 @@ void TrackBranches::fill(const TrackBranches::PartLinks& tracks,
     theta.push_back(tmpTrk->theta());
     phi.push_back(tmpTrk->phi());
     qoverp.push_back(tmpTrk->qOverP());
-
     chi2.push_back(tmpTrk->chiSquared());
     ndf.push_back(tmpTrk->numberDoF());
 

@@ -45,15 +45,15 @@ void TrackCovBranches::set_tree(TTree& output_tree,
   }
 }
 
-void TrackCovBranches::fill(const TrackCovBranches::PartLinks& tracks) {
+void TrackCovBranches::fill(const TrackCovBranches::PartVector& tracks) {
   if (!m_active) return;
 
   // add a vector to each branch
   for (auto& pair: m_branches->cov) {
     pair.second->push_back(std::vector<float>());
   }
-  for (const PartLink& tl: tracks) {
-    const auto* track = dynamic_cast<const xAOD::TrackParticle*>(*tl);
+  for (const auto* part: tracks) {
+    const auto* track = dynamic_cast<const xAOD::TrackParticle*>(part);
     if (!track) throw std::logic_error("This isn't a track particle");
 
     const auto cov_matrix = track->definingParametersCovMatrix();
@@ -71,16 +71,3 @@ void TrackCovBranches::clear() {
   }
 }
 
-namespace {
-  // typedef std::vector<ElementLink<xAOD::TrackParticleContainer> > Tracks;
-  // const TrackCovBranches::PartLinks partFromTrack(const Tracks& trk) {
-  //   DataVector<const xAOD::IParticle> pdv;
-  //   for (ElementLink<xAOD::TrackParticleContainer> el: trk) {
-  //     const xAOD::TrackParticle* tp = *el;
-  //     const xAOD::IParticle* ip = tp;
-  //     pdv.push_back(ip);
-  //   }
-  //   TrackCovBranches::PartLinks plinks;
-  //   return plinks;
-  // }
-}

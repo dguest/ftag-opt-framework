@@ -40,9 +40,9 @@ use InDetTrackSelectionTool    InDetTrackSelectionTool-*       InnerDetector/InD
 use TrackVertexAssociationTool TrackVertexAssociationTool-*    InnerDetector/InDetRecTools
 use PileupReweighting          PileupReweighting-*             PhysicsAnalysis/AnalysisCommon
 
-use DataModel DataModel-* Control/DataModel
-use xAODBase xAODBase-* Event/xAOD/xAODBase
-use AthLinks AthLinks-* Control/AthLinks
+# use DataModel DataModel-* Control/DataModel
+# use xAODBase xAODBase-* Event/xAOD/xAODBase
+# use AthLinks AthLinks-* Control/AthLinks
 
 ## default is to make component library
 library btagIBLAnalysis *.cxx components/*.cxx
