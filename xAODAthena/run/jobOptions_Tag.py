@@ -32,10 +32,11 @@ if ContentMode!=-1:
 ### Define input xAOD and output ntuple file name
 import glob
 from AthenaCommon.AthenaCommonFlags import jobproperties as jp
-jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock( vars().get('EVTMAX', -1) )
-
+#jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock( vars().get('EVTMAX', -1) )
+jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(200)
 jp.AthenaCommonFlags.FilesInput = [
-"/afs/cern.ch/user/g/ggonella/ggonella/public/ForValerio/mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264_tid05419191_00/AOD.05419191._000184.pool.root.1"
+"AOD.pool.root"
+#"/afs/cern.ch/user/g/ggonella/ggonella/public/ForValerio/mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264_tid05419191_00/AOD.05419191._000184.pool.root.1"
   ##"/afs/cern.ch/user/v/vdao/mc15_8TeV.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e3099_s2578_r7135_tid06628604_00/AOD.06628604._000221.pool.root.1",
   ##"/afs/cern.ch/user/v/vdao/valid1.110401.PowhegPythia_P2012_ttbar_nonallhad.recon.AOD.e3099_s2578_r7058_tid06432679_00/AOD.06432679._000066.pool.root.1",
   ##"/afs/cern.ch/work/v/vdao//xAODs/dataNtuple/Peter/mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_a766_a767_r6264_tid05443510_00/AOD.05443510._000453.pool.root.1",

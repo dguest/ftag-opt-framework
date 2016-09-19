@@ -60,14 +60,14 @@ bool xaodJetPtSorting(const xAOD::Jet *jet1, const xAOD::Jet *jet2) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool isFromWZ( const xAOD::TruthParticle* particle ) {
   if ( particle==0 ) return false;
-  
+
   if ( fabs(particle->pdgId())!= 11 && fabs(particle->pdgId())!= 13) return false;
-  
+
   const xAOD::TruthVertex* prodvtx = particle->prodVtx();
   if ( prodvtx==0 ) return false;
-  
-  if (  prodvtx->nIncomingParticles()==0 ) return false; 
-  
+
+  if (  prodvtx->nIncomingParticles()==0 ) return false;
+
   if (  prodvtx->nIncomingParticles()>1 ) {
     int nCharge=0;
     int nNeutral=0;
@@ -77,7 +77,7 @@ bool isFromWZ( const xAOD::TruthParticle* particle ) {
     }
     if ( nCharge>1 ) return true;
     if ( nCharge+nNeutral>1 ) return true;
-    return false; 
+    return false;
   }
   int absPDG=fabs(prodvtx->incomingParticle(0)->pdgId());
   if ( absPDG==15) return false;
@@ -136,6 +136,7 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   declareProperty( "Rel20", m_rel20 = false );
   declareProperty( "DoMSV", m_doMSV = false );
   declareProperty( "doSMT", m_SMT = false );
+  declareProperty( "bHadronBranches", m_bHadronInfo =false );
   declareProperty( "CalibrateJets", m_calibrateJets = true );
   declareProperty( "CleanJets", m_cleanJets = true );
 
@@ -223,7 +224,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
 
   ATH_CHECK(m_tdt.retrieve());
 
-  m_bhadron_branches.set_tree(*tree);
+  if(m_bHadronInfo){  m_bhadron_branches.set_tree(*tree); }
 
   // addition from Dan: create cluster branches
   if (m_dumpCaloInfo) {
@@ -268,8 +269,6 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_m = new std::vector<float>(); //v_jet_m->reserve(15);
   v_jet_nConst     =new std::vector<int>();
   v_jet_truthflav = new std::vector<int>();
-  v_jet_nBHadr = new std::vector<int>();
-  v_jet_nCHadr = new std::vector<int>();
   v_jet_nGhostBHadrFromParent = new std::vector<int>(); // mod nikola
   v_jet_nGhostCHadrFromParent = new std::vector<int>(); // mod nikola
   v_jet_nGhostCHadrFromParentNotFromB = new std::vector<int>(); // mod nikola
@@ -353,9 +352,19 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_jf_vtx_ntrk = new std::vector<std::vector<int> >(); // mod Remco
   v_jet_jf_vtx_L3d = new std::vector<std::vector<float> >(); // mod Remco
   v_jet_jf_vtx_sig3d = new std::vector<std::vector<float> >(); // mod Remco
-  v_jet_jf_vtx_nvtx = new std::vector<std::vector<int> >(); // mod Remco
   v_jet_jf_phi = new std::vector<float>(); // mod Remco
   v_jet_jf_theta = new std::vector<float>(); // mod Remco
+
+  v_jet_jf_vtx_sigTrans = new std::vector<std::vector<float> >();
+  v_jet_jf_vtx_x = new std::vector<std::vector<float> >();
+  v_jet_jf_vtx_x_err = new std::vector<std::vector<float> >();
+  v_jet_jf_vtx_y = new std::vector<std::vector<float> >();
+  v_jet_jf_vtx_y_err = new std::vector<std::vector<float> >();
+  v_jet_jf_vtx_z = new std::vector<std::vector<float> >();
+  v_jet_jf_vtx_z_err = new std::vector<std::vector<float> >();
+
+  v_jet_jf_phi_err = new std::vector<float>();
+  v_jet_jf_theta_err = new std::vector<float>();
 
   v_jet_jfcombnn_pb = new std::vector<float>();
   v_jet_jfcombnn_pc = new std::vector<float>();
@@ -452,27 +461,6 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_bH2_y = new std::vector<float>();
   v_bH2_z = new std::vector<float>();
 
-  v_bH_pt = new std::vector<float>();
-  v_bH_eta = new std::vector<float>();
-  v_bH_phi = new std::vector<float>();
-  v_bH_Lxy = new std::vector<float>();
-  v_bH_dRjet = new std::vector<float>();
-  v_bH_x = new std::vector<float>();
-  v_bH_y = new std::vector<float>();
-  v_bH_z = new std::vector<float>();
-  v_bH_nBtracks = new std::vector<int>();
-  v_bH_nCtracks = new std::vector<int>();
-
-  v_cH_pt = new std::vector<float>();
-  v_cH_eta = new std::vector<float>();
-  v_cH_phi = new std::vector<float>();
-  v_cH_Lxy = new std::vector<float>();
-  v_cH_dRjet = new std::vector<float>();
-  v_cH_x = new std::vector<float>();
-  v_cH_y = new std::vector<float>();
-  v_cH_z = new std::vector<float>();
-  v_cH_nCtracks = new std::vector<int>();
-
   v_jet_btag_ntrk = new std::vector<int>();
   v_jet_trk_pt = new std::vector<std::vector<float> >();
   v_jet_trk_eta = new std::vector<std::vector<float> >();
@@ -527,6 +515,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_trk_ip_z0 = new std::vector<std::vector<float> >();
 
   v_jet_trk_jf_Vertex = new std::vector<std::vector<int> >(); // mod Remco
+  v_jet_trk_pdg_id = new std::vector<std::vector<int> >();
+  v_jet_trk_barcode = new std::vector<std::vector<int> >();
 
   // those are just quick accessors
   v_jet_sv1_ntrk = new std::vector<int>();
@@ -585,7 +575,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
 
   v_PVz=new std::vector<float>();
   //tree->Branch("PVzV",&v_PVz); ///to decomment if you want ALL the PV
- 
+
   tree->Branch("njets", &njets);
   if (!m_essentialInfo) tree->Branch("nbjets", &nbjets);
   if (!m_essentialInfo) tree->Branch("nbjets_q", &nbjets_q);
@@ -607,8 +597,6 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   if (!m_essentialInfo) tree->Branch("jet_m", &v_jet_m);
   tree->Branch("jet_nConst",&v_jet_nConst);
   if (!m_essentialInfo) tree->Branch("jet_truthflav", &v_jet_truthflav);
-  tree->Branch("jet_nBHadr", &v_jet_nBHadr);
-  tree->Branch("jet_nCHadr", &v_jet_nCHadr);
   if (!m_essentialInfo) tree->Branch("jet_nGhostBHadrFromParent", &v_jet_nGhostBHadrFromParent); // mod nikola
   if (!m_essentialInfo) tree->Branch("jet_nGhostCHadrFromParent", &v_jet_nGhostCHadrFromParent); // mod nikola
   if (!m_essentialInfo) tree->Branch("jet_nGhostCHadrFromParentNotFromB", &v_jet_nGhostCHadrFromParentNotFromB); // mod nikola
@@ -699,9 +687,21 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   if (!m_essentialInfo) tree->Branch("jet_jf_vtx_ntrk", &v_jet_jf_vtx_ntrk); // mod Remco
   if (!m_essentialInfo) tree->Branch("jet_jf_vtx_L3D", &v_jet_jf_vtx_L3d); // mod Remco
   if (!m_essentialInfo) tree->Branch("jet_jf_vtx_sig3D", &v_jet_jf_vtx_sig3d); // mod Remco
-  //tree->Branch("jet_jf_vtx_nvtx", &v_jet_jf_vtx_nvtx); // mod Remco
   if (!m_essentialInfo) tree->Branch("jet_jf_phi", &v_jet_jf_phi); // mod Remco
   if (!m_essentialInfo) tree->Branch("jet_jf_theta", &v_jet_jf_theta); // mod Remco
+
+  if (!m_essentialInfo){
+       tree->Branch("jet_jf_vtx_sigTrans", &v_jet_jf_vtx_sigTrans);
+       tree->Branch("jet_jf_vtx_x", &v_jet_jf_vtx_x);
+       tree->Branch("jet_jf_vtx_x_err", &v_jet_jf_vtx_x_err);
+       tree->Branch("jet_jf_vtx_y", &v_jet_jf_vtx_y);
+       tree->Branch("jet_jf_vtx_y_err", &v_jet_jf_vtx_y_err);
+       tree->Branch("jet_jf_vtx_z", &v_jet_jf_vtx_z);
+       tree->Branch("jet_jf_vtx_z_err", &v_jet_jf_vtx_z_err);
+       tree->Branch("jet_jf_theta_err", &v_jet_jf_theta_err);
+       tree->Branch("jet_jf_phi_err", &v_jet_jf_phi_err);
+     }
+
 
   if (!m_essentialInfo) tree->Branch("jet_jfcombnn_pb", &v_jet_jfcombnn_pb);
   if (!m_essentialInfo) tree->Branch("jet_jfcombnn_pc", &v_jet_jfcombnn_pc);
@@ -802,27 +802,6 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   if (!m_essentialInfo) tree->Branch("bH2_z", &v_bH2_z);
   if (!m_essentialInfo) tree->Branch("bH2_dRjet", &v_bH2_dRjet);
 
-  tree->Branch("bH_pt", &v_bH_pt);
-  tree->Branch("bH_eta", &v_bH_eta);
-  if (!m_essentialInfo) tree->Branch("bH_phi", &v_bH_phi);
-  tree->Branch("bH_Lxy", &v_bH_Lxy);
-  if (!m_essentialInfo) tree->Branch("bH_x", &v_bH_x);
-  if (!m_essentialInfo) tree->Branch("bH_y", &v_bH_y);
-  if (!m_essentialInfo) tree->Branch("bH_z", &v_bH_z);
-  tree->Branch("bH_dRjet", &v_bH_dRjet);
-  if (!m_essentialInfo) tree->Branch("bH_nBtracks", &v_bH_nBtracks);
-  if (!m_essentialInfo) tree->Branch("bH_nCtracks", &v_bH_nCtracks);
-
-  tree->Branch("cH_pt", &v_cH_pt);
-  tree->Branch("cH_eta", &v_cH_eta);
-  if (!m_essentialInfo) tree->Branch("cH_phi", &v_cH_phi);
-  tree->Branch("cH_Lxy", &v_cH_Lxy);
-  if (!m_essentialInfo) tree->Branch("cH_x", &v_cH_x);
-  if (!m_essentialInfo) tree->Branch("cH_y", &v_cH_y);
-  if (!m_essentialInfo) tree->Branch("cH_z", &v_cH_z);
-  tree->Branch("cH_dRjet", &v_cH_dRjet);
-  if (!m_essentialInfo) tree->Branch("cH_nCtracks", &v_cH_nCtracks);
-
   tree->Branch("jet_btag_ntrk", &v_jet_btag_ntrk);
   if (!m_reduceInfo) {
     tree->Branch("jet_trk_pt", &v_jet_trk_pt);
@@ -878,6 +857,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     tree->Branch("jet_trk_ip3d_llr", &v_jet_trk_IP3D_llr);
 
     tree->Branch("jet_trk_jf_Vertex", &v_jet_trk_jf_Vertex); // mod Remco
+    tree->Branch("jet_trk_pdg_id", &v_jet_trk_pdg_id);
+    tree->Branch("jet_trk_barcode", &v_jet_trk_barcode);
   }
 
   if (!m_essentialInfo) tree->Branch("jet_sv1_ntrk",&v_jet_sv1_ntrk);
@@ -997,11 +978,11 @@ StatusCode btagIBLAnalysisAlg::execute() {
   //  {
   //    puweight = 1;
   //    puweight = m_tool->getCombinedWeight( *eventInfo );
-  float tmpMu = m_PUtool->getLumiBlockMu( *eventInfo );
+  float tmpMu = m_PUtool->getCorrectedMu( *eventInfo );
   // std::cout << " origMu: " << mu << " newValue: " <<  tmpMu << std::endl;
   if (isData) mu = tmpMu;
   //  }
-  
+
   // primary vertex
   const xAOD::VertexContainer *vertices = 0;
   CHECK( evtStore()->retrieve(vertices, "PrimaryVertices") );
@@ -1091,7 +1072,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
   std::vector<const xAOD::TruthParticle* > m_partonT;
   std::vector<TLorentzVector> truth_electrons;
   std::vector<TLorentzVector> truth_muons;
-  
+
   if (!isData) {
     // select truth electrons for electron-jet overlap removal
     for ( const auto* truth : *xTruthEventContainer ) {
@@ -1103,7 +1084,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	truth_PV_y = newTruthVertex->y();
 	truth_PV_z = newTruthVertex->z();
       }
-      
+
       // loop over truth particles in the truth event container
       for(unsigned int i = 0; i < truth->nTruthParticles(); i++) {
 	const xAOD::TruthParticle *particle = truth->truthParticle(i);
@@ -1116,11 +1097,11 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	if (particle->pt() < 10e3)     continue; //was 15
 	if (particle->status() != 1)   continue;
 	if (particle->barcode() > 2e5) continue;
-	
+
 	if ( fabs(particle->pdgId()) != 11 && fabs(particle->pdgId()) != 13) continue;
-	
-	//std::cout << " Lepton=  pt: " << particle->pt()/1e3 << "  eta: " << particle->eta() 
-	//<< " pdg: " << particle->pdgId() << " status: " << particle->status() 
+
+	//std::cout << " Lepton=  pt: " << particle->pt()/1e3 << "  eta: " << particle->eta()
+	//<< " pdg: " << particle->pdgId() << " status: " << particle->status()
 	//<< "  barcode: " << particle->barcode() << "  --> nIncoming: " << particle->prodVtx()->nIncomingParticles() << std::endl;
 
 	// see if this electron is coming from a W boson decay
@@ -1129,8 +1110,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	/*
 	const xAOD::TruthVertex* prodvtx = particle->prodVtx();
 	for(unsigned j = 0; j < prodvtx->nIncomingParticles(); j++){
-	  std::cout << "    mother=  pt: " << prodvtx->incomingParticle(j)->pt()/1e3 << "  eta: " << prodvtx->incomingParticle(j)->eta() 
-		    << " pdg: " << prodvtx->incomingParticle(j)->pdgId() << " status: " << prodvtx->incomingParticle(j)->status() 
+	  std::cout << "    mother=  pt: " << prodvtx->incomingParticle(j)->pt()/1e3 << "  eta: " << prodvtx->incomingParticle(j)->eta()
+		    << " pdg: " << prodvtx->incomingParticle(j)->pdgId() << " status: " << prodvtx->incomingParticle(j)->status()
 		    << "  barcode: " << prodvtx->incomingParticle(j)->barcode() << std::endl;
 	  //<< "  --> nIncoming: " << prodvtx->incomingParticle(j)->prodVtx()->nIncomingParticles() << std::endl;
 	  //int absPDG=fabs( (prodvtx->incomingParticle(j))->pdgId() );
@@ -1140,7 +1121,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 	if(!isfromW) continue;
 	TLorentzVector telec;
 	telec.SetPtEtaPhiM(particle->pt(), particle->eta(), particle->phi(), particle->m());
-	
+
 	if (fabs(particle->pdgId()) == 11) truth_electrons.push_back(telec);
 	if (fabs(particle->pdgId()) == 13) truth_muons.push_back(telec);
       }
@@ -1299,7 +1280,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_dRiso->push_back(dRiso);
 
     // new way to save b-hadron quantities ...
-    m_bhadron_branches.fill(*jet);
+    if(m_bHadronInfo){  m_bhadron_branches.fill(*jet); }
 
     // addition from Dan: fill clusters
     if (m_dumpCaloInfo) {
@@ -1371,6 +1352,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       float tmpJVT = jvtV;
       jvtV = m_jvt->updateJvt(*jet);
       if (tmpJVT != jvtV)  ATH_MSG_DEBUG(" initial: " << tmpJVT << " |  final: " << jvtV );
+      std::cout << "JVT recalculation OK " << std::endl;
     } catch (...) {
       ATH_MSG_WARNING(" something went wrong with the JVT recalculation .... please investigate");
     };
@@ -1427,9 +1409,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // get truth particles of matched B Hadrons, C Hadrons, and other particles
-    // for single b tagging
-    const xAOD::TruthParticle *matchedBH = NULL;
-    const xAOD::TruthParticle *matchedCH = NULL;
 
     // additions by nikola
     const xAOD::TruthParticle *matchedBH1 = NULL;
@@ -1557,27 +1536,9 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_nGhostHBoso->push_back(ghostH.size());
     }
     // single b-tagging
-    else {
-      // get B hadron quantities
-      const std::string labelB = "ConeExclBHadronsFinal";
-      std::vector<const IParticle*> ghostB; ghostB.reserve(2);
-      jet->getAssociatedObjects<IParticle>(labelB, ghostB);
-      if (ghostB.size() >=1 ) {
-         matchedBH = (const xAOD::TruthParticle*)(ghostB.at(0));
-         // to do: in case of 2, get the closest
-      }
-      v_jet_nBHadr->push_back(ghostB.size());
-
-      // get C hadron quantities
-      const std::string labelC = "ConeExclCHadronsFinal";
-      std::vector<const IParticle*> ghostC; ghostC.reserve(2);
-      jet->getAssociatedObjects<IParticle>(labelC, ghostC);
-      if (ghostC.size() >=1 ) {
-         matchedCH = (const xAOD::TruthParticle*)(ghostC.at(0));
-         // to do: in case of 2, get the closest
-      }
-      v_jet_nCHadr->push_back(ghostC.size());
-    }
+    // else {
+    //   // moved to b hadron branch
+    // }
 
     // get tracks from matched B and C Hadrons
     // additions by nikola
@@ -1602,6 +1563,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     }
 
     // single b-tagging
+    // keep all these here for now, until we move also all the double b-tagging stuff
     std::vector<const xAOD::TruthParticle*> tracksFromB;
     std::vector<const xAOD::TruthParticle*> tracksFromC;
     std::vector<const xAOD::TruthParticle*> tracksFromCc;
@@ -1695,56 +1657,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_bH2_y->push_back(-999);
       v_bH2_z->push_back(-999);
     }
-    if (matchedBH != NULL) {
-      v_bH_pt->push_back(matchedBH->pt());
-      v_bH_eta->push_back(matchedBH->eta());
-      v_bH_phi->push_back(matchedBH->phi());
-      float Lxy = sqrt( pow(matchedBH->decayVtx()->x(), 2) + pow(matchedBH->decayVtx()->y(), 2) );
-      v_bH_Lxy->push_back(Lxy);
-      v_bH_x->push_back(matchedBH->decayVtx()->x());
-      v_bH_y->push_back(matchedBH->decayVtx()->y());
-      v_bH_z->push_back(matchedBH->decayVtx()->z());
-      float dr = deltaR(jet->eta(), matchedBH->eta(), jet->phi(), matchedBH->phi());
-      v_bH_dRjet->push_back(dr);
-      GetParentTracks(matchedBH, tracksFromB, tracksFromC, false, "  ");
-    }
-    else {
-      v_bH_pt->push_back(-999);
-      v_bH_eta->push_back(-999);
-      v_bH_phi->push_back(-999);
-      v_bH_Lxy->push_back(-999);
-      v_bH_dRjet->push_back(-999);
-      v_bH_x->push_back(-999);
-      v_bH_y->push_back(-999);
-      v_bH_z->push_back(-999);
-    }
-    v_bH_nBtracks->push_back(tracksFromB.size() - tracksFromC.size());
-    v_bH_nCtracks->push_back(tracksFromC.size());
 
-    if (matchedCH != NULL &&  matchedBH == NULL) {
-      v_cH_pt->push_back(matchedCH->pt());
-      v_cH_eta->push_back(matchedCH->eta());
-      v_cH_phi->push_back(matchedCH->phi());
-      float Lxy = sqrt( pow(matchedCH->decayVtx()->x(), 2) + pow(matchedCH->decayVtx()->y(), 2) );
-      v_cH_Lxy->push_back(Lxy);
-      v_cH_x->push_back(matchedCH->decayVtx()->x());
-      v_cH_y->push_back(matchedCH->decayVtx()->y());
-      v_cH_z->push_back(matchedCH->decayVtx()->z());
-      float dr = deltaR(jet->eta(), matchedCH->eta(), jet->phi(), matchedCH->phi());
-      v_cH_dRjet->push_back(dr);
-      GetParentTracks(matchedCH, tracksFromCc, tracksFromCc, false, "  ");
-    }
-    else {
-      v_cH_pt->push_back(-999);
-      v_cH_eta->push_back(-999);
-      v_cH_phi->push_back(-999);
-      v_cH_Lxy->push_back(-999);
-      v_cH_dRjet->push_back(-999);
-      v_cH_x->push_back(-999);
-      v_cH_y->push_back(-999);
-      v_cH_z->push_back(-999);
-    }
-    v_cH_nCtracks->push_back(tracksFromCc.size());
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1825,6 +1738,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       if (!assocTracks.at(iT).isValid()) continue;
       const xAOD::TrackParticle *tmpTrk = *(assocTracks.at(iT));
 
+
       if (m_InDetTrackSelectorTool->accept(*tmpTrk, myVertex) && m_TightTrackVertexAssociationTool->isCompatible(*tmpTrk, *myVertex) ) {
 	TLorentzVector tmpTrack(0, 0, 0, 0);
 	tmpTrack.SetPtEtaPhiM(tmpTrk->pt(), tmpTrk->eta(), tmpTrk->phi(), 0);
@@ -1846,7 +1760,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sumtrk_ntrk->push_back(tmp_trkSum_nTrk);
 
     //std::cout << "  after track loop " << std::endl;
-    
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // SV0 // VD: check the existence of the vertex and only then fill the variables
     // this mimics what's done in MV2
@@ -1988,7 +1902,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     // Other
     v_jet_sv1ip3d->push_back(bjet->SV1plusIP3D_discriminant());
-    try{ 
+    try{
       v_jet_mv1    ->push_back(bjet->MV1_discriminant());
       v_jet_mv1c   ->push_back(bjet->auxdata<double>("MV1c_discriminant"));
     } catch(...){ }
@@ -2129,7 +2043,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     } // end m_doMSV
 
-    // Generating MVb variables (as in MV2Tag.cxx) 
+    // Generating MVb variables (as in MV2Tag.cxx)
     bool trksOK=IP3DTracks.size();
 
     std::vector<float> vectD0, vectD0Signi, vectZ0, vectZ0Signi;    vectD0.clear(), vectD0Signi.clear(), vectZ0.clear(), vectZ0Signi.clear();
@@ -2183,10 +2097,10 @@ StatusCode btagIBLAnalysisAlg::execute() {
         // for 3rd higest d0/z0 significance
         trk_d0_z0.push_back(std::make_pair(d0sig, z0sig));
       } //end of trk loop
-    
+
       // sort by highest signed d0 sig
-      std::sort(trk_d0_z0.begin(), trk_d0_z0.end(), [](const std::pair<float, float>& a, const std::pair<float, float>& b) { 
-        return a.first > b.first; 
+      std::sort(trk_d0_z0.begin(), trk_d0_z0.end(), [](const std::pair<float, float>& a, const std::pair<float, float>& b) {
+        return a.first > b.first;
       } );
 
       //Assign MVb variables
@@ -2265,6 +2179,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> j_trk_ndf;
     std::vector<int> j_trk_algo;
     std::vector<int> j_trk_orig;
+    std::vector<int> j_trk_pdgid;
+    std::vector<int> j_trk_barcode;
     std::vector<int> j_trk_cploose;
     std::vector<int> j_trk_nInnHits;
     std::vector<int> j_trk_nNextToInnHits;
@@ -2310,8 +2226,17 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<int> j_jf_vtx_ntrk; // mod Remco
     std::vector<float> j_jf_vtx_L3d; // mod Remco
     std::vector<float> j_jf_vtx_sig3d; // mod Remco
-    std::vector<int> j_jf_vtx_nvtx; // mod Remco
+    std::vector<float> j_jf_vtx_sigTrans;
+
     std::vector<int> j_trk_jf_Vertex; // mod Remco
+
+    std::vector<float> j_jf_vtx_x;
+    std::vector<float> j_jf_vtx_x_err;
+    std::vector<float> j_jf_vtx_y;
+    std::vector<float> j_jf_vtx_y_err;
+    std::vector<float> j_jf_vtx_z;
+    std::vector<float> j_jf_vtx_z_err;
+
     // if (m_reduceInfo) continue;
 
     bool is8TeV = true;
@@ -2331,7 +2256,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     v_jet_sv0_Nvtx->push_back(SV0vertices.size());
 
-    float jet_mu_dRmin_pt=999,jet_mu_dRmin_dR=999,jet_mu_dRmin_truthflav=999,jet_mu_dRmin_eta=999,jet_mu_dRmin_phi=999,jet_mu_dRmin_assJet_pt=999,jet_mu_dRmin_qOverPratio=999,jet_mu_dRmin_mombalsignif=999,jet_mu_dRmin_scatneighsignif=999,jet_mu_dRmin_pTrel=999,jet_mu_dRmin_VtxTyp=999,jet_mu_dRmin_d0=999,jet_mu_dRmin_z0=999,jet_mu_dRmin_parent_pdgid=999,jet_mu_dRmin_ID_qOverP_var=999,jet_mu_dRmin_muonType=999;    
+    float jet_mu_dRmin_pt=999,jet_mu_dRmin_dR=999,jet_mu_dRmin_truthflav=999,jet_mu_dRmin_eta=999,jet_mu_dRmin_phi=999,jet_mu_dRmin_assJet_pt=999,jet_mu_dRmin_qOverPratio=999,jet_mu_dRmin_mombalsignif=999,jet_mu_dRmin_scatneighsignif=999,jet_mu_dRmin_pTrel=999,jet_mu_dRmin_VtxTyp=999,jet_mu_dRmin_d0=999,jet_mu_dRmin_z0=999,jet_mu_dRmin_parent_pdgid=999,jet_mu_dRmin_ID_qOverP_var=999,jet_mu_dRmin_muonType=999;
     float jet_mu_fatjet_nMu = 0, jet_mu_fatjet_pTmax_pT = 999, jet_mu_fatjet_pTmax_pTrel = 999, jet_mu_fatjet_pTmax_pTrelFrac = 999;
     if (m_SMT) {
       // additions by nikola
@@ -2537,19 +2462,31 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> fittedPosition = bjet->auxdata<std::vector<float> >("JetFitter_fittedPosition"); // mod Remco
     std::vector<float> fittedCov = bjet->auxdata<std::vector<float> >("JetFitter_fittedCov"); // mod Remco
 
-    // if (PV_jf_x != fittedPosition[0]) {std::cout << "PV_jf_x is set for the first time (this may happen only once!)" << std::endl;} // mod Remco
-    // if (PV_jf_y != fittedPosition[0]) {std::cout << "PV_jf_y is set for the first time (this may happen only once!)" << std::endl;} // mod Remco
-    // if (PV_jf_z != fittedPosition[0]) {std::cout << "PV_jf_z is set for the first time (this may happen only once!)" << std::endl;} // mod Remco
     if (fittedPosition.size() > 0) {
       PV_jf_x = fittedPosition[0]; // mod Remco
       PV_jf_y = fittedPosition[1]; // mod Remco
       PV_jf_z = fittedPosition[2]; // mod Remco
-      v_jet_jf_phi->push_back(fittedPosition[3]); // mod Remco
-      v_jet_jf_theta->push_back(fittedPosition[4]); // mod Remco
+
+
+      float jf_theta = fittedPosition[4];
+      float jf_theta_err = TMath::Sqrt(fittedCov[4]);
+      float jf_phi = fittedPosition[3];
+      float jf_phi_err = TMath::Sqrt(fittedCov[3]);
+
+      v_jet_jf_phi->push_back(jf_phi); // mod Remco
+
+      v_jet_jf_theta->push_back(jf_theta); // mod Remco
+
+
+      v_jet_jf_phi_err->push_back(jf_phi_err);
+      v_jet_jf_theta_err->push_back(jf_theta_err);
+
     }
     else {
       v_jet_jf_phi->push_back(-999); // mod Remco
       v_jet_jf_theta->push_back(-999); // mod Remco
+      v_jet_jf_phi_err->push_back(-999);
+      v_jet_jf_theta_err->push_back(-999);
     }
 
     // std::cout << " VALERIO: " << jfvertices.size() << " , " << jfnvtx << " , " << jfnvtx1t << " ..... and: " << fittedPosition.size() << std::endl;
@@ -2562,22 +2499,60 @@ StatusCode btagIBLAnalysisAlg::execute() {
       j_jf_vtx_chi2.push_back(tmpVertex->chi2()); // mod Remco
       j_jf_vtx_ndf.push_back(tmpVertex->NDF()); // mod Remco
       j_jf_vtx_ntrk.push_back(tmpVect.size()); // mod Remco
-      if (jfv < 3) {
-        j_jf_vtx_L3d.push_back(fittedPosition[jfv + 5]); // mod Remco
-        j_jf_vtx_sig3d.push_back(sqrt(fittedCov[jfv + 5])); // mod Remco
+
+      if (jfv < fittedPosition.size()-5) {
+
+        float jf_theta = fittedPosition[4];
+        float jf_theta_err = TMath::Sqrt(fittedCov[4]);
+        float jf_phi = fittedPosition[3];
+        float jf_phi_err = TMath::Sqrt(fittedCov[3]);
+        float jf_vtx_L3d = fittedPosition[jfv + 5];
+        float jf_vtx_L3d_err = TMath::Sqrt(fittedCov[jfv + 5]);
+        float jf_vtx_Transverse_err = JF_Transverse_error(jf_vtx_L3d, jf_theta, jf_theta_err, jf_phi, jf_phi_err);
+
+        j_jf_vtx_L3d.push_back(jf_vtx_L3d); // mod Remco
+
+        j_jf_vtx_sig3d.push_back(jf_vtx_L3d_err); // mod Remco
+
+        j_jf_vtx_sigTrans.push_back(jf_vtx_Transverse_err);
+
+        std::vector<float> xyzresults = JF_xyz_errors(jf_vtx_L3d, jf_vtx_L3d_err, jf_theta, jf_theta_err, jf_phi, jf_phi_err,PV_jf_x, PV_jf_y, PV_jf_z);
+
+        j_jf_vtx_x.push_back(xyzresults[0]);
+        j_jf_vtx_x_err.push_back(xyzresults[1]);
+        j_jf_vtx_y.push_back(xyzresults[2]);
+        j_jf_vtx_y_err.push_back(xyzresults[3]);
+        j_jf_vtx_z.push_back(xyzresults[4]);
+        j_jf_vtx_z_err.push_back(xyzresults[5]);
       }
       else {
         j_jf_vtx_L3d.push_back(-999); // mod Remco
         j_jf_vtx_sig3d.push_back(-999); // mod Remco
+        j_jf_vtx_sigTrans.push_back(-999);
+
+        j_jf_vtx_x.push_back(-999);
+        j_jf_vtx_x_err.push_back(-999);
+        j_jf_vtx_y.push_back(-999);
+        j_jf_vtx_y_err.push_back(-999);
+        j_jf_vtx_z.push_back(-999);
+        j_jf_vtx_z_err.push_back(-999);
       }
-      // j_jf_vtx_nvtx.push_back(jfvertices.size()); // mod Remco
+
     }
     v_jet_jf_vtx_chi2->push_back(j_jf_vtx_chi2); // mod Remco
     v_jet_jf_vtx_ndf->push_back(j_jf_vtx_ndf); // mod Remco
     v_jet_jf_vtx_ntrk->push_back(j_jf_vtx_ntrk); // mod Remco
     v_jet_jf_vtx_L3d->push_back(j_jf_vtx_L3d); // mod Remco
     v_jet_jf_vtx_sig3d->push_back(j_jf_vtx_sig3d); // mod Remco
-    // v_jet_jf_vtx_nvtx->push_back(j_jf_vtx_nvtx); // mod Remco
+    v_jet_jf_vtx_sigTrans->push_back(j_jf_vtx_sigTrans);
+
+    v_jet_jf_vtx_x->push_back(j_jf_vtx_x);
+
+    v_jet_jf_vtx_x_err->push_back(j_jf_vtx_x_err);
+    v_jet_jf_vtx_y->push_back(j_jf_vtx_y);
+    v_jet_jf_vtx_y_err->push_back(j_jf_vtx_y_err);
+    v_jet_jf_vtx_z->push_back(j_jf_vtx_z);
+    v_jet_jf_vtx_z_err->push_back(j_jf_vtx_z_err);
 
     j_btag_ntrk = 0; // assocTracks.size();
     j_sv1_ntrk = SV1Tracks.size();
@@ -2716,23 +2691,32 @@ StatusCode btagIBLAnalysisAlg::execute() {
                                   tracksFromCNotFromB1FromParent,
                                   tracksFromCNotFromB2FromParent);
 
+      j_trk_orig.push_back(origin);
+
       const xAOD::TruthParticle *truth = truthParticle(tmpTrk);
 
       if (truth) {
+
+        j_trk_pdgid.push_back(truth->pdgId());
+        j_trk_barcode.push_back(truth->barcode());
+
         if (truth->prodVtx()) {
           j_trk_vtx_X.push_back(truth->prodVtx()->x());
           j_trk_vtx_Y.push_back(truth->prodVtx()->y());
-	}
+	      }
         else {
           j_trk_vtx_X.push_back(-666);
           j_trk_vtx_Y.push_back(-666);
-	}
+	      }
       }
       else{
+
+        j_trk_pdgid.push_back(-999);
+        j_trk_barcode.push_back(-999);
         j_trk_vtx_X.push_back(-999);
         j_trk_vtx_Y.push_back(-999);
       }
-      j_trk_orig.push_back(origin);
+
 
       if (!m_CPTrackingLooseLabel.empty()) {
         bool is_cp_loose = m_CPTrackingLooseLabel->accept(*tmpTrk, myVertex);
@@ -2860,6 +2844,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_trk_ndf->push_back(j_trk_ndf);
     v_jet_trk_algo->push_back(j_trk_algo);
     v_jet_trk_orig->push_back(j_trk_orig);
+    v_jet_trk_pdg_id->push_back(j_trk_pdgid);
+    v_jet_trk_barcode->push_back(j_trk_barcode);
     v_jet_trk_is_tracking_cp_loose->push_back(j_trk_cploose);
     v_jet_trk_vtx_X->push_back(j_trk_vtx_X);
     v_jet_trk_vtx_Y->push_back(j_trk_vtx_Y);
@@ -2939,6 +2925,87 @@ float btagIBLAnalysisAlg :: deltaR(float eta1, float eta2, float phi1, float phi
   float DPhi = acos(cos(fabs(phi1 - phi2)));
   return sqrt(pow(DEta, 2) + pow(DPhi, 2));
 }
+
+
+float btagIBLAnalysisAlg :: JF_Transverse_error(float L3D, float Theta, float Theta_err, float Phi, float Phi_err){
+  TVector3 vertexPos;
+  vertexPos.SetMagThetaPhi(L3D,Theta,Phi);
+
+  TVector3 vertexPos2;
+  vertexPos2.SetMagThetaPhi(L3D,Theta+Theta_err,Phi);
+  float Theta_err1 = fabs(L3D*TMath::Tan(vertexPos.Angle(vertexPos2)));
+
+  vertexPos2.SetMagThetaPhi(L3D,Theta-Theta_err,Phi);
+  float Theta_err2 = fabs(L3D*TMath::Tan(vertexPos.Angle(vertexPos2)));
+
+  vertexPos2.SetMagThetaPhi(L3D,Theta,Phi+Phi_err);
+  float Phi_err1 = fabs(L3D*TMath::Tan(vertexPos.Angle(vertexPos2)));
+
+  vertexPos2.SetMagThetaPhi(L3D,Theta,Phi-Phi_err);
+  float Phi_err2 = fabs(L3D*TMath::Tan(vertexPos.Angle(vertexPos2)));
+
+  float transverse_Theta_error = std::max(Theta_err1,Theta_err2);
+  float transverse_Phi_error = std::max(Phi_err1,Phi_err2);
+
+  float transverse_err = TMath::Sqrt(transverse_Theta_error*transverse_Theta_error+transverse_Phi_error*transverse_Phi_error);
+
+  return transverse_err;
+
+}
+
+std::vector<float> btagIBLAnalysisAlg :: JF_xyz_errors(float L3D, float L3Derr, float Theta, float Theta_err, float Phi, float Phi_err,float Pv_x, float Pv_y, float Pv_z){
+
+    TVector3 vertexPos;
+    TVector3 vertexPos2;
+    vertexPos.SetMagThetaPhi(L3D,Theta,Phi);
+
+    //this is the relative position to primary vertex
+    float x = vertexPos.X();
+    float y = vertexPos.Y();
+    float z = vertexPos.Z();
+
+    vertexPos.SetMagThetaPhi(L3D+L3Derr,Theta,Phi);
+    vertexPos2.SetMagThetaPhi(L3D-L3Derr,Theta,Phi);
+
+    float L3D_x_err = std::max(fabs(vertexPos.X()-x),fabs(vertexPos2.X()-x));
+    float L3D_y_err = std::max(fabs(vertexPos.Y()-y),fabs(vertexPos2.Y()-y));
+    float L3D_z_err = std::max(fabs(vertexPos.Z()-z),fabs(vertexPos2.Z()-z));
+
+    vertexPos.SetMagThetaPhi(L3D,Theta+Theta_err,Phi);
+    vertexPos2.SetMagThetaPhi(L3D,Theta-Theta_err,Phi);
+
+    float Theta_x_err = std::max(fabs(vertexPos.X()-x),fabs(vertexPos2.X()-x));
+    float Theta_y_err = std::max(fabs(vertexPos.Y()-y),fabs(vertexPos2.Y()-y));
+    float Theta_z_err = std::max(fabs(vertexPos.Z()-z),fabs(vertexPos2.Z()-z));
+
+    vertexPos.SetMagThetaPhi(L3D,Theta,Phi+Phi_err);
+    vertexPos2.SetMagThetaPhi(L3D,Theta,Phi-Phi_err);
+
+    float Phi_x_err = std::max(fabs(vertexPos.X()-x),fabs(vertexPos2.X()-x));
+    float Phi_y_err = std::max(fabs(vertexPos.Y()-y),fabs(vertexPos2.Y()-y));
+    float Phi_z_err = std::max(fabs(vertexPos.Z()-z),fabs(vertexPos2.Z()-z));
+
+    float x_err = TMath::Sqrt(L3D_x_err*L3D_x_err+Theta_x_err*Theta_x_err+Phi_x_err*Phi_x_err);
+    float y_err = TMath::Sqrt(L3D_y_err*L3D_y_err+Theta_y_err*Theta_y_err+Phi_y_err*Phi_y_err);
+    float z_err = TMath::Sqrt(L3D_z_err*L3D_z_err+Theta_z_err*Theta_z_err+Phi_z_err*Phi_z_err);
+
+    //this is the x,y,z position relative to (0,0,0)
+    x = Pv_x+x;
+    y = Pv_y+y;
+    z = Pv_z+z;
+
+    std::vector<float> results;
+
+    results.push_back(x);
+    results.push_back(x_err);
+    results.push_back(y);
+    results.push_back(y_err);
+    results.push_back(z);
+    results.push_back(z_err);
+
+    return results;
+}
+
 
 const xAOD::Jet *btagIBLAnalysisAlg :: GetParentJet(const xAOD::Jet *Jet, std::string Keyname) {
   ElementLink<xAOD::JetContainer> el = Jet->auxdata<ElementLink<xAOD::JetContainer> >(Keyname);
@@ -3024,8 +3091,7 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_m->clear();
   v_jet_nConst->clear();
   v_jet_truthflav->clear();
-  v_jet_nBHadr->clear();
-  v_jet_nCHadr->clear();
+
   v_jet_nGhostBHadrFromParent->clear(); // mod nikola
   v_jet_nGhostCHadrFromParent->clear(); // mod nikola
   v_jet_nGhostCHadrFromParentNotFromB->clear(); // mod nikola
@@ -3113,9 +3179,18 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_jf_vtx_ntrk->clear(); // mod Remco
   v_jet_jf_vtx_L3d->clear(); // mod Remco
   v_jet_jf_vtx_sig3d->clear(); // mod Remco
-  v_jet_jf_vtx_nvtx->clear(); // mod Remco
   v_jet_jf_phi->clear(); // mod Remco
   v_jet_jf_theta->clear(); // mod Remco
+
+  v_jet_jf_vtx_sigTrans->clear();
+  v_jet_jf_vtx_x->clear();
+  v_jet_jf_vtx_x_err->clear();
+  v_jet_jf_vtx_y->clear();
+  v_jet_jf_vtx_y_err->clear();
+  v_jet_jf_vtx_z->clear();
+  v_jet_jf_vtx_z_err->clear();
+  v_jet_jf_theta_err->clear();
+  v_jet_jf_phi_err->clear();
 
   v_jet_jfcombnn_pb->clear();
   v_jet_jfcombnn_pc->clear();
@@ -3212,27 +3287,6 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_bH2_y->clear();
   v_bH2_z->clear();
 
-  v_bH_pt->clear();
-  v_bH_eta->clear();
-  v_bH_phi->clear();
-  v_bH_Lxy->clear();
-  v_bH_dRjet->clear();
-  v_bH_x->clear();
-  v_bH_y->clear();
-  v_bH_z->clear();
-  v_bH_nBtracks->clear();
-  v_bH_nCtracks->clear();
-
-  v_cH_pt->clear();
-  v_cH_eta->clear();
-  v_cH_phi->clear();
-  v_cH_Lxy->clear();
-  v_cH_dRjet->clear();
-  v_cH_x->clear();
-  v_cH_y->clear();
-  v_cH_z->clear();
-  v_cH_nCtracks->clear();
-
   v_jet_btag_ntrk->clear();
   v_jet_trk_pt->clear();
   v_jet_trk_eta->clear();
@@ -3245,6 +3299,8 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_trk_ndf->clear();
   v_jet_trk_algo->clear();
   v_jet_trk_orig->clear();
+  v_jet_trk_pdg_id->clear();
+  v_jet_trk_barcode->clear();
   v_jet_trk_is_tracking_cp_loose->clear();
   v_jet_trk_nInnHits->clear();
   v_jet_trk_nNextToInnHits->clear();

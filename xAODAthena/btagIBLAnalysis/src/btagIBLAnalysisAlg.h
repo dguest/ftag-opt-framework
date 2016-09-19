@@ -116,8 +116,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_jet_m;
   std::vector<int> *v_jet_nConst;
   std::vector<int> *v_jet_truthflav;
-  std::vector<int> *v_jet_nBHadr;
-  std::vector<int> *v_jet_nCHadr;
+
   std::vector<int> *v_jet_nGhostBHadrFromParent;
   std::vector<int> *v_jet_nGhostCHadrFromParent;
   std::vector<int> *v_jet_nGhostCHadrFromParentNotFromB;
@@ -214,10 +213,18 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<std::vector<int> > *v_jet_jf_vtx_ntrk; //mod Remco
   std::vector<std::vector<float> > *v_jet_jf_vtx_L3d; //mod Remco
   std::vector<std::vector<float> > *v_jet_jf_vtx_sig3d; //mod Remco
-  std::vector<std::vector<int> > *v_jet_jf_vtx_nvtx; //mod Remco
-  std::vector<float> *v_jet_jf_phi; //mod Remco
-  std::vector<float> *v_jet_jf_theta; //mod Remco
+  std::vector<std::vector<float> > *v_jet_jf_vtx_sigTrans;
+  std::vector<std::vector<float> > *v_jet_jf_vtx_x;
+  std::vector<std::vector<float> > *v_jet_jf_vtx_x_err;
+  std::vector<std::vector<float> > *v_jet_jf_vtx_y;
+  std::vector<std::vector<float> > *v_jet_jf_vtx_y_err;
+  std::vector<std::vector<float> > *v_jet_jf_vtx_z;
+  std::vector<std::vector<float> > *v_jet_jf_vtx_z_err;
 
+  std::vector<float> *v_jet_jf_phi; //mod Remco
+  std::vector<float> *v_jet_jf_phi_err;
+  std::vector<float> *v_jet_jf_theta; //mod Remco
+  std::vector<float> *v_jet_jf_theta_err;
 
   // JetFitterCombNN
   std::vector<float> *v_jet_jfcombnn_pb;
@@ -319,27 +326,6 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<float> *v_bH2_z;
   std::vector<float> *v_bH2_dRjet;
 
-  std::vector<float> *v_bH_pt;
-  std::vector<float> *v_bH_eta;
-  std::vector<float> *v_bH_phi;
-  std::vector<float> *v_bH_Lxy;
-  std::vector<float> *v_bH_x;
-  std::vector<float> *v_bH_y;
-  std::vector<float> *v_bH_z;
-  std::vector<float> *v_bH_dRjet;
-  std::vector<int>   *v_bH_nBtracks;
-  std::vector<int>   *v_bH_nCtracks;
-
-  // C hadron
-  std::vector<float> *v_cH_pt;
-  std::vector<float> *v_cH_eta;
-  std::vector<float> *v_cH_phi;
-  std::vector<float> *v_cH_Lxy;
-  std::vector<float> *v_cH_x;
-  std::vector<float> *v_cH_y;
-  std::vector<float> *v_cH_z;
-  std::vector<float> *v_cH_dRjet;
-  std::vector<int>   *v_cH_nCtracks;
 
   // track info
   std::vector<int>   *v_jet_btag_ntrk;
@@ -356,6 +342,8 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 
   std::vector<std::vector<int> > *v_jet_trk_algo;
   std::vector<std::vector<int> > *v_jet_trk_orig;
+  std::vector<std::vector<int> > *v_jet_trk_pdg_id;
+  std::vector<std::vector<int> > *v_jet_trk_barcode;
   std::vector<std::vector<int> > *v_jet_trk_is_tracking_cp_loose;
   std::vector<std::vector<float> > *v_jet_trk_vtx_dx;
   std::vector<std::vector<float> > *v_jet_trk_vtx_dy;
@@ -460,6 +448,8 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   bool m_doMSV;                    // if set to true it includes variables from multi SV tagger
   bool m_rel20;                    // if set to true code works for rel20, if set to false it will work for rel19
   bool m_SMT;
+  bool m_bHadronInfo;
+
   std::string m_jetCollectionName; // name of the jet collection to work with
   float m_jetPtCut;                // pT cut to apply
   bool m_calibrateJets;
@@ -525,6 +515,8 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 
   // compute dR between two objects
   float deltaR(float eta1, float eta2, float phi1, float phi2);
+  std::vector<float> JF_xyz_errors(float L3D, float L3Derr, float Theta, float Theta_err, float Phi, float Phi_err,float Pv_x, float Pv_y, float Pv_z);
+  float JF_Transverse_error(float L3D, float Theta, float Theta_err, float Phi, float Phi_err);
 
   const xAOD::Jet* GetParentJet(const xAOD::Jet* Jet, std::string Keyname);
 

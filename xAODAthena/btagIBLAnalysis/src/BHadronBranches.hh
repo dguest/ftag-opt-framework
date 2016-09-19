@@ -8,6 +8,10 @@ class TTree;
 namespace xAOD {
   class Jet_v1;
   typedef Jet_v1 Jet;
+  class TruthParticle_v1;
+  typedef TruthParticle_v1 TruthParticle;
+  class TruthVertex_v1;
+  typedef TruthVertex_v1 TruthVertex;
 }
 
 // branch buffers are stored as an external class to cut down on
@@ -29,7 +33,14 @@ public:
   void fill(const xAOD::Jet& jet); // how many info do I need here?
   void clear();
 private:
+
   BHadronBranchBuffer* m_branches;
+  void GetAllChildren(const xAOD::TruthParticle* particle,
+                                           std::vector<const xAOD::TruthParticle*> &tracksFromB,
+                                           std::vector<const xAOD::TruthParticle*> &tracksFromC,
+                                           bool isFromC);
+  std::vector<int> getDRSortedIndices(std::vector<const xAOD::IParticle*> ghostHads, const xAOD::Jet *jet);
+
 };
 
 #endif // BHADRON_BRANCHES_HH
