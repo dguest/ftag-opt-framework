@@ -34,6 +34,7 @@ import glob
 from AthenaCommon.AthenaCommonFlags import jobproperties as jp
 #jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock( vars().get('EVTMAX', -1) )
 jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(200)
+
 jp.AthenaCommonFlags.FilesInput = [
 "AOD.pool.root"
 #"/afs/cern.ch/user/g/ggonella/ggonella/public/ForValerio/mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r6630_r6264_tid05419191_00/AOD.05419191._000184.pool.root.1"
@@ -207,6 +208,7 @@ for JetCollection in JetCollections:
                                   TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator,
                                   JVTtool=ToolSvc.JVT,
                                   ) #DEBUG
+  alg.bHadronBranches = False
   alg.JetCollectionName = JetCollection
   alg.doSMT = doSMT
   if "AntiKt2PV0TrackJets" in JetCollection or "Truth" in JetCollection:

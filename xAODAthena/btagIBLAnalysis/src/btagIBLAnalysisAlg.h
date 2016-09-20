@@ -7,6 +7,7 @@
 #include "TrackCovBranches.hh"
 #include "TrackBranches.hh"
 #include "BHadronBranches.hh"
+#include "JetFitterBranches.hh"
 #include "SubstructureMomentBranches.hh"
 #include "UnclusteredVertexBranches.hh"
 
@@ -187,54 +188,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<std::vector<float> > *v_jet_sv1_vtxy;
   std::vector<std::vector<float> > *v_jet_sv1_vtxz;
 
-  // JetFitter
-  float PV_jf_x; //mod Remco
-  float PV_jf_y; //mod Remco
-  float PV_jf_z; //mod Remco
 
-  std::vector<float> *v_jet_jf_pb;
-  std::vector<float> *v_jet_jf_pc;
-  std::vector<float> *v_jet_jf_pu;
-  std::vector<float> *v_jet_jf_llr;
-  std::vector<float> *v_jet_jf_m;
-  std::vector<float> *v_jet_jf_mUncorr; //eloi
-  std::vector<float> *v_jet_jf_efc;
-  std::vector<float> *v_jet_jf_deta;
-  std::vector<float> *v_jet_jf_dphi;
-  std::vector<float> *v_jet_jf_dRFlightDir; //eloi
-  std::vector<float> *v_jet_jf_ntrkAtVx;
-  std::vector<int> *v_jet_jf_nvtx;
-  std::vector<float> *v_jet_jf_sig3d;
-  std::vector<int> *v_jet_jf_nvtx1t;
-  std::vector<int> *v_jet_jf_n2t;
-  std::vector<int> *v_jet_jf_VTXsize;
-  std::vector<std::vector<float> > *v_jet_jf_vtx_chi2; //mod Remco
-  std::vector<std::vector<float> > *v_jet_jf_vtx_ndf; //mod Remco
-  std::vector<std::vector<int> > *v_jet_jf_vtx_ntrk; //mod Remco
-  std::vector<std::vector<float> > *v_jet_jf_vtx_L3d; //mod Remco
-  std::vector<std::vector<float> > *v_jet_jf_vtx_sig3d; //mod Remco
-  std::vector<std::vector<float> > *v_jet_jf_vtx_sigTrans;
-  std::vector<std::vector<float> > *v_jet_jf_vtx_x;
-  std::vector<std::vector<float> > *v_jet_jf_vtx_x_err;
-  std::vector<std::vector<float> > *v_jet_jf_vtx_y;
-  std::vector<std::vector<float> > *v_jet_jf_vtx_y_err;
-  std::vector<std::vector<float> > *v_jet_jf_vtx_z;
-  std::vector<std::vector<float> > *v_jet_jf_vtx_z_err;
-
-  std::vector<float> *v_jet_jf_phi; //mod Remco
-  std::vector<float> *v_jet_jf_phi_err;
-  std::vector<float> *v_jet_jf_theta; //mod Remco
-  std::vector<float> *v_jet_jf_theta_err;
-
-  // JetFitterCombNN
-  std::vector<float> *v_jet_jfcombnn_pb;
-  std::vector<float> *v_jet_jfcombnn_pc;
-  std::vector<float> *v_jet_jfcombnn_pu;
-  std::vector<float> *v_jet_jfcombnn_llr;
-
-  std::vector<float> *v_jet_dl1_pb;
-  std::vector<float> *v_jet_dl1_pc;
-  std::vector<float> *v_jet_dl1_pu;
 
   // Other
   std::vector<double> *v_jet_sv1ip3d;
@@ -249,6 +203,11 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<double> *v_jet_mv2m_pc;
   std::vector<double> *v_jet_mv2m_pu;
   std::vector<double> *v_jet_mvb;
+
+  std::vector<float> *v_jet_dl1_pb;
+  std::vector<float> *v_jet_dl1_pc;
+  std::vector<float> *v_jet_dl1_pu;
+
 
   std::vector<double> *v_jet_ip2dNT_llr;
   std::vector<double> *v_jet_ip3dNT_llr;
@@ -464,6 +423,8 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   // B-hadron quantities
   BHadronBranches m_bhadron_branches;
 
+  JetFitterBranches m_jetfitter_branches;
+
   // cluster dumper
   ClusterBranches m_cluster_branches;
   SubstructureMomentBranches m_substructure_moment_branches;
@@ -515,8 +476,6 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 
   // compute dR between two objects
   float deltaR(float eta1, float eta2, float phi1, float phi2);
-  std::vector<float> JF_xyz_errors(float L3D, float L3Derr, float Theta, float Theta_err, float Phi, float Phi_err,float Pv_x, float Pv_y, float Pv_z);
-  float JF_Transverse_error(float L3D, float Theta, float Theta_err, float Phi, float Phi_err);
 
   const xAOD::Jet* GetParentJet(const xAOD::Jet* Jet, std::string Keyname);
 

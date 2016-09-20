@@ -159,16 +159,6 @@ BHadronBranches::~BHadronBranches() {
   delete m_branches;
 }
 
-//!-----------------------------------------------------------------------------------------------------------------------------!//
-namespace {
-  // branch name function (lowercase the variable name)
-  std::string brnm(const std::string& pfx, std::string in) {
-    std::transform(in.begin(), in.end(), in.begin(), ::tolower);
-    return pfx + in;
-  }
-}
-
-//!-----------------------------------------------------------------------------------------------------------------------------!//
 void BHadronBranches::set_tree(TTree& output_tree) const {
   //std::string prefix = "jet_bH_";
   output_tree.Branch( "jet_nBHadr"       , &m_branches->nBHadr);
