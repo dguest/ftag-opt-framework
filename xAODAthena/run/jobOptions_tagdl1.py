@@ -139,6 +139,8 @@ print "geoFlags.isIBL() = "+str(  geoFlags.isIBL() )
 ### VD: this is if you want to re-tag with another calibration file
 from BTagging.BTaggingFlags import BTaggingFlags
 
+BTaggingFlags.JetVertexCharge = False
+
 #### if the new file is already in the datatbase: simple edit the name
 ###############BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-10'
 
