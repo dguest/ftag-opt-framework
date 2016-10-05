@@ -3,8 +3,8 @@ General instructions (see below for suggested release and additional packages)
 - setup release:  see below
 - checkout additional packages: see below
 
-svn co svn+ssh://svn.cern.ch/reps/atlasperf/CombPerf/FlavorTag/FlavourTagPerformanceFramework/trunk/xAODAthena xAODAthena
-####cd $TestArea
+cd $TestArea
+git clone ssh://git@gitlab.cern.ch:7999/jshlomi/FlavourTagPerformanceFramework.git
 setupWorkArea.py
 cd WorkArea/cmt
 cmt bro cmt config
