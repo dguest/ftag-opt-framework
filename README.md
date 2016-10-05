@@ -1,10 +1,15 @@
-General instructions (see below for suggested release and additional packages)
+General instructions
+====================
 
-- setup release:  see below
-- checkout additional packages: see below
+(see below for suggested release and additional packages)
+
+ - setup release:  see below
+ - checkout additional packages: see below
 
 new instructions after git migration (October 5th 2016)
 in release 20.7
+
+```sh
 asetup 20.7.7.5,AtlasDerivation,here
 git clone ssh://git@gitlab.cern.ch:7999/jshlomi/FlavourTagPerformanceFramework.git
 setupWorkArea.py
@@ -12,8 +17,11 @@ cd WorkArea/cmt
 cmt bro cmt config
 cmt bro cmt make
 cd ../../FlavourTagPerformanceFramework/run
+```
 
 in release 21:
+
+```sh
 mkdir source build run
 cd source
 asetup 21.0.6,here
@@ -23,26 +31,29 @@ cmake ../source
 make -j4
 source x86_64-slc6-gcc49-opt/setup.sh
 cd ../source/FlavourTagPerformanceFramework/run
+```
 
-=====================================================================
 To run:
-=====================================================================
+=======
+
+```sh
 cd ../../xAODAthena/run
 athena jobOptions_Tag.py
-(also jobOptions_Tag_data.py: with data settings ... a bit overkilling)
+```
+
+(also `jobOptions_Tag_data.py`: with data settings ... a bit overkilling)
 
 (follow the instructions inside to decide whether to tag or not, which jet collections to use, etc)
 
-=====================================================================
 To submit samples on the grid:
-=====================================================================
-- edit " mc_samples.txt " with the samples you want to run
-- edit " submitJobs.py " with your grid usedName, production suffix
+==============================
+
+ - edit `mc_samples.txt` with the samples you want to run
+ - edit `submitJobs.py` with your grid usedName, production suffix
 
 
-#########################################################################################################
-#########################################################################################################
 List of packages/release:
+=========================
 
 ______________________________________________________________________________________________________
 2015-08-30:  Valerio Dao
