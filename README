@@ -3,12 +3,26 @@ General instructions (see below for suggested release and additional packages)
 - setup release:  see below
 - checkout additional packages: see below
 
-cd $TestArea
+new instructions after git migration (October 5th 2016)
+in release 20.7
+asetup 20.7.7.5,AtlasDerivation,here
 git clone ssh://git@gitlab.cern.ch:7999/jshlomi/FlavourTagPerformanceFramework.git
 setupWorkArea.py
 cd WorkArea/cmt
 cmt bro cmt config
 cmt bro cmt make
+cd ../../FlavourTagPerformanceFramework/run
+
+in release 21:
+mkdir source build run
+cd source
+asetup 21.0.6,here
+git clone ssh://git@gitlab.cern.ch:7999/jshlomi/FlavourTagPerformanceFramework.git
+cd ../build
+cmake ../source
+make -j4
+source x86_64-slc6-gcc49-opt/setup.sh
+cd ../source/FlavourTagPerformanceFramework/run
 
 =====================================================================
 To run:
