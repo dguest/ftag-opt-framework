@@ -1,6 +1,8 @@
 # ignore athena-specific files
 .asetup.save
 CMakeLists.txt
+repofile
 
 # ignore build directory
 /build/
+/run/
