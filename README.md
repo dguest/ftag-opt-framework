@@ -22,15 +22,9 @@ cd ../../FlavourTagPerformanceFramework/run
 in release 21:
 
 ```sh
-mkdir source build run
-cd source
-asetup 21.0.6,here
-git clone ssh://git@gitlab.cern.ch:7999/jshlomi/FlavourTagPerformanceFramework.git
-cd ../build
-cmake ../source
-make -j4
-source x86_64-slc6-gcc49-opt/setup.sh
-cd ../source/FlavourTagPerformanceFramework/run
+. setup-r21.sh
+cd run
+athena jobOptions_Tag.py
 ```
 
 To run:
@@ -52,19 +46,20 @@ To submit samples on the grid:
  - edit `submitJobs.py` with your grid usedName, production suffix
 
 
-List of packages/release:
-=========================
+List of old packages/release:
+=============================
 
-______________________________________________________________________________________________________
-2015-08-30:  Valerio Dao
+### 2015-08-30:  Valerio Dao ###
+
+```sh
 asetup 20.1.6.3,AtlasDerivation,gcc48,here
 pkgco.py JetInterface-00-00-43
 pkgco.py JetMomentTools-00-03-20
 pkgco.py PileupReweighting-00-03-06
+```
 
-
-______________________________________________________________________________________________________
-2015-06-22:  Valerio Dao
+### 2015-06-22:  Valerio Dao ###
+```sh
 asetup 20.1.5.3,AtlasProduction,gcc48,here 
 pkgco.py AODFix-00-02-02
 pkgco.py JetInterface-00-00-43
@@ -72,41 +67,16 @@ pkgco.py JetCalibTools-00-04-41
 pkgco.py JetRec-03-00-50
 pkgco.py JetMomentTools-00-03-20
 pkgco.py JetSelectorTools-00-05-01
+```
 
-______________________________________________________________________________________________________
-2015-06-04:  Valerio Dao
+### 2015-06-04:  Valerio Dao ###
 UPDATED INSTRUCTIONS ONLY WORKING FOR MC15 SAMPLES!!!!!
 (in particular this is used to run over FULL xAOD applying AODfix needed for Jet calibration)
 
+```sh
 asetup 20.1.5.3,AtlasProduction,gcc48,here 
 pkgco.py AODFix-00-02-02
 pkgco.py JetCalibTools-00-04-41
 pkgco.py JetMomentTools-00-03-11-03
 pkgco.py JetRec-03-00-40-04
-
-==========================================================================================================================================================================
-==========================================================================================================================================================================
-==========================================================================================================================================================================
-==========================================================================================================================================================================
-==========================================================================================================================================================================
-
-WARNING: these instructions only works for tag: FlavourTagPerformanceFramework-00-00-02
-2015-04-28:  Valerio Dao
-
-Updating instructions: THIS MAINLY AIM AT RUNNING THE OPTIMISATION FRAMEWOTK OVER REL20 SAMPLES.
-- when no re-tagging options are chose the current setup should run over multiple file version
-- when re-tagging there can be issue with backward compatibility. For the sake of not confusing user, I keep only the instructions valid for the latest setup. If something else is attempted please contact me (valerio.dao@cern.ch)
-
-
-===========================================
-To compile:
-===========================================
-asetup 20.1.4.6,AtlasProduction,gcc48,here  (I haven't tried more recent release, but you need AtlasProduction or AtlasDerivarion if you want to retag since you need MagField info)
-pkgco.py JetCalibTools-00-04-35   (needed for the latest jet calibration)
-
-svn co svn+ssh://svn.cern.ch/reps/atlasperf/CombPerf/FlavorTag/FlavourTagPerformanceFramework/trunk/xAODAthena xAODAthena
-cd TestArea
-setupWorkArea.py
-cd WorkArea/cmt
-cmt bro cmt config
-cmt bro cmt make
+```
