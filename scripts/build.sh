@@ -15,7 +15,16 @@ if [[ ! -d $SCRIPT_DIR ]]; then
     exit 1
 fi
 
+# build packages
 mkdir -p $BUILD_DIR
 cd $BUILD_DIR
 cmake ..
 make -j 4
+
+# link job options to the run directory
+cd $TestArea
+mkdir -p run
+cd $TestArea/run
+for JO in $TestArea/btagIBLAnalysis/share/*.py; do
+    ln -s $JO
+done
