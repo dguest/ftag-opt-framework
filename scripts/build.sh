@@ -26,5 +26,5 @@ cd $TestArea
 mkdir -p run
 cd $TestArea/run
 for JO in $TestArea/btagIBLAnalysis/share/*.py; do
-    ln -s $JO
+    ln -sf $JO
 done

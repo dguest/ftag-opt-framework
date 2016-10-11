@@ -22,22 +22,36 @@ cd ../../FlavourTagPerformanceFramework/run
 in release 21:
 
 ```sh
+git clone ssh://git@gitlab.cern.ch:7999/jshlomi/FlavourTagPerformanceFramework.git
+cd FlavourTagPerformanceFramework
 . setup-r21.sh
-cd run
-athena jobOptions_Tag.py
 ```
 
 To run:
 =======
 
 ```sh
-cd ../../xAODAthena/run
+cd run
 athena jobOptions_Tag.py
 ```
 
 (also `jobOptions_Tag_data.py`: with data settings ... a bit overkilling)
 
 (follow the instructions inside to decide whether to tag or not, which jet collections to use, etc)
+
+Package Layout
+==============
+
+Once you've built this package, it should contain several important
+directories:
+
+ - `run`: run your jobs from here. The job options are symlinked to
+          `btagIBLAnalysis/share`.
+ - `btagIBLAnalysis`: the main ntuple dumping package
+ - `scripts`: scripts to build any packages you've checked out
+ - `build`: build files from CMake
+ - `packages`: any additional tags that are needed for development
+
 
 To submit samples on the grid:
 ==============================
