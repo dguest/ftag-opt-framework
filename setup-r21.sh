@@ -23,4 +23,4 @@ fi
 
 . build/$AtlasEvent_PLATFORM/setup.sh
 
-echo 'run `. /build/checkout-*` to get more packages'
+echo 'run `source scripts/checkout-*` to get more packages'
