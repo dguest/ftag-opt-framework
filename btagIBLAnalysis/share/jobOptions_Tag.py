@@ -201,7 +201,7 @@ for JetCollection in JetCollections:
                                   TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator,
                                   JVTtool=ToolSvc.JVT,
                                   ) #DEBUG
-  alg.bHadronBranches = False
+  alg.bHadronBranches = True
   alg.JetCollectionName = JetCollection
   alg.doSMT = doSMT
   if "AntiKt2PV0TrackJets" in JetCollection or "Truth" in JetCollection:
