@@ -40,3 +40,5 @@ atlas_add_component( btagIBLAnalysis
                      INCLUDE_DIRS ${ROOT_INCLUDE_DIRS}
                      LINK_LIBRARIES ${ROOT_LIBRARIES} GaudiKernel AthenaBaseComps GoodRunsListsLib xAODBTagging xAODEventInfo xAODEventShape xAODJet xAODMuon xAODTracking xAODTrigger xAODTruth TrackVertexAssociationToolLib ParticleJetToolsLib JetSubStructureUtils PileupReweightingLib JetInterface ITrackToVertex TrkVertexFitterInterfaces TrigDecisionToolLib )
 
+# Install files from the package:
+atlas_install_python_modules( python/*.py )

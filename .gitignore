@@ -3,6 +3,10 @@
 CMakeLists.txt
 repofile
 
+# commit messages
+*commit.txt
+
 # ignore build directory
 /build/
 /run/
+/packages/
