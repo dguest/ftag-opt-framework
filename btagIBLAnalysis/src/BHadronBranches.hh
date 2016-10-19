@@ -29,8 +29,8 @@ public:
   BHadronBranches& operator=(BHadronBranches) = delete;
   BHadronBranches(const BHadronBranches&) = delete;
 
-  void set_tree(TTree& output_tree) const;
-  void fill(const xAOD::Jet& jet); // how many info do I need here?
+  void set_tree(TTree& output_tree, bool reduce_info) const;
+  void fill(const xAOD::Jet& jet);
   void clear();
 private:
 
@@ -38,6 +38,7 @@ private:
   void GetAllChildren(const xAOD::TruthParticle* particle,
                                            std::vector<const xAOD::TruthParticle*> &tracksFromB,
                                            std::vector<const xAOD::TruthParticle*> &tracksFromC,
+                                           std::vector<bool> &isFrom_C_tracks,
                                            bool isFromC);
   std::vector<int> getDRSortedIndices(std::vector<const xAOD::IParticle*> ghostHads, const xAOD::Jet *jet);
 

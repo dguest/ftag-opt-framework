@@ -137,7 +137,7 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   declareProperty( "Rel20", m_rel20 = false );
   declareProperty( "DoMSV", m_doMSV = false );
   declareProperty( "doSMT", m_SMT = false );
-  declareProperty( "bHadronBranches", m_bHadronInfo =false );
+  declareProperty( "bHadronBranches", m_bHadronInfo = true );
   declareProperty( "CalibrateJets", m_calibrateJets = true );
   declareProperty( "CleanJets", m_cleanJets = true );
 
@@ -227,7 +227,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
 
   m_jetfitter_branches.set_tree(*tree);
 
-  if(m_bHadronInfo){  m_bhadron_branches.set_tree(*tree); }
+  if(m_bHadronInfo){  m_bhadron_branches.set_tree(*tree, m_reduceInfo); }
 
   // addition from Dan: create cluster branches
   if (m_dumpCaloInfo) {
@@ -440,6 +440,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
 
   v_jet_trk_vtx_X = new std::vector<std::vector<float> >();
   v_jet_trk_vtx_Y = new std::vector<std::vector<float> >();
+  v_jet_trk_vtx_Z = new std::vector<std::vector<float> >();
   v_jet_trk_vtx_dx = new std::vector<std::vector<float> >();
   v_jet_trk_vtx_dy = new std::vector<std::vector<float> >();
 
@@ -480,6 +481,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_trk_jf_Vertex = new std::vector<std::vector<int> >(); // mod Remco
   v_jet_trk_pdg_id = new std::vector<std::vector<int> >();
   v_jet_trk_barcode = new std::vector<std::vector<int> >();
+  v_jet_trk_parent_pdgid = new std::vector<std::vector<int> >();
 
   // those are just quick accessors
   v_jet_sv1_ntrk = new std::vector<int>();
@@ -739,6 +741,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
 
     tree->Branch("jet_trk_vtx_X", &v_jet_trk_vtx_X);
     tree->Branch("jet_trk_vtx_Y", &v_jet_trk_vtx_Y);
+    tree->Branch("jet_trk_vtx_Z", &v_jet_trk_vtx_Z);
     //tree->Branch("jet_trk_vtx_dx", &v_jet_trk_vtx_dx);
     //tree->Branch("jet_trk_vtx_dy", &v_jet_trk_vtx_dy);
 
@@ -776,6 +779,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     tree->Branch("jet_trk_jf_Vertex", &v_jet_trk_jf_Vertex); // mod Remco
     tree->Branch("jet_trk_pdg_id", &v_jet_trk_pdg_id);
     tree->Branch("jet_trk_barcode", &v_jet_trk_barcode);
+    tree->Branch("jet_trk_parent_pdgid", &v_jet_trk_parent_pdgid);
   }
 
   if (!m_essentialInfo) tree->Branch("jet_sv1_ntrk",&v_jet_sv1_ntrk);
@@ -879,6 +883,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
   runnumber = eventInfo->runNumber();
   eventnumber = eventInfo->eventNumber();
+
 
   mcchannel = ( isData ? 0 : eventInfo->mcChannelNumber() );
   mcweight = ( isData ? 1 : eventInfo->mcEventWeight() );
@@ -2061,6 +2066,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<int> j_trk_orig;
     std::vector<int> j_trk_pdgid;
     std::vector<int> j_trk_barcode;
+    std::vector<int> j_trk_parent_pdgid;
     std::vector<int> j_trk_cploose;
     std::vector<int> j_trk_nInnHits;
     std::vector<int> j_trk_nNextToInnHits;
@@ -2077,6 +2083,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<int> j_trk_expectBLayerHit;
     std::vector<float> j_trk_vtx_X;
     std::vector<float> j_trk_vtx_Y;
+    std::vector<float> j_trk_vtx_Z;
     std::vector<float> j_trk_vtx_dx;
     std::vector<float>  j_trk_vtx_dy;
     std::vector<float> j_trk_d0;
@@ -2479,24 +2486,30 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
       if (truth) {
 
+
         j_trk_pdgid.push_back(truth->pdgId());
         j_trk_barcode.push_back(truth->barcode());
+        j_trk_parent_pdgid.push_back( parent_classify(truth) );
 
         if (truth->prodVtx()) {
           j_trk_vtx_X.push_back(truth->prodVtx()->x());
           j_trk_vtx_Y.push_back(truth->prodVtx()->y());
+          j_trk_vtx_Z.push_back(truth->prodVtx()->z());
 	      }
         else {
           j_trk_vtx_X.push_back(-666);
           j_trk_vtx_Y.push_back(-666);
+          j_trk_vtx_Z.push_back(-666);
 	      }
       }
       else{
 
         j_trk_pdgid.push_back(-999);
         j_trk_barcode.push_back(-999);
+        j_trk_parent_pdgid.push_back( -999 );
         j_trk_vtx_X.push_back(-999);
         j_trk_vtx_Y.push_back(-999);
+        j_trk_vtx_Z.push_back(-999);
       }
 
 
@@ -2627,10 +2640,12 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_trk_algo->push_back(j_trk_algo);
     v_jet_trk_orig->push_back(j_trk_orig);
     v_jet_trk_pdg_id->push_back(j_trk_pdgid);
+    v_jet_trk_parent_pdgid->push_back(j_trk_parent_pdgid);
     v_jet_trk_barcode->push_back(j_trk_barcode);
     v_jet_trk_is_tracking_cp_loose->push_back(j_trk_cploose);
     v_jet_trk_vtx_X->push_back(j_trk_vtx_X);
     v_jet_trk_vtx_Y->push_back(j_trk_vtx_Y);
+    v_jet_trk_vtx_Z->push_back(j_trk_vtx_Z);
     v_jet_trk_nInnHits->push_back(j_trk_nInnHits);
     v_jet_trk_nNextToInnHits->push_back(j_trk_nNextToInnHits);
     v_jet_trk_nBLHits->push_back(j_trk_nBLHits);
@@ -2960,6 +2975,7 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_trk_algo->clear();
   v_jet_trk_orig->clear();
   v_jet_trk_pdg_id->clear();
+  v_jet_trk_parent_pdgid->clear();
   v_jet_trk_barcode->clear();
   v_jet_trk_is_tracking_cp_loose->clear();
   v_jet_trk_nInnHits->clear();
@@ -2992,6 +3008,7 @@ void btagIBLAnalysisAlg :: clearvectors() {
 
   v_jet_trk_vtx_X->clear();
   v_jet_trk_vtx_Y->clear();
+  v_jet_trk_vtx_Z->clear();
   v_jet_trk_vtx_dx->clear();
   v_jet_trk_vtx_dy->clear();
 

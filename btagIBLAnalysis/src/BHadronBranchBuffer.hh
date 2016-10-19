@@ -8,6 +8,7 @@ struct BHadronBranchBuffer {
   std::vector<int> *nCHadr;
 
   std::vector<std::vector< int> >   *bH_pdgId;
+  std::vector<std::vector< int> >   *bH_parent_pdgId;
   std::vector<std::vector< float> > *bH_pt;
   std::vector<std::vector< float> > *bH_eta;
   std::vector<std::vector< float> > *bH_phi;
@@ -16,6 +17,9 @@ struct BHadronBranchBuffer {
   std::vector<std::vector< float> > *bH_x;
   std::vector<std::vector< float> > *bH_y;
   std::vector<std::vector< float> > *bH_z;
+  std::vector<std::vector< float> > *bH_prod_x;
+  std::vector<std::vector< float> > *bH_prod_y;
+  std::vector<std::vector< float> > *bH_prod_z;
   std::vector<std::vector< float> > *bH_dRjet;          // distance to jetAxis
   std::vector<std::vector< float> > *bH_PtTrk;          // pt made out of associated charged TrkParticle (both tracks from B and C)
   std::vector<std::vector< float> > *bH_MTrk;           // mass made out of associated charged particles (both tracks from B and C)
@@ -42,6 +46,7 @@ struct BHadronBranchBuffer {
 
 
   std::vector<std::vector< int> > *cH_pdgId;
+  std::vector<std::vector< int> > *cH_parent_pdgId;
   std::vector<std::vector< float> > *cH_pt;
   std::vector<std::vector< float> > *cH_eta;
   std::vector<std::vector< float> > *cH_phi;
@@ -50,6 +55,9 @@ struct BHadronBranchBuffer {
   std::vector<std::vector< float> > *cH_x;
   std::vector<std::vector< float> > *cH_y;
   std::vector<std::vector< float> > *cH_z;
+  std::vector<std::vector< float> > *cH_prod_x;
+  std::vector<std::vector< float> > *cH_prod_y;
+  std::vector<std::vector< float> > *cH_prod_z;
   std::vector<std::vector< float> > *cH_dRjet;      // distance to jetAxis
   std::vector<std::vector< float> > *cH_PtTrk;      // pt made out of associated charged TrkParticle
   std::vector<std::vector< float> > *cH_MTrk;       // mass made out of associated charged particles

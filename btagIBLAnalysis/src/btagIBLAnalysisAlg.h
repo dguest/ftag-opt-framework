@@ -303,11 +303,13 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<std::vector<int> > *v_jet_trk_orig;
   std::vector<std::vector<int> > *v_jet_trk_pdg_id;
   std::vector<std::vector<int> > *v_jet_trk_barcode;
+  std::vector<std::vector<int> > *v_jet_trk_parent_pdgid;
   std::vector<std::vector<int> > *v_jet_trk_is_tracking_cp_loose;
   std::vector<std::vector<float> > *v_jet_trk_vtx_dx;
   std::vector<std::vector<float> > *v_jet_trk_vtx_dy;
   std::vector<std::vector<float> > *v_jet_trk_vtx_X;
   std::vector<std::vector<float> > *v_jet_trk_vtx_Y;
+  std::vector<std::vector<float> > *v_jet_trk_vtx_Z;
 
   std::vector<std::vector<int> > *v_jet_trk_nNextToInnHits;
   std::vector<std::vector<int> > *v_jet_trk_nInnHits;
