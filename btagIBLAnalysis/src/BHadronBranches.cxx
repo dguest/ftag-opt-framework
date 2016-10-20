@@ -783,13 +783,13 @@ void BHadronBranches :: GetAllChildren(const xAOD::TruthParticle* particle,
 
      const xAOD::TruthParticle* child = decayvtx->outgoingParticle(i);
 
-    // if (child->barcode() > 200e3) continue;
-    // if ( !child->isCharmHadron() && !child->isBottomHadron() ){
+    if (child->barcode() > 200e3) continue;
+        if ( !child->isCharmHadron() && !child->isBottomHadron() ){
 
         tracksFromB.push_back(child);
         isFrom_C_tracks.push_back(isFromC);
         if(isFromC){ tracksFromC.push_back(child); }
-    // }
+    }
 
      if (isFromC) GetAllChildren(child, tracksFromB, tracksFromC, isFrom_C_tracks, true);
      else GetAllChildren(child, tracksFromB, tracksFromC, isFrom_C_tracks,child->isCharmHadron() );
