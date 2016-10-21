@@ -383,9 +383,6 @@ void BHadronBranches::fill(const xAOD::Jet& jet) {
       int nBtrk_400=0;
       int nCtrk_400=0;
 
-      int nNeutral_TrackFromB = 0;
-      int nNeutral_TrackFromC = 0;
-
       TLorentzVector tracks_p4(0,0,0,0);
 
       for(unsigned i=0; i< tracksFromB.size(); i++){
@@ -398,18 +395,13 @@ void BHadronBranches::fill(const xAOD::Jet& jet) {
           tracks_p4 = tracks_p4+trkp4;
         }
 
-        if( fabs(trk->charge())>0 && trk->pt() > 400 && fabs(trk->eta()) < 2.5 ){ nBtrk_400++; }
+        if( trk->pt() > 400 && fabs(trk->eta()) < 2.5 ){ nBtrk_400++; }
 
         j_bH_child_hadron_idx.push_back(iB);
         j_bH_child_pdg_id.push_back( trk->pdgId() );
         j_bH_child_parent_pdg_id.push_back( trk->parent(0)->pdgId()  );
         j_bH_child_barcode.push_back( trk->barcode()  );
-
         j_bH_child_charge.push_back( trk->charge()  );
-        if(!trk->charge() && !isFrom_C_tracks.at(i) ){
-          //counting neutral tracks from B only (not including C)
-          nNeutral_TrackFromB++;
-        }
         j_bH_child_px.push_back( trk->px()  );
         j_bH_child_py.push_back( trk->py()  );
         j_bH_child_pz.push_back( trk->pz()  );
@@ -434,14 +426,13 @@ void BHadronBranches::fill(const xAOD::Jet& jet) {
 
         TLorentzVector trkp4;
         trkp4.SetPxPyPzE(trk->px(), trk->py(), trk->pz(), trk->e());
-        if( fabs(trk->charge())>0 && trkp4.Pt() > 400 && fabs(trkp4.Eta()) < 2.5  ){ nCtrk_400++; }
+        if( trkp4.Pt() > 400 && fabs(trkp4.Eta()) < 2.5  ){ nCtrk_400++; }
 
-        if(!trk->charge()){   nNeutral_TrackFromC++;     }
       }
 
 
-      j_bH_nBtracks.push_back( tracksFromB.size()-nNeutral_TrackFromB-tracksFromC.size()+nNeutral_TrackFromC);
-      j_bH_nCtracks.push_back(tracksFromC.size()-nNeutral_TrackFromC);
+      j_bH_nBtracks.push_back( tracksFromB.size()-tracksFromC.size());
+      j_bH_nCtracks.push_back(tracksFromC.size());
       j_bH_nBtracks_400.push_back(nBtrk_400-nCtrk_400);
       j_bH_nCtracks_400.push_back(nCtrk_400);
 
@@ -523,7 +514,6 @@ void BHadronBranches::fill(const xAOD::Jet& jet) {
       GetAllChildren(myC, tracksFromC, tracksFromC, isFrom_C_tracks, false );
 
       int nCtrk_400=0;
-      int nNeutral_TrackFromC = 0;
 
       TLorentzVector tracks_p4(0,0,0,0);
 
@@ -533,12 +523,9 @@ void BHadronBranches::fill(const xAOD::Jet& jet) {
         TLorentzVector trkp4;
         trkp4.SetPxPyPzE(trk->px(), trk->py(), trk->pz(), trk->e());
 
-        if(fabs(trk->charge())>0){
+
           tracks_p4 = tracks_p4+trkp4;
           if( trkp4.Pt() > 400 && fabs(trkp4.Eta()) < 2.5 ){ nCtrk_400++; }
-        }else{
-          nNeutral_TrackFromC++;
-        }
 
         j_cH_child_hadron_idx.push_back(iC);
         j_cH_child_pdg_id.push_back( trk->pdgId() );
@@ -564,7 +551,7 @@ void BHadronBranches::fill(const xAOD::Jet& jet) {
         }
       }
 
-      j_cH_nCtracks.push_back(tracksFromC.size()-nNeutral_TrackFromC);
+      j_cH_nCtracks.push_back(tracksFromC.size());
       j_cH_nCtracks_400.push_back(nCtrk_400);
 
       j_cH_PtTrk.push_back(tracks_p4.Pt());
@@ -784,7 +771,7 @@ void BHadronBranches :: GetAllChildren(const xAOD::TruthParticle* particle,
      const xAOD::TruthParticle* child = decayvtx->outgoingParticle(i);
 
     if (child->barcode() > 200e3) continue;
-        if ( !child->isCharmHadron() && !child->isBottomHadron() ){
+        if (child->isCharged() && !child->isCharmHadron() && !child->isBottomHadron() ){
 
         tracksFromB.push_back(child);
         isFrom_C_tracks.push_back(isFromC);
