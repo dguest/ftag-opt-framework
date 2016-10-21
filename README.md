@@ -16,7 +16,7 @@ setupWorkArea.py
 cd WorkArea/cmt
 cmt bro cmt config
 cmt bro cmt make
-cd ../../FlavourTagPerformanceFramework/run
+cd ../../FlavourTagPerformanceFramework/btagIBLAnalysis/share/
 ```
 
 in release 21:
