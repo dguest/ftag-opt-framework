@@ -51,11 +51,12 @@ enum TAGGERALGO{ IP2D=0,
 		 SV1,
 		 JF };
 
-enum TRKORIGIN{ PUFAKE=-1,
-		FROMB,
-		FROMC,
-		FRAG,
-		GEANT };
+// moved to BHadronBranches
+// enum TRKORIGIN{ PUFAKE=-1,
+// 		FROMB,
+// 		FROMC,
+// 		FRAG,
+// 		GEANT };
 
 class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
  public:
@@ -118,16 +119,6 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<int> *v_jet_nConst;
   std::vector<int> *v_jet_truthflav;
 
-  std::vector<int> *v_jet_nGhostBHadrFromParent;
-  std::vector<int> *v_jet_nGhostCHadrFromParent;
-  std::vector<int> *v_jet_nGhostCHadrFromParentNotFromB;
-  std::vector<int> *v_jet_nGhostTauFromParent;
-  std::vector<int> *v_jet_nGhostHBosoFromParent;
-  std::vector<int> *v_jet_nGhostBHadr;
-  std::vector<int> *v_jet_nGhostCHadr;
-  std::vector<int> *v_jet_nGhostCHadrNotFromB;
-  std::vector<int> *v_jet_nGhostTau;
-  std::vector<int> *v_jet_nGhostHBoso;
   std::vector<int> *v_jet_GhostL_q;
   std::vector<int> *v_jet_GhostL_HadI;
   std::vector<int> *v_jet_GhostL_HadF;
@@ -248,44 +239,6 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<double> *v_jet_ExKtbb_Hbb_MV2andJFDRSig;
   std::vector<double> *v_jet_ExKtbb_Hbb_MV2andTopos;
 
-  // B hadron
-  std::vector<float> *v_bH1FromParent_pt;
-  std::vector<float> *v_bH1FromParent_eta;
-  std::vector<float> *v_bH1FromParent_phi;
-  std::vector<float> *v_bH1FromParent_Lxy;
-  std::vector<float> *v_bH1FromParent_x;
-  std::vector<float> *v_bH1FromParent_y;
-  std::vector<float> *v_bH1FromParent_z;
-  std::vector<float> *v_bH1FromParent_dRjet;
-
-  std::vector<float> *v_bH2FromParent_pt;
-  std::vector<float> *v_bH2FromParent_eta;
-  std::vector<float> *v_bH2FromParent_phi;
-  std::vector<float> *v_bH2FromParent_Lxy;
-  std::vector<float> *v_bH2FromParent_x;
-  std::vector<float> *v_bH2FromParent_y;
-  std::vector<float> *v_bH2FromParent_z;
-  std::vector<float> *v_bH2FromParent_dRjet;
-
-  std::vector<float> *v_bH1_pt;
-  std::vector<float> *v_bH1_eta;
-  std::vector<float> *v_bH1_phi;
-  std::vector<float> *v_bH1_Lxy;
-  std::vector<float> *v_bH1_x;
-  std::vector<float> *v_bH1_y;
-  std::vector<float> *v_bH1_z;
-  std::vector<float> *v_bH1_dRjet;
-
-  std::vector<float> *v_bH2_pt;
-  std::vector<float> *v_bH2_eta;
-  std::vector<float> *v_bH2_phi;
-  std::vector<float> *v_bH2_Lxy;
-  std::vector<float> *v_bH2_x;
-  std::vector<float> *v_bH2_y;
-  std::vector<float> *v_bH2_z;
-  std::vector<float> *v_bH2_dRjet;
-
-
   // track info
   std::vector<int>   *v_jet_btag_ntrk;
 
@@ -300,7 +253,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   std::vector<std::vector<float> > *v_jet_trk_ndf;
 
   std::vector<std::vector<int> > *v_jet_trk_algo;
-  std::vector<std::vector<int> > *v_jet_trk_orig;
+  //std::vector<std::vector<int> > *v_jet_trk_orig;
   std::vector<std::vector<int> > *v_jet_trk_pdg_id;
   std::vector<std::vector<int> > *v_jet_trk_barcode;
   std::vector<std::vector<int> > *v_jet_trk_parent_pdgid;

@@ -1,12 +1,15 @@
 #include "BHadronBranches.hh"
 #include "BHadronBranchBuffer.hh"
 
-#include "AthContainers/exceptions.h"
-#include "TTree.h"
-
 #include "xAODJet/Jet.h"
+#include "xAODJet/JetContainer.h"
 #include "xAODTruth/TruthParticle.h"
 #include "xAODTruth/TruthVertex.h"
+#include "xAODTracking/TrackParticleContainer.h"
+#include "xAODTruth/TruthEventContainer.h"
+
+#include "AthContainers/exceptions.h"
+#include "TTree.h"
 
 #include <string>
 #include <stdexcept>
@@ -18,6 +21,9 @@ BHadronBranches::BHadronBranches():
   m_branches(new BHadronBranchBuffer)
 {
   // instantiate all the vectors here ...
+  m_branches->v_jet_trk_orig = new std::vector<std::vector<int> >();
+
+
   m_branches->nBHadr = new std::vector<int>();
   m_branches->nCHadr = new std::vector<int>();
 
@@ -93,7 +99,54 @@ BHadronBranches::BHadronBranches():
   m_branches->cH_child_decay_y            = new std::vector<std::vector<float> >();
   m_branches->cH_child_decay_z            = new std::vector<std::vector<float> >();
 
+  //double b-tagging variables
 
+  m_branches->v_bH1FromParent_pt    = new std::vector<float>();
+  m_branches->v_bH1FromParent_eta   = new std::vector<float>();
+  m_branches->v_bH1FromParent_phi   = new std::vector<float>();
+  m_branches->v_bH1FromParent_Lxy   = new std::vector<float>();
+  m_branches->v_bH1FromParent_dRjet = new std::vector<float>();
+  m_branches->v_bH1FromParent_x     = new std::vector<float>();
+  m_branches->v_bH1FromParent_y     = new std::vector<float>();
+  m_branches->v_bH1FromParent_z     = new std::vector<float>();
+
+  m_branches->v_bH2FromParent_pt    = new std::vector<float>();
+  m_branches->v_bH2FromParent_eta   = new std::vector<float>();
+  m_branches->v_bH2FromParent_phi   = new std::vector<float>();
+  m_branches->v_bH2FromParent_Lxy   = new std::vector<float>();
+  m_branches->v_bH2FromParent_dRjet = new std::vector<float>();
+  m_branches->v_bH2FromParent_x     = new std::vector<float>();
+  m_branches->v_bH2FromParent_y     = new std::vector<float>();
+  m_branches->v_bH2FromParent_z     = new std::vector<float>();
+
+  m_branches->v_bH1_pt              = new std::vector<float>();
+  m_branches->v_bH1_eta             = new std::vector<float>();
+  m_branches->v_bH1_phi             = new std::vector<float>();
+  m_branches->v_bH1_Lxy             = new std::vector<float>();
+  m_branches->v_bH1_dRjet           = new std::vector<float>();
+  m_branches->v_bH1_x               = new std::vector<float>();
+  m_branches->v_bH1_y               = new std::vector<float>();
+  m_branches->v_bH1_z               = new std::vector<float>();
+
+  m_branches->v_bH2_pt              = new std::vector<float>();
+  m_branches->v_bH2_eta             = new std::vector<float>();
+  m_branches->v_bH2_phi             = new std::vector<float>();
+  m_branches->v_bH2_Lxy             = new std::vector<float>();
+  m_branches->v_bH2_dRjet           = new std::vector<float>();
+  m_branches->v_bH2_x               = new std::vector<float>();
+  m_branches->v_bH2_y               = new std::vector<float>();
+  m_branches->v_bH2_z               = new std::vector<float>();
+
+  m_branches->v_jet_nGhostBHadrFromParent         = new std::vector<int>();
+  m_branches->v_jet_nGhostCHadrFromParent         = new std::vector<int>();
+  m_branches->v_jet_nGhostCHadrFromParentNotFromB = new std::vector<int>();
+  m_branches->v_jet_nGhostTauFromParent           = new std::vector<int>();
+  m_branches->v_jet_nGhostHBosoFromParent         = new std::vector<int>();
+  m_branches->v_jet_nGhostBHadr                   = new std::vector<int>();
+  m_branches->v_jet_nGhostCHadr                   = new std::vector<int>();
+  m_branches->v_jet_nGhostCHadrNotFromB           = new std::vector<int>();
+  m_branches->v_jet_nGhostTau                     = new std::vector<int>();
+  m_branches->v_jet_nGhostHBoso                   = new std::vector<int>();
 }
 
 //!-----------------------------------------------------------------------------------------------------------------------------!//
@@ -175,8 +228,11 @@ BHadronBranches::~BHadronBranches() {
   delete m_branches;
 }
 
-void BHadronBranches::set_tree(TTree& output_tree, bool reduce_info) const {
+void BHadronBranches::set_tree(TTree& output_tree, bool extra_info) const {
   //std::string prefix = "jet_bH_";
+
+
+
   output_tree.Branch( "jet_nBHadr"       , &m_branches->nBHadr);
   output_tree.Branch( "jet_nCHadr"       , &m_branches->nCHadr);
 
@@ -192,7 +248,6 @@ void BHadronBranches::set_tree(TTree& output_tree, bool reduce_info) const {
   output_tree.Branch( "jet_bH_z"           , &m_branches->bH_z);
   output_tree.Branch( "jet_bH_dRjet"       , &m_branches->bH_dRjet);
 
-
   output_tree.Branch( "jet_cH_pdgId"       , &m_branches->cH_pdgId);
   output_tree.Branch( "jet_cH_parent_pdgId",&m_branches->cH_parent_pdgId);
   output_tree.Branch( "jet_cH_pt"          , &m_branches->cH_pt);
@@ -205,9 +260,8 @@ void BHadronBranches::set_tree(TTree& output_tree, bool reduce_info) const {
   output_tree.Branch( "jet_cH_z"           , &m_branches->cH_z);
   output_tree.Branch( "jet_cH_dRjet"       , &m_branches->cH_dRjet);
 
-  if(!reduce_info){
-
-
+  if(extra_info){
+      output_tree.Branch("jet_trk_orig", &m_branches->v_jet_trk_orig);
 
       output_tree.Branch( "jet_bH_prod_x"      , &m_branches->bH_prod_x);
       output_tree.Branch( "jet_bH_prod_y"      , &m_branches->bH_prod_y);
@@ -259,13 +313,72 @@ void BHadronBranches::set_tree(TTree& output_tree, bool reduce_info) const {
       output_tree.Branch( "jet_cH_child_decay_x"      , &m_branches->cH_child_decay_x);
       output_tree.Branch( "jet_cH_child_decay_y"      , &m_branches->cH_child_decay_y);
       output_tree.Branch( "jet_cH_child_decay_z"      , &m_branches->cH_child_decay_z);
+
+
+      // double b-tagging variables
+      output_tree.Branch("jet_nGhostBHadrFromParent"        , &m_branches->v_jet_nGhostBHadrFromParent); // mod nikola
+      output_tree.Branch("jet_nGhostCHadrFromParent"        , &m_branches->v_jet_nGhostCHadrFromParent); // mod nikola
+      output_tree.Branch("jet_nGhostCHadrFromParentNotFromB", &m_branches->v_jet_nGhostCHadrFromParentNotFromB); // mod nikola
+      output_tree.Branch("jet_nGhostTauFromParent"          , &m_branches->v_jet_nGhostTauFromParent); // mod nikola
+      output_tree.Branch("jet_nGhostHBosoFromParent"        , &m_branches->v_jet_nGhostHBosoFromParent); // mod nikola
+      output_tree.Branch("jet_nGhostBHadr"                  , &m_branches->v_jet_nGhostBHadr); // mod nikola
+      output_tree.Branch("jet_nGhostCHadr"                  , &m_branches->v_jet_nGhostCHadr); // mod nikola
+      output_tree.Branch("jet_nGhostCHadrNotFromB"          , &m_branches->v_jet_nGhostCHadrNotFromB); // mod nikola
+      output_tree.Branch("jet_nGhostTau"                    , &m_branches->v_jet_nGhostTau); // mod nikola
+      output_tree.Branch("jet_nGhostHBoso"                  , &m_branches->v_jet_nGhostHBoso); // mod nikola
+
+      output_tree.Branch("bH1FromParent_pt", &m_branches->v_bH1FromParent_pt);
+      output_tree.Branch("bH1FromParent_eta", &m_branches->v_bH1FromParent_eta);
+      output_tree.Branch("bH1FromParent_phi", &m_branches->v_bH1FromParent_phi);
+      output_tree.Branch("bH1FromParent_Lxy", &m_branches->v_bH1FromParent_Lxy);
+      output_tree.Branch("bH1FromParent_x", &m_branches->v_bH1FromParent_x);
+      output_tree.Branch("bH1FromParent_y", &m_branches->v_bH1FromParent_y);
+      output_tree.Branch("bH1FromParent_z", &m_branches->v_bH1FromParent_z);
+      output_tree.Branch("bH1FromParent_dRjet", &m_branches->v_bH1FromParent_dRjet);
+
+      output_tree.Branch("bH2FromParent_pt", &m_branches->v_bH2FromParent_pt);
+      output_tree.Branch("bH2FromParent_eta", &m_branches->v_bH2FromParent_eta);
+      output_tree.Branch("bH2FromParent_phi", &m_branches->v_bH2FromParent_phi);
+      output_tree.Branch("bH2FromParent_Lxy", &m_branches->v_bH2FromParent_Lxy);
+      output_tree.Branch("bH2FromParent_x", &m_branches->v_bH2FromParent_x);
+      output_tree.Branch("bH2FromParent_y", &m_branches->v_bH2FromParent_y);
+      output_tree.Branch("bH2FromParent_z", &m_branches->v_bH2FromParent_z);
+      output_tree.Branch("bH2FromParent_dRjet", &m_branches->v_bH2FromParent_dRjet);
+
+      output_tree.Branch("bH1_pt", &m_branches->v_bH1_pt);
+      output_tree.Branch("bH1_eta", &m_branches->v_bH1_eta);
+      output_tree.Branch("bH1_phi", &m_branches->v_bH1_phi);
+      output_tree.Branch("bH1_Lxy", &m_branches->v_bH1_Lxy);
+      output_tree.Branch("bH1_x", &m_branches->v_bH1_x);
+      output_tree.Branch("bH1_y", &m_branches->v_bH1_y);
+      output_tree.Branch("bH1_z", &m_branches->v_bH1_z);
+      output_tree.Branch("bH1_dRjet", &m_branches->v_bH1_dRjet);
+
+      output_tree.Branch("bH2_pt", &m_branches->v_bH2_pt);
+      output_tree.Branch("bH2_eta", &m_branches->v_bH2_eta);
+      output_tree.Branch("bH2_phi", &m_branches->v_bH2_phi);
+      output_tree.Branch("bH2_Lxy", &m_branches->v_bH2_Lxy);
+      output_tree.Branch("bH2_x", &m_branches->v_bH2_x);
+      output_tree.Branch("bH2_y", &m_branches->v_bH2_y);
+      output_tree.Branch("bH2_z", &m_branches->v_bH2_z);
+      output_tree.Branch("bH2_dRjet", &m_branches->v_bH2_dRjet);
+
   }
 
 }
 
 //!-----------------------------------------------------------------------------------------------------------------------------!//
-void BHadronBranches::fill(const xAOD::Jet& jet) {
+void BHadronBranches::fill(const xAOD::Jet& jet, std::string jetCollectionName) {
 
+  bool double_btagging = (strcmp(jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0);
+
+  const xAOD::Jet *jet_parent = 0;
+    if (double_btagging) {
+      jet_parent = GetParentJet(&jet, "Parent");
+    }
+
+
+  //regular b-tagging :
   std::vector<const IParticle*> ghostB;
   const std::string labelB = "ConeExclBHadronsFinal";
   jet.getAssociatedObjects<IParticle>(labelB, ghostB);
@@ -273,6 +386,11 @@ void BHadronBranches::fill(const xAOD::Jet& jet) {
   std::vector<const IParticle*> ghostC;
   const std::string labelC = "ConeExclCHadronsFinal";
   jet.getAssociatedObjects<IParticle>(labelC, ghostC);
+
+  // collection of tracks from B and C hadrons with minimal dR to jet, to be used with the track origin variable
+  std::vector<const xAOD::TruthParticle*> first_BtracksFromB;
+  std::vector<const xAOD::TruthParticle*> first_CtracksFromB;
+  std::vector<const xAOD::TruthParticle*> first_CtracksFromC;
 
   std::vector<int>     j_bH_pdgId;
   std::vector<int>     j_bH_parent_pdgId;
@@ -344,7 +462,7 @@ void BHadronBranches::fill(const xAOD::Jet& jet) {
   std::vector<float>   j_cH_child_decay_y;
   std::vector<float>   j_cH_child_decay_z;
 
-  if ( ghostB.size()>0 ) {
+  if ( ghostB.size()>0 && !double_btagging ) {
 
     //sort hadrons by dR to jet
     std::vector<int> BhadIndices = getDRSortedIndices(ghostB,&jet);
@@ -376,9 +494,13 @@ void BHadronBranches::fill(const xAOD::Jet& jet) {
       //loop over decay products, save tracks that are not c or b hadrons:
       std::vector<const xAOD::TruthParticle*> tracksFromB;
       std::vector<const xAOD::TruthParticle*> tracksFromC;
-      std::vector<bool> isFrom_C_tracks;
 
-      GetAllChildren(myB, tracksFromB, tracksFromC, isFrom_C_tracks, false ); //tracksFromB contains also tracksFromC
+      GetAllChildren(myB, tracksFromB, tracksFromC, false ); //tracksFromB contains also tracksFromC
+
+      if(iB==0){ // fill the first B (with minimal dR to jet) to check track origin
+        GetAllChildren(myB, first_BtracksFromB, first_CtracksFromB, false );
+      }
+
 
       int nBtrk_400=0;
       int nCtrk_400=0;
@@ -480,7 +602,7 @@ void BHadronBranches::fill(const xAOD::Jet& jet) {
     j_bH_child_decay_z.push_back(-99);
   }
 
-  if ( ghostC.size()>0 ) {
+  if ( ghostC.size()>0 && !double_btagging ) {
 
     std::vector<int> ChadIndices = getDRSortedIndices(ghostC,&jet);
 
@@ -509,9 +631,12 @@ void BHadronBranches::fill(const xAOD::Jet& jet) {
 
       //loop over decay products, save all decay products
       std::vector<const xAOD::TruthParticle*> tracksFromC;
-      std::vector<bool> isFrom_C_tracks; //irrelevant for c hadrons
 
-      GetAllChildren(myC, tracksFromC, tracksFromC, isFrom_C_tracks, false );
+      GetAllChildren(myC, tracksFromC, tracksFromC,  false );
+
+      if(iC==0){ // fill the first C (with minimal dR to jet) to check track origin
+        GetAllChildren(myC, first_CtracksFromC, first_CtracksFromC, false );
+      }
 
       int nCtrk_400=0;
 
@@ -676,11 +801,307 @@ void BHadronBranches::fill(const xAOD::Jet& jet) {
   m_branches->cH_child_decay_y->push_back(j_cH_child_decay_y);
   m_branches->cH_child_decay_z->push_back(j_cH_child_decay_z);
 
+
+  // double b-tagging variables
+
+  // additions by nikola
+  const xAOD::TruthParticle *matchedBH1 = NULL;
+  const xAOD::TruthParticle *matchedBH2 = NULL;
+  const xAOD::TruthParticle *matchedBH1FromParent = NULL;
+  const xAOD::TruthParticle *matchedBH2FromParent = NULL;
+  const xAOD::TruthParticle *matchedCNotFromB1FromParent = NULL;
+  const xAOD::TruthParticle *matchedCNotFromB2FromParent = NULL;
+  // double b-tagging (on trimmed large-R jets, AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets)
+
+  if ( double_btagging ) {
+
+    // get ghost B Hadrons from parent jet
+    std::vector<const IParticle*> ghostBFromParent; ghostBFromParent.reserve(2);
+    jet_parent->getAssociatedObjects<IParticle>("GhostBHadronsFinal", ghostBFromParent);
+    m_branches->v_jet_nGhostBHadrFromParent->push_back(ghostBFromParent.size());    // the number of ghost B Hadrons from parent jet
+
+    // get ghost B Hadrons from jet
+    std::vector<const IParticle*> ghostB; ghostB.reserve(2);
+    jet.getAssociatedObjects<IParticle>("GhostBHadronsFinal", ghostB);
+    m_branches->v_jet_nGhostBHadr->push_back(ghostB.size());    // the number of ghost B Hadrons from jet
+
+    // use LEADING 2 ghost B Hadrons from parent jet to later label b-tagging tracks
+    if (ghostBFromParent.size() >= 1) {
+      matchedBH1FromParent = (const xAOD::TruthParticle*)(ghostBFromParent.at(0));
+      if (ghostB.size() >= 2) {
+        matchedBH2FromParent=(const xAOD::TruthParticle*)(ghostBFromParent.at(1));
+      }
+    }
+
+    // use LEADING 2 ghost B Hadrons from jet
+    if (ghostB.size() >= 1) {
+        matchedBH1 = (const xAOD::TruthParticle*)(ghostB.at(0));
+      if (ghostB.size() >= 2) {
+        matchedBH2=(const xAOD::TruthParticle*)(ghostB.at(1));
+      }
+    }
+
+    // get ghost C Hadrons from parent jet
+    std::vector<const IParticle*> ghostCFromParent; ghostCFromParent.reserve(2);
+    jet_parent->getAssociatedObjects<IParticle>("GhostCHadronsFinal", ghostCFromParent);
+    m_branches->v_jet_nGhostCHadrFromParent->push_back(ghostCFromParent.size());    // the number of ghost C Hadrons from parent jet
+
+    // get ghost C Hadrons from jet
+    std::vector<const IParticle*> ghostC; ghostC.reserve(2);
+    jet.getAssociatedObjects<IParticle>("GhostCHadronsFinal", ghostC);
+    m_branches->v_jet_nGhostCHadr->push_back(ghostC.size());    // the number of ghost C Hadrons from jet
+
+    // get ghost C Hadrons from parent jet which are NOT children of ghost B Hadrons from parent jet
+    int nGhostCHadrFromParentNotFromB = 0;
+    // loop over C Hadrons
+    for (unsigned int c = 0; c < ghostCFromParent.size(); c++) {
+       const xAOD::TruthParticle* cHadron = (const xAOD::TruthParticle*)(ghostCFromParent.at(c));
+       int cHadronComesFromB = 0;
+
+       // loop over B Hadrons
+       for (unsigned int b = 0; b < ghostBFromParent.size(); b++) {
+         const xAOD::TruthParticle* bHadron = (const xAOD::TruthParticle*)(ghostBFromParent.at(b));
+
+         // loop over C Hadron parents
+         const xAOD::TruthParticle* cHadronParent = cHadron->parent(0);
+         while (cHadronParent != NULL) {
+           if (bHadron == cHadronParent) {
+             // ATH_MSG_INFO ("nikola: C Hadron has B Hadron parent");
+             cHadronComesFromB = 1;
+             break;
+           }
+           if (cHadronComesFromB) break;
+           else cHadronParent = cHadronParent->parent(0);
+         }
+       }
+
+       // use LEADING 2 ghost C Hadrons from parent jet which are NOT children of ghost B Hadrons from parent jet to later label b-tagging tracks
+       if (!cHadronComesFromB) {
+         nGhostCHadrFromParentNotFromB += 1;
+         if (matchedCNotFromB1FromParent == NULL) matchedCNotFromB1FromParent = cHadron;
+         else if (matchedCNotFromB2FromParent == NULL) matchedCNotFromB2FromParent = cHadron;
+         else std::cout << "more than 2 C Hadrons which do not come from a B Hadron have been found..." << std::endl;
+       }
+    }
+    m_branches->v_jet_nGhostCHadrFromParentNotFromB->push_back(nGhostCHadrFromParentNotFromB);    // the number of ghost C Hadrons from parent jet which are NOT children of ghost B Hadrons from parent jet
+
+    // get ghost C Hadrons from jet which are NOT children of ghost B Hadrons from jet
+    int nGhostCHadrNotFromB = 0;
+    // loop over C Hadrons
+    for (unsigned int c = 0; c < ghostC.size(); c++) {
+       const xAOD::TruthParticle* cHadron = (const xAOD::TruthParticle*)(ghostC.at(c));
+       int cHadronComesFromB = 0;
+
+       // loop over B Hadrons
+       for (unsigned int b = 0; b < ghostB.size(); b++) {
+         const xAOD::TruthParticle* bHadron = (const xAOD::TruthParticle*)(ghostB.at(b));
+
+         // loop over C Hadron parents
+         const xAOD::TruthParticle* cHadronParent = cHadron->parent(0);
+         while (cHadronParent != NULL) {
+           if (bHadron == cHadronParent) {
+             // ATH_MSG_INFO ("nikola: C Hadron has B Hadron parent");
+             cHadronComesFromB = 1;
+             break;
+           }
+           if (cHadronComesFromB) break;
+           else cHadronParent = cHadronParent->parent(0);
+         }
+       }
+    }
+    m_branches->v_jet_nGhostCHadrNotFromB->push_back(nGhostCHadrNotFromB);    // the number of ghost C Hadrons from jet which are NOT children of ghost B Hadrons from jet
+
+    // ghost Tau from parent jet
+    std::vector<const IParticle*> ghostTauFromParent; ghostTauFromParent.reserve(2);
+    jet_parent->getAssociatedObjects<IParticle>("GhostTausFinal", ghostTauFromParent);
+    m_branches->v_jet_nGhostTauFromParent->push_back(ghostTauFromParent.size());
+
+    // ghost Tau from jet
+    std::vector<const IParticle*> ghostTau; ghostTau.reserve(2);
+    jet.getAssociatedObjects<IParticle>("GhostTausFinal", ghostTau);
+    m_branches->v_jet_nGhostTau->push_back(ghostTau.size());
+
+    // ghost H from parent jet
+    std::vector<const IParticle*> ghostHFromParent; ghostHFromParent.reserve(2);
+    jet_parent->getAssociatedObjects<IParticle>("GhostHBosons", ghostHFromParent);
+    m_branches->v_jet_nGhostHBosoFromParent->push_back(ghostHFromParent.size());
+
+    // ghost H from jet
+    std::vector<const IParticle*> ghostH; ghostH.reserve(2);
+    jet.getAssociatedObjects<IParticle>("GhostHBosons", ghostH);
+    m_branches->v_jet_nGhostHBoso->push_back(ghostH.size());
+  }
+
+  std::vector<const xAOD::TruthParticle*> tracksFromB1FromParent;
+  std::vector<const xAOD::TruthParticle*> tracksFromB2FromParent;
+  std::vector<const xAOD::TruthParticle*> tracksFromC1FromParent;
+  std::vector<const xAOD::TruthParticle*> tracksFromC2FromParent;
+  std::vector<const xAOD::TruthParticle*> tracksFromCNotFromB1FromParent;
+  std::vector<const xAOD::TruthParticle*> tracksFromCNotFromB2FromParent;
+
+  if (matchedBH1FromParent != NULL) {
+    GetAllChildren(matchedBH1FromParent, tracksFromB1FromParent, tracksFromC1FromParent, false);
+  }
+  if (matchedBH2FromParent != NULL) {
+    GetAllChildren(matchedBH2FromParent, tracksFromB2FromParent, tracksFromC2FromParent, false);
+  }
+  if (matchedCNotFromB1FromParent != NULL) {
+    GetAllChildren(matchedCNotFromB1FromParent, tracksFromCNotFromB1FromParent, tracksFromCNotFromB1FromParent, false);
+  }
+  if (matchedCNotFromB2FromParent != NULL) {
+    GetAllChildren(matchedCNotFromB2FromParent, tracksFromCNotFromB2FromParent, tracksFromCNotFromB2FromParent, false);
+  }
+
+  // nikola to-do: make this more elegant (maybe loop over all B Hadrons?) maybe add C1 and C2 info
+    if (matchedBH1FromParent != NULL) {
+      m_branches->v_bH1FromParent_pt->push_back(matchedBH1FromParent->pt());
+      m_branches->v_bH1FromParent_eta->push_back(matchedBH1FromParent->eta());
+      m_branches->v_bH1FromParent_phi->push_back(matchedBH1FromParent->phi());
+      float Lxy = sqrt( pow(matchedBH1FromParent->decayVtx()->x(), 2) + pow(matchedBH1FromParent->decayVtx()->y(), 2) );
+      m_branches->v_bH1FromParent_Lxy->push_back(Lxy);
+      m_branches->v_bH1FromParent_x->push_back(matchedBH1FromParent->decayVtx()->x());
+      m_branches->v_bH1FromParent_y->push_back(matchedBH1FromParent->decayVtx()->y());
+      m_branches->v_bH1FromParent_z->push_back(matchedBH1FromParent->decayVtx()->z());
+      float dr = deltaR(jet.eta(), matchedBH1FromParent->eta(), jet.phi(), matchedBH1FromParent->phi());
+      m_branches->v_bH1FromParent_dRjet->push_back(dr);
+    }
+    else {
+      m_branches->v_bH1FromParent_pt->push_back(-999);
+      m_branches->v_bH1FromParent_eta->push_back(-999);
+      m_branches->v_bH1FromParent_phi->push_back(-999);
+      m_branches->v_bH1FromParent_Lxy->push_back(-999);
+      m_branches->v_bH1FromParent_dRjet->push_back(-999);
+      m_branches->v_bH1FromParent_x->push_back(-999);
+      m_branches->v_bH1FromParent_y->push_back(-999);
+      m_branches->v_bH1FromParent_z->push_back(-999);
+    }
+    if (matchedBH2FromParent != NULL) {
+      m_branches->v_bH2FromParent_pt->push_back(matchedBH2FromParent->pt());
+      m_branches->v_bH2FromParent_eta->push_back(matchedBH2FromParent->eta());
+      m_branches->v_bH2FromParent_phi->push_back(matchedBH2FromParent->phi());
+      float Lxy = sqrt( pow(matchedBH2FromParent->decayVtx()->x(), 2) + pow(matchedBH2FromParent->decayVtx()->y(), 2) );
+      m_branches->v_bH2FromParent_Lxy->push_back(Lxy);
+      m_branches->v_bH2FromParent_x->push_back(matchedBH2FromParent->decayVtx()->x());
+      m_branches->v_bH2FromParent_y->push_back(matchedBH2FromParent->decayVtx()->y());
+      m_branches->v_bH2FromParent_z->push_back(matchedBH2FromParent->decayVtx()->z());
+      float dr = deltaR(jet.eta(), matchedBH2FromParent->eta(), jet.phi(), matchedBH2FromParent->phi());
+      m_branches->v_bH2FromParent_dRjet->push_back(dr);
+    }
+    else {
+      m_branches->v_bH2FromParent_pt->push_back(-999);
+      m_branches->v_bH2FromParent_eta->push_back(-999);
+      m_branches->v_bH2FromParent_phi->push_back(-999);
+      m_branches->v_bH2FromParent_Lxy->push_back(-999);
+      m_branches->v_bH2FromParent_dRjet->push_back(-999);
+      m_branches->v_bH2FromParent_x->push_back(-999);
+      m_branches->v_bH2FromParent_y->push_back(-999);
+      m_branches->v_bH2FromParent_z->push_back(-999);
+    }
+    if (matchedBH1 != NULL) {
+      m_branches->v_bH1_pt->push_back(matchedBH1->pt());
+      m_branches->v_bH1_eta->push_back(matchedBH1->eta());
+      m_branches->v_bH1_phi->push_back(matchedBH1->phi());
+      float Lxy = sqrt( pow(matchedBH1->decayVtx()->x(), 2) + pow(matchedBH1->decayVtx()->y(), 2) );
+      m_branches->v_bH1_Lxy->push_back(Lxy);
+      m_branches->v_bH1_x->push_back(matchedBH1->decayVtx()->x());
+      m_branches->v_bH1_y->push_back(matchedBH1->decayVtx()->y());
+      m_branches->v_bH1_z->push_back(matchedBH1->decayVtx()->z());
+      float dr = deltaR(jet.eta(), matchedBH1->eta(), jet.phi(), matchedBH1->phi());
+      m_branches->v_bH1_dRjet->push_back(dr);
+    }
+    else {
+      m_branches->v_bH1_pt->push_back(-999);
+      m_branches->v_bH1_eta->push_back(-999);
+      m_branches->v_bH1_phi->push_back(-999);
+      m_branches->v_bH1_Lxy->push_back(-999);
+      m_branches->v_bH1_dRjet->push_back(-999);
+      m_branches->v_bH1_x->push_back(-999);
+      m_branches->v_bH1_y->push_back(-999);
+      m_branches->v_bH1_z->push_back(-999);
+    }
+    if (matchedBH2 != NULL) {
+      m_branches->v_bH2_pt->push_back(matchedBH2->pt());
+      m_branches->v_bH2_eta->push_back(matchedBH2->eta());
+      m_branches->v_bH2_phi->push_back(matchedBH2->phi());
+      float Lxy = sqrt( pow(matchedBH2->decayVtx()->x(), 2) + pow(matchedBH2->decayVtx()->y(), 2) );
+      m_branches->v_bH2_Lxy->push_back(Lxy);
+      m_branches->v_bH2_x->push_back(matchedBH2->decayVtx()->x());
+      m_branches->v_bH2_y->push_back(matchedBH2->decayVtx()->y());
+      m_branches->v_bH2_z->push_back(matchedBH2->decayVtx()->z());
+      float dr = deltaR(jet.eta(), matchedBH2->eta(), jet.phi(), matchedBH2->phi());
+      m_branches->v_bH2_dRjet->push_back(dr);
+    }
+    else {
+      m_branches->v_bH2_pt->push_back(-999);
+      m_branches->v_bH2_eta->push_back(-999);
+      m_branches->v_bH2_phi->push_back(-999);
+      m_branches->v_bH2_Lxy->push_back(-999);
+      m_branches->v_bH2_dRjet->push_back(-999);
+      m_branches->v_bH2_x->push_back(-999);
+      m_branches->v_bH2_y->push_back(-999);
+      m_branches->v_bH2_z->push_back(-999);
+    }
+
+    // track origin - match tracks to particles from B/C decays:
+    // get tracks from different track<->jet associators for trimmed large-R jets vs other jet collections
+    std::vector< ElementLink< xAOD::TrackParticleContainer > > assocTracks;
+    std::vector<const xAOD::TrackParticle*> selectedTracks; // tracks passing number of Pixel and SCT hits requirements
+
+    const xAOD::BTagging *bjet = jet.btagging();
+
+    if (double_btagging) {
+      assocTracks = bjet->auxdata<std::vector<ElementLink<xAOD::TrackParticleContainer> > >("BTagTrackToJetAssociatorBB");
+    }
+    else {
+      assocTracks = bjet->auxdata<std::vector<ElementLink<xAOD::TrackParticleContainer> > >("BTagTrackToJetAssociator");
+    }
+
+    std::vector<int> j_trk_orig;
+
+    //track loop, select only tracks with 2 or more hits
+    uint8_t getInt(0);   // for accessing summary information
+
+    for (unsigned int iT = 0; iT < assocTracks.size(); iT++) {
+
+      if (!assocTracks.at(iT).isValid()) continue;
+
+      const xAOD::TrackParticle *tmpTrk = *(assocTracks.at(iT));
+
+      tmpTrk->summaryValue(getInt, xAOD::numberOfPixelHits);
+      int nSi = getInt;
+      tmpTrk->summaryValue(getInt, xAOD::numberOfSCTHits);
+      nSi += getInt;
+      if (nSi < 2) continue;
+      selectedTracks.push_back(tmpTrk);
+
+    }
+
+    //track loop, find origin of track
+
+    for (const auto* tmpTrk: selectedTracks) {
+
+      int origin = getTrackOrigin(tmpTrk,
+                                  first_BtracksFromB,
+                                  first_CtracksFromB,
+                                  first_CtracksFromC,
+                                  tracksFromB1FromParent,
+                                  tracksFromB2FromParent,
+                                  tracksFromC1FromParent,
+                                  tracksFromC2FromParent,
+                                  tracksFromCNotFromB1FromParent,
+                                  tracksFromCNotFromB2FromParent);
+
+      j_trk_orig.push_back(origin);
+    } //end track loop
+
+    m_branches->v_jet_trk_orig->push_back(j_trk_orig);
 }
 
 //!-----------------------------------------------------------------------------------------------------------------------------!//
 void BHadronBranches::clear() {
   // clear vectors
+  m_branches->v_jet_trk_orig->clear();
+
   m_branches->nBHadr->clear();
   m_branches->nCHadr->clear();
   m_branches->bH_pdgId->clear();
@@ -753,12 +1174,78 @@ void BHadronBranches::clear() {
   m_branches->cH_child_decay_y->clear();
   m_branches->cH_child_decay_z->clear();
 
+  // double b-tagging
+  m_branches->v_jet_nGhostBHadrFromParent->clear(); // mod nikola
+  m_branches->v_jet_nGhostCHadrFromParent->clear(); // mod nikola
+  m_branches->v_jet_nGhostCHadrFromParentNotFromB->clear(); // mod nikola
+  m_branches->v_jet_nGhostTauFromParent->clear(); // mod nikola
+  m_branches->v_jet_nGhostHBosoFromParent->clear(); // mod nikola
+  m_branches->v_jet_nGhostBHadr->clear(); // mod nikola
+  m_branches->v_jet_nGhostCHadr->clear(); // mod nikola
+  m_branches->v_jet_nGhostCHadrNotFromB->clear(); // mod nikola
+  m_branches->v_jet_nGhostTau->clear(); // mod nikola
+  m_branches->v_jet_nGhostHBoso->clear(); // mod nikola
+
+  m_branches->v_bH1FromParent_pt->clear();
+  m_branches->v_bH1FromParent_eta->clear();
+  m_branches->v_bH1FromParent_phi->clear();
+  m_branches->v_bH1FromParent_Lxy->clear();
+  m_branches->v_bH1FromParent_dRjet->clear();
+  m_branches->v_bH1FromParent_x->clear();
+  m_branches->v_bH1FromParent_y->clear();
+  m_branches->v_bH1FromParent_z->clear();
+
+  m_branches->v_bH2FromParent_pt->clear();
+  m_branches->v_bH2FromParent_eta->clear();
+  m_branches->v_bH2FromParent_phi->clear();
+  m_branches->v_bH2FromParent_Lxy->clear();
+  m_branches->v_bH2FromParent_dRjet->clear();
+  m_branches->v_bH2FromParent_x->clear();
+  m_branches->v_bH2FromParent_y->clear();
+  m_branches->v_bH2FromParent_z->clear();
+
+  m_branches->v_bH1_pt->clear();
+  m_branches->v_bH1_eta->clear();
+  m_branches->v_bH1_phi->clear();
+  m_branches->v_bH1_Lxy->clear();
+  m_branches->v_bH1_dRjet->clear();
+  m_branches->v_bH1_x->clear();
+  m_branches->v_bH1_y->clear();
+  m_branches->v_bH1_z->clear();
+
+  m_branches->v_bH2_pt->clear();
+  m_branches->v_bH2_eta->clear();
+  m_branches->v_bH2_phi->clear();
+  m_branches->v_bH2_Lxy->clear();
+  m_branches->v_bH2_dRjet->clear();
+  m_branches->v_bH2_x->clear();
+  m_branches->v_bH2_y->clear();
+  m_branches->v_bH2_z->clear();
 }
+
+float BHadronBranches :: deltaR(float eta1, float eta2, float phi1, float phi2) {
+  float DEta = fabs(eta1 - eta2);
+  float DPhi = acos(cos(fabs(phi1 - phi2)));
+  return sqrt(pow(DEta, 2) + pow(DPhi, 2));
+}
+
+
+const xAOD::Jet *BHadronBranches :: GetParentJet(const xAOD::Jet *Jet, std::string Keyname) {
+  ElementLink<xAOD::JetContainer> el = Jet->auxdata<ElementLink<xAOD::JetContainer> >(Keyname);
+
+  if(el.isValid()) {
+    return *el;
+  }
+  else {
+    std::cout << "GetParentJet(): Unable to get parent link %s ! Null ptr is returned." << std::endl;
+    return 0;
+  }
+}
+
 
 void BHadronBranches :: GetAllChildren(const xAOD::TruthParticle* particle,
                                            std::vector<const xAOD::TruthParticle*> &tracksFromB,
                                            std::vector<const xAOD::TruthParticle*> &tracksFromC,
-                                           std::vector<bool> &isFrom_C_tracks,
                                            bool isFromC){
 
 
@@ -774,13 +1261,11 @@ void BHadronBranches :: GetAllChildren(const xAOD::TruthParticle* particle,
         if (child->status()==1 && child->isCharged() && !child->isCharmHadron() && !child->isBottomHadron() ){
 
         tracksFromB.push_back(child);
-        isFrom_C_tracks.push_back(isFromC);
         if(isFromC){ tracksFromC.push_back(child); }
     }
 
-     if (isFromC) GetAllChildren(child, tracksFromB, tracksFromC, isFrom_C_tracks, true);
-     else GetAllChildren(child, tracksFromB, tracksFromC, isFrom_C_tracks,child->isCharmHadron() );
-
+     if (isFromC) GetAllChildren(child, tracksFromB, tracksFromC, true);
+     else GetAllChildren(child, tracksFromB, tracksFromC, child->isCharmHadron() );
 
   }
 
@@ -803,4 +1288,97 @@ std::vector<int> BHadronBranches :: getDRSortedIndices(std::vector<const xAOD::I
     std::sort(std::begin(y),std::end(y),[&](int i1, int i2) { return dRofhadrons[i1] < dRofhadrons[i2]; });
 
     return y;
+}
+
+
+int BHadronBranches :: getTrackOrigin(const xAOD::TrackParticle *tmpTrk,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromB,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromC,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromCc,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromB1FromParent,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromB2FromParent,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromC1FromParent,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromC2FromParent,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromCNotFromB1FromParent,
+                                         std::vector<const xAOD::TruthParticle*> tracksFromCNotFromB2FromParent) {
+      // origin
+      int origin = PUFAKE;
+      const xAOD::TruthParticle *truth = NULL;//truthParticle(tmpTrk);
+
+      if(  tmpTrk->isAvailable<ElementLink<xAOD::TruthParticleContainer> >("truthParticleLink") ) {
+        ElementLink<xAOD::TruthParticleContainer> link = tmpTrk->auxdata<ElementLink<xAOD::TruthParticleContainer> >("truthParticleLink");
+
+        if(!link.isValid()){
+          return origin;
+        }
+        truth = *link;
+      }
+
+      float truthProb = -1; // need to check MCtruth classifier
+      try {
+         truthProb = tmpTrk->auxdata< float >("truthMatchProbability");
+      } catch(...) {};
+      if (truth && truthProb > 0.75) {
+        int truthBarcode = truth->barcode();
+        if (truthBarcode > 2e5) origin = GEANT;
+        else {
+          origin = FRAG;
+          for (unsigned int iT = 0; iT < tracksFromB.size(); iT++) {
+            if (truth == tracksFromB.at(iT)) {
+              origin = FROMB;
+              break;
+            }
+          }
+          for (unsigned int iT = 0; iT < tracksFromC.size(); iT++) {
+            if (truth == tracksFromC.at(iT)) {
+              origin = FROMC;
+              break;
+            }
+          }
+          for (unsigned int iT = 0; iT < tracksFromCc.size(); iT++) {
+            if (truth == tracksFromCc.at(iT)) {
+              origin = FROMC;
+              break;
+            }
+          }
+          // additions by nikola
+          for (unsigned int iT = 0; iT < tracksFromB1FromParent.size(); iT++) {
+            if (truth == tracksFromB1FromParent.at(iT)) {
+              origin = 10;
+              break;
+            }
+          }
+          for (unsigned int iT = 0; iT < tracksFromB2FromParent.size(); iT++) {
+            if (truth == tracksFromB2FromParent.at(iT)) {
+              origin = 11;
+              break;
+            }
+          }
+          for (unsigned int iT = 0; iT < tracksFromC1FromParent.size(); iT++) {
+            if (truth == tracksFromC1FromParent.at(iT)) {
+              origin = 12;
+              break;
+            }
+          }
+          for (unsigned int iT = 0; iT < tracksFromC2FromParent.size(); iT++) {
+            if (truth == tracksFromC2FromParent.at(iT)) {
+              origin = 13;
+              break;
+            }
+          }
+          for (unsigned int iT = 0; iT < tracksFromCNotFromB1FromParent.size(); iT++) {
+            if (truth == tracksFromCNotFromB1FromParent.at(iT)) {
+              origin = 14;
+              break;
+            }
+          }
+          for (unsigned int iT = 0; iT < tracksFromCNotFromB2FromParent.size(); iT++) {
+            if (truth == tracksFromCNotFromB2FromParent.at(iT)) {
+              origin = 15;
+              break;
+            }
+          }
+        }
+      }
+  return origin;
 }
