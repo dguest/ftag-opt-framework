@@ -53,7 +53,6 @@ if doRetag:
   from BTagging.BTaggingConf import Analysis__StandAloneJetBTaggerAlg as StandAloneJetBTaggerAlg
   
   for i, jet in enumerate(JetCollectionList):
-    try:
       btagger = BTagConf.setupJetBTaggerTool(ToolSvc, JetCollection=jet[1][:-4], AddToToolSvc=True,
                                              Verbose=BTaggingFlags.OutputLevel < 3,
                                              options={"name"         : AuthorSubString[i].lower(),
@@ -69,11 +68,6 @@ if doRetag:
                                           )
       algSeq += SAbtagger
       print SAbtagger
-    except AttributeError as error:
-      print '#BTAG# --> ' + str(error)
-      print '#BTAG# --> ' + jet[1]
-      print '#BTAG# --> ' + AuthorSubString[i]
-      NotInJetToolManager.append(AuthorSubString[i])
 
   if len(NotInJetToolManager) > 0:
     AuthorSubString = list(set(AuthorSubString) - set(NotInJetToolManager))
