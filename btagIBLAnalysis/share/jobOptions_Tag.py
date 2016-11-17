@@ -224,12 +224,12 @@ for JetCollection in JetCollections:
   if not doComputeReference: algSeq += alg
 
   ###print JetCollection
-  calibfile        = "JES_Prerecommendation2015_Feb2015.config"
+  calibfile        = "JES_MC15cRecommendation_May2016.config"
   collectionForTool="AntiKt4LCTopo"
-  calSeg           ="JetArea_Residual_EtaJES"
+  calSeg           ="JetArea_Residual_Origin_EtaJES_GSC"
   if "EM" in JetCollection:
     collectionForTool="AntiKt4EMTopo"
-    calibfile  ="JES_MC15Prerecommendation_April2015.config"
+    calibfile  ="JES_MC15cRecommendation_May2016.config"
     if isAF2: calibfile  ="JES_MC15Prerecommendation_AFII_June2015.config"
     calSeg     ="JetArea_Residual_Origin_EtaJES_GSC"
   print collectionForTool
