@@ -11,5 +11,5 @@ cd run/
 
 # download the configs
 wget dguest.web.cern.ch/dguest/2016-09-12/ipmp.json
-wget dguest.web.cern.ch/dguest/2016-09-12/ipz.json
-
+wget dguest.web.cern.ch/dguest/2016-11-21/ipz_pTreweight.json
+wget dguest.web.cern.ch/dguest/2016-11-21/ipz.json

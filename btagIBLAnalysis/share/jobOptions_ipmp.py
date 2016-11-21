@@ -120,7 +120,10 @@ BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-18'
 
 # blank second field means read from file
 BTaggingFlags.RNNIP = True
-BTaggingFlags.RNNIPConfig = {'ipmp': 'ipmp.json', 'ipz': 'ipz.json'}
+BTaggingFlags.RNNIPConfig = {
+  'ipmp': 'ipmp.json',
+  'ipz': 'ipz.json',
+  'ipz_rw': 'ipz_pTreweight.json'}
 BTaggingFlags.OutputLevel = DEBUG
 
 # some globals have to be defined for this to work
@@ -141,12 +144,7 @@ setupTools(ToolSvc, CfgMgr)
 ##########################################################################################################################################################
 ##########################################################################################################################################################
 
-ipnn_inputs = [
-  "d0", "d0sig", "z0", "z0sig", "d0z0sig", "grade", "fromV0", "pt", "dPhi",
-  "absEta", "chi2", "nInnHits", "nNextToInnHits", "nBLHits", "nsharedBLHits",
-  "nsplitBLHits", "nPixHits", "nsharedPixHits", "nsplitPixHits", "nSCTHits",
-  "nsharedSCTHits", "expectBLayerHit",
-]
+ipnn_inputs = []
 
 ### Main Ntuple Dumper Algorithm
 for JetCollection in JetCollections:
@@ -183,7 +181,7 @@ for JetCollection in JetCollections:
   algSeq += alg
 
   # add RNN outputs
-  for tagger in ['ipmp', 'ipz']:
+  for tagger in ['ipmp', 'ipz', 'ipz_rw']:
     for flav in ['pu', 'pc', 'pb', 'ptau']:
       alg.ArbitraryDoubleBranches.append(tagger + '_' + flav)
     for inpt in ipnn_inputs:
