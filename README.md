@@ -11,6 +11,8 @@ new instructions after git migration (October 5th 2016)
 In Release 20.7
 ---------------
 
+To develop packages:
+
 ```sh
 asetup 20.7.7.5,AtlasDerivation,here
 git clone ssh://git@gitlab.cern.ch:7999/jshlomi/FlavourTagPerformanceFramework.git
@@ -19,6 +21,14 @@ cd WorkArea/cmt
 cmt bro cmt config
 cmt bro cmt make
 cd ../../FlavourTagPerformanceFramework/btagIBLAnalysis/share/
+```
+
+To work with the current Derivations release:
+
+```sh
+git clone ssh://git@gitlab.cern.ch:7999/jshlomi/FlavourTagPerformanceFramework.git
+cd FlavourTagPerformanceFramework
+. setup-r207.sh
 ```
 
 In Release 21:
