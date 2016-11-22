@@ -15,7 +15,7 @@ To develop packages:
 
 ```sh
 asetup 20.7.7.5,AtlasDerivation,here
-git clone ssh://git@gitlab.cern.ch:7999/jshlomi/FlavourTagPerformanceFramework.git
+git clone ssh://git@gitlab.cern.ch:7999/atlas-flavor-tagging-tools/FlavourTagPerformanceFramework.git
 setupWorkArea.py
 cd WorkArea/cmt
 cmt bro cmt config
@@ -26,7 +26,7 @@ cd ../../FlavourTagPerformanceFramework/btagIBLAnalysis/share/
 To work with the current Derivations release:
 
 ```sh
-git clone ssh://git@gitlab.cern.ch:7999/jshlomi/FlavourTagPerformanceFramework.git
+git clone ssh://git@gitlab.cern.ch:7999/atlas-flavor-tagging-tools/FlavourTagPerformanceFramework.git
 cd FlavourTagPerformanceFramework
 . setup-r207.sh
 ```
