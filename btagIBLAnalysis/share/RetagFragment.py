@@ -1,5 +1,7 @@
-if doSMT: 
+if doSMT:
     BTaggingFlags.SoftMu = True
+else:
+    BTaggingFlags.SoftMu = False
 
 if doComputeReference:
   BTaggingFlags.Runmodus = "reference"

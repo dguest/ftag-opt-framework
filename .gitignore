@@ -3,10 +3,19 @@
 CMakeLists.txt
 repofile
 
+# ignore things that are built by the setup scripts
+/run/
+/packages/
+/build/
+/WorkArea/
+genConf/
+*-*-gcc*
+/InstallArea/
+
 # commit messages
 *commit.txt
 
-# ignore build directory
-/build/
-/run/
-/packages/
+# ignore all but a few cmt files
+*/cmt/*
+!*/cmt/requirements
+!*/cmt/version.cmt

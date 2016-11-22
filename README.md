@@ -7,7 +7,11 @@ General instructions
  - checkout additional packages: see below
 
 new instructions after git migration (October 5th 2016)
-in release 20.7
+
+In Release 20.7
+---------------
+
+To develop packages:
 
 ```sh
 asetup 20.7.7.5,AtlasDerivation,here
@@ -19,13 +23,33 @@ cmt bro cmt make
 cd ../../FlavourTagPerformanceFramework/btagIBLAnalysis/share/
 ```
 
-in release 21:
+To work with the current Derivations release:
+
+```sh
+git clone ssh://git@gitlab.cern.ch:7999/jshlomi/FlavourTagPerformanceFramework.git
+cd FlavourTagPerformanceFramework
+. setup-r207.sh
+```
+
+In Release 21:
+--------------
 
 ```sh
 git clone ssh://git@gitlab.cern.ch:7999/jshlomi/FlavourTagPerformanceFramework.git
 cd FlavourTagPerformanceFramework
 . setup-r21.sh
 ```
+
+### Developing ###
+
+You can checkout the trunk of `BTagging`, `JetTagTool`, and any other packages that are required to make them run by running
+
+```sh
+source scripts/checkout-dev-r21.sh
+```
+
+If you add any dependencies to the trunk of the b-tagging packages,
+_please_ add the lines to check them out to this script.
 
 To run:
 =======
