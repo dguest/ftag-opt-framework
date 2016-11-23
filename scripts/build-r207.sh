@@ -7,8 +7,12 @@ else
     set -eu
 fi
 
+mkdir -p packages
+cd packages
+
 # ________________________________________________________________________
 # build all the things
-cd WorkArea/cmt
+setupWorkArea.py
+cd $TestArea/WorkArea/cmt
 cmt bro cmt config
 cmt bro cmt make
