@@ -7,6 +7,8 @@
 #include "TrackCovBranches.hh"
 #include "TrackBranches.hh"
 #include "BHadronBranches.hh"
+#include "KShortBranches.hh"
+#include "KShortRecoBranches.hh"
 #include "JetFitterBranches.hh"
 #include "SubstructureMomentBranches.hh"
 #include "UnclusteredVertexBranches.hh"
@@ -363,6 +365,8 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   bool m_rel20;                    // if set to true code works for rel20, if set to false it will work for rel19
   bool m_SMT;
   bool m_bHadronInfo;
+  bool m_kShortInfo;
+  bool m_kShortRecoInfo;
 
   std::string m_jetCollectionName; // name of the jet collection to work with
   float m_jetPtCut;                // pT cut to apply
@@ -377,6 +381,10 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
 
   // B-hadron quantities
   BHadronBranches m_bhadron_branches;
+
+  // K0 short quantities
+  KShortBranches m_kshort_branches;
+  KShortRecoBranches m_kshortreco_branches;
 
   JetFitterBranches m_jetfitter_branches;
 

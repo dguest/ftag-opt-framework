@@ -202,6 +202,8 @@ for JetCollection in JetCollections:
                                   JVTtool=ToolSvc.JVT,
                                   ) #DEBUG
   alg.bHadronBranches = True
+  alg.kShortBranches  = False
+  alg.kShortRecoBranches  = False
   alg.JetCollectionName = JetCollection
   alg.doSMT = doSMT
   if "AntiKt2PV0TrackJets" in JetCollection or "Truth" in JetCollection:

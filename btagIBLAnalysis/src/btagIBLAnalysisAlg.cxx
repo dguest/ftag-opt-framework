@@ -97,6 +97,8 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   m_dumpGATracks(false),
   m_doMSV(false),
   m_bhadron_branches(),
+  m_kshort_branches(),
+  m_kshortreco_branches(),
   m_jetfitter_branches(),
   m_cluster_branches(),
   m_substructure_moment_branches(),
@@ -138,6 +140,8 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   declareProperty( "DoMSV", m_doMSV = false );
   declareProperty( "doSMT", m_SMT = false );
   declareProperty( "bHadronBranches", m_bHadronInfo = true );
+  declareProperty( "kShortBranches", m_kShortInfo = false );
+  declareProperty( "kShortRecoBranches", m_kShortRecoInfo = false );
   declareProperty( "CalibrateJets", m_calibrateJets = true );
   declareProperty( "CleanJets", m_cleanJets = true );
 
@@ -228,6 +232,9 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   m_jetfitter_branches.set_tree(*tree);
 
   m_bhadron_branches.set_tree(*tree, !m_reduceInfo && m_bHadronInfo );
+
+  if(m_kShortInfo){  m_kshort_branches.set_tree(*tree); }
+  if(m_kShortRecoInfo){  m_kshortreco_branches.set_tree(*tree); }
 
   // addition from Dan: create cluster branches
   if (m_dumpCaloInfo) {
@@ -1110,6 +1117,23 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     // new way to save b-hadron quantities ...
     m_bhadron_branches.fill(*jet, m_jetCollectionName);
+
+    // KShort info
+    if(m_kShortInfo){
+      if (!isData){
+        const xAOD::TruthEventContainer *xTruthEventContainer = NULL;
+	std::string truthevt = "TruthEvent";
+        if (m_rel20) truthevt = "TruthEvents";
+        CHECK( evtStore()->retrieve(xTruthEventContainer, truthevt) );
+        m_kshort_branches.fill(*jet, *xTruthEventContainer, PV_x, PV_y, PV_z);
+      }
+    }
+
+    if(m_kShortRecoInfo){
+      const xAOD::VertexContainer* v0s = NULL;
+      CHECK( evtStore()->retrieve(v0s, "V0Candidates") );
+      m_kshortreco_branches.fill(*jet, *v0s, PV_x, PV_y, PV_z);
+    }
 
     // addition from Dan: fill clusters
     if (m_dumpCaloInfo) {
@@ -2339,6 +2363,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
   // addition from Dan: clear branch collections
   m_bhadron_branches.clear();
+  m_kshort_branches.clear();
+  m_kshortreco_branches.clear();
   m_jetfitter_branches.clear();
   m_cluster_branches.clear();
   m_substructure_moment_branches.clear();
