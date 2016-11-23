@@ -2,18 +2,11 @@
 
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 alias setupATLAS='source ${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh'
-if [[ ! $ATLAS_LOCAL_ASETUP_VERSION ]] ; then
-    echo -n "setting up local ATLAS environment..."
-    setupATLAS -q
-
-    lsetup asetup -q
-    . $AtlasSetup/scripts/asetup.sh 21.0.6,here > /dev/null
-
-    echo "done"
-else
-    echo "ATLAS environment is already setup, not setting up again"
-fi
-
+echo -n "setting up local ATLAS environment..."
+setupATLAS -q
+lsetup asetup -q
+. $AtlasSetup/scripts/asetup.sh 21.0.6,here > /dev/null
+echo "done"
 
 if [[ ! -d build ]] ; then
     ./scripts/build.sh
