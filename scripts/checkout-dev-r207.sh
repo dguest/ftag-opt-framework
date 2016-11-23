@@ -11,9 +11,9 @@ fi
 # checkout packages (some are commented out because we may not need them)
 
 mkdir -p packages
-cd packages
-
-pkgco.py BTagging-00-07-55-branch
-pkgco.py JetTagTools-01-00-82-branch
-
-../scripts/build-r207.sh
+(
+    cd packages
+    pkgco.py BTagging-00-07-55-branch
+    pkgco.py JetTagTools-01-00-82-branch
+)
+./scripts/build-r207.sh
