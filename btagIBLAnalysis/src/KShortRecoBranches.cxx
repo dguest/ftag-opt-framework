@@ -37,6 +37,23 @@ KShortRecoBranches::KShortRecoBranches():
   m_branches->kShortReco_d0            = new std::vector<std::vector< float> >();  
   m_branches->kShortReco_z0            = new std::vector<std::vector< float> >();  
 
+  m_branches->nKShortRecoGood              = new std::vector<int>();
+  m_branches->kShortRecoGood_ndof          = new std::vector<std::vector< int> >();
+  m_branches->kShortRecoGood_px            = new std::vector<std::vector< float> >();
+  m_branches->kShortRecoGood_py            = new std::vector<std::vector< float> >();
+  m_branches->kShortRecoGood_pz            = new std::vector<std::vector< float> >();
+  m_branches->kShortRecoGood_pt            = new std::vector<std::vector< float> >();
+  m_branches->kShortRecoGood_ptErr         = new std::vector<std::vector< float> >();
+  m_branches->kShortRecoGood_x             = new std::vector<std::vector< float> >();
+  m_branches->kShortRecoGood_y             = new std::vector<std::vector< float> >();
+  m_branches->kShortRecoGood_z             = new std::vector<std::vector< float> >();
+  m_branches->kShortRecoGood_Rxy           = new std::vector<std::vector< float> >();
+  m_branches->kShortRecoGood_RxyErr        = new std::vector<std::vector< float> >();
+  m_branches->kShortRecoGood_chi2          = new std::vector<std::vector< float> >();
+  m_branches->kShortRecoGood_kShortMass    = new std::vector<std::vector< float> >();
+  m_branches->kShortRecoGood_kShortMassErr = new std::vector<std::vector< float> >();
+  m_branches->kShortRecoGood_d0            = new std::vector<std::vector< float> >();
+  m_branches->kShortRecoGood_z0            = new std::vector<std::vector< float> >();
 
 }
 
@@ -61,7 +78,23 @@ KShortRecoBranches::~KShortRecoBranches() {
   delete m_branches->kShortReco_d0;
   delete m_branches->kShortReco_z0;
   
-  
+  delete m_branches->nKShortRecoGood;
+  delete m_branches->kShortRecoGood_ndof;
+  delete m_branches->kShortRecoGood_px;
+  delete m_branches->kShortRecoGood_py;
+  delete m_branches->kShortRecoGood_pz;
+  delete m_branches->kShortRecoGood_pt;
+  delete m_branches->kShortRecoGood_ptErr;
+  delete m_branches->kShortRecoGood_x;
+  delete m_branches->kShortRecoGood_y;
+  delete m_branches->kShortRecoGood_z;
+  delete m_branches->kShortRecoGood_Rxy;
+  delete m_branches->kShortRecoGood_RxyErr;
+  delete m_branches->kShortRecoGood_chi2;
+  delete m_branches->kShortRecoGood_kShortMass;
+  delete m_branches->kShortRecoGood_kShortMassErr;
+  delete m_branches->kShortRecoGood_d0;
+  delete m_branches->kShortRecoGood_z0;
   
   
 
@@ -69,8 +102,8 @@ KShortRecoBranches::~KShortRecoBranches() {
 }
 
 void KShortRecoBranches::set_tree(TTree& output_tree) const {
-  output_tree.Branch( "jet_nKShortReco"       , &m_branches->nKShortReco);
-  output_tree.Branch( "jet_kShortReco_ndof"   , &m_branches->kShortReco_ndof);
+  output_tree.Branch( "jet_nKShortReco"              , &m_branches->nKShortReco);
+  output_tree.Branch( "jet_kShortReco_ndof"          , &m_branches->kShortReco_ndof);
   output_tree.Branch( "jet_kShortReco_px"            , &m_branches->kShortReco_px);
   output_tree.Branch( "jet_kShortReco_py"            , &m_branches->kShortReco_py);
   output_tree.Branch( "jet_kShortReco_pz"            , &m_branches->kShortReco_pz);
@@ -87,6 +120,23 @@ void KShortRecoBranches::set_tree(TTree& output_tree) const {
   output_tree.Branch( "jet_kShortReco_d0"            , &m_branches->kShortReco_d0);
   output_tree.Branch( "jet_kShortReco_z0"            , &m_branches->kShortReco_z0);
 
+  output_tree.Branch( "jet_nKShortRecoGood"              , &m_branches->nKShortRecoGood);
+  output_tree.Branch( "jet_kShortRecoGood_ndof"          , &m_branches->kShortRecoGood_ndof);
+  output_tree.Branch( "jet_kShortRecoGood_px"            , &m_branches->kShortRecoGood_px);
+  output_tree.Branch( "jet_kShortRecoGood_py"            , &m_branches->kShortRecoGood_py);
+  output_tree.Branch( "jet_kShortRecoGood_pz"            , &m_branches->kShortRecoGood_pz);
+  output_tree.Branch( "jet_kShortRecoGood_pt"            , &m_branches->kShortRecoGood_pt);
+  output_tree.Branch( "jet_kShortRecoGood_ptErr"         , &m_branches->kShortRecoGood_ptErr);
+  output_tree.Branch( "jet_kShortRecoGood_x"             , &m_branches->kShortRecoGood_x);
+  output_tree.Branch( "jet_kShortRecoGood_y"             , &m_branches->kShortRecoGood_y);
+  output_tree.Branch( "jet_kShortRecoGood_z"             , &m_branches->kShortRecoGood_z);
+  output_tree.Branch( "jet_kShortRecoGood_Rxy"           , &m_branches->kShortRecoGood_Rxy);
+  output_tree.Branch( "jet_kShortRecoGood_RxyErr"        , &m_branches->kShortRecoGood_RxyErr);
+  output_tree.Branch( "jet_kShortRecoGood_chi2"          , &m_branches->kShortRecoGood_chi2);
+  output_tree.Branch( "jet_kShortRecoGood_kShortMass"    , &m_branches->kShortRecoGood_kShortMass);
+  output_tree.Branch( "jet_kShortRecoGood_kShortMassErr" , &m_branches->kShortRecoGood_kShortMassErr);
+  output_tree.Branch( "jet_kShortRecoGood_d0"            , &m_branches->kShortRecoGood_d0);
+  output_tree.Branch( "jet_kShortRecoGood_z0"            , &m_branches->kShortRecoGood_z0);
 
 }
 
@@ -110,6 +160,23 @@ void KShortRecoBranches::fill(const xAOD::Jet& jet,const xAOD::VertexContainer& 
   std::vector<float>   j_kSReco_kShortMassErr;
   std::vector<float>   j_kSReco_d0;
   std::vector<float>   j_kSReco_z0;
+
+  std::vector<int>     j_kSRecoGood_ndof;
+  std::vector<float>   j_kSRecoGood_px;
+  std::vector<float>   j_kSRecoGood_py;
+  std::vector<float>   j_kSRecoGood_pz;
+  std::vector<float>   j_kSRecoGood_pt;
+  std::vector<float>   j_kSRecoGood_ptErr;
+  std::vector<float>   j_kSRecoGood_x;
+  std::vector<float>   j_kSRecoGood_y;
+  std::vector<float>   j_kSRecoGood_z;
+  std::vector<float>   j_kSRecoGood_Rxy;
+  std::vector<float>   j_kSRecoGood_RxyErr;
+  std::vector<float>   j_kSRecoGood_chi2;
+  std::vector<float>   j_kSRecoGood_kShortMass;
+  std::vector<float>   j_kSRecoGood_kShortMassErr;
+  std::vector<float>   j_kSRecoGood_d0;
+  std::vector<float>   j_kSRecoGood_z0;
 
   TLorentzVector jet_p4;
   jet_p4.SetPtEtaPhiM(jet.pt(), jet.eta(), jet.phi(), jet.m());
@@ -150,11 +217,55 @@ void KShortRecoBranches::fill(const xAOD::Jet& jet,const xAOD::VertexContainer& 
       j_kSReco_d0.push_back( d0 );
       j_kSReco_z0.push_back( z0 );
 
+      // Get Good KShorts
+      if( fabs(candVtx->auxdataConst<float>("Kshort_mass") - 497.6) < 20.  &&
+          fabs(candVtx->auxdataConst<float>("Rxy") - 24.)           > 2.   &&
+          fabs(candVtx->auxdataConst<float>("Rxy") - 33.)           > 2.   &&
+	  fabs(candVtx->auxdataConst<float>("Rxy") - 51.)           > 2.   &&
+	  fabs(candVtx->auxdataConst<float>("Rxy") - 89.)           > 2.   &&
+	  fabs(candVtx->auxdataConst<float>("Rxy") - 123.)          > 2.   &&
+          candVtx->chiSquared()                                     < 3.   &&
+	  fabs(z0)                                                  < 2.   &&
+          d0                                                        < 1.25){
+
+	j_kSRecoGood_ndof.push_back( candVtx->numberDoF() );
+	j_kSRecoGood_px.push_back( candVtx->auxdataConst<float>("px") );
+	j_kSRecoGood_py.push_back( candVtx->auxdataConst<float>("py") );
+	j_kSRecoGood_pz.push_back( candVtx->auxdataConst<float>("pz") );
+	j_kSRecoGood_pt.push_back( candVtx->auxdataConst<float>("pT") );
+	j_kSRecoGood_ptErr.push_back( candVtx->auxdataConst<float>("pTError") );
+	j_kSRecoGood_x.push_back( candVtx->x() );
+	j_kSRecoGood_y.push_back( candVtx->y() );
+	j_kSRecoGood_z.push_back( candVtx->z() );
+	j_kSRecoGood_Rxy.push_back( candVtx->auxdataConst<float>("Rxy") );
+	j_kSRecoGood_RxyErr.push_back( candVtx->auxdataConst<float>("RxyError") );
+	j_kSRecoGood_chi2.push_back( candVtx->chiSquared() );
+	j_kSRecoGood_kShortMass.push_back( candVtx->auxdataConst<float>("Kshort_mass") );
+	j_kSRecoGood_kShortMassErr.push_back( candVtx->auxdataConst<float>("Kshort_massError") );
+
+
+	double px = candVtx->auxdataConst<float>("px");
+	double py = candVtx->auxdataConst<float>("py");
+	double pz = candVtx->auxdataConst<float>("pz");
+	double x = candVtx->x();
+	double y = candVtx->y();
+	double z = candVtx->z();
+	std::vector<float> IPs = getIPs(px, py, pz, x, y, z, PV_x, PV_y, PV_z);
+	float d0 = IPs.at(0);
+	float z0 = IPs.at(1);
+
+	j_kSRecoGood_d0.push_back( d0 );
+	j_kSRecoGood_z0.push_back( z0 );
+
+      }
+
+
     }
 
   } // end loop over V0 candidated
 
   m_branches->nKShortReco->push_back(j_kSReco_px.size());
+  m_branches->nKShortRecoGood->push_back(j_kSRecoGood_px.size());
 
   if( j_kSReco_px.size() == 0 ){
     j_kSReco_ndof.push_back( -99 );
@@ -175,6 +286,25 @@ void KShortRecoBranches::fill(const xAOD::Jet& jet,const xAOD::VertexContainer& 
     j_kSReco_z0.push_back( -99 );
   }
 
+  if( j_kSRecoGood_px.size() == 0 ){
+    j_kSRecoGood_ndof.push_back( -99 );
+    j_kSRecoGood_px.push_back( -99 );
+    j_kSRecoGood_py.push_back( -99 );
+    j_kSRecoGood_pz.push_back( -99 );
+    j_kSRecoGood_pt.push_back( -99 );
+    j_kSRecoGood_ptErr.push_back( -99 );
+    j_kSRecoGood_x.push_back( -99 );
+    j_kSRecoGood_y.push_back( -99 );
+    j_kSRecoGood_z.push_back( -99 );
+    j_kSRecoGood_Rxy.push_back( -99 );
+    j_kSRecoGood_RxyErr.push_back( -99 );
+    j_kSRecoGood_chi2.push_back( -99 );
+    j_kSRecoGood_kShortMass.push_back( -99 );
+    j_kSRecoGood_kShortMassErr.push_back( -99 );
+    j_kSRecoGood_d0.push_back( -99 );
+    j_kSRecoGood_z0.push_back( -99 );
+  }
+
 
   m_branches->kShortReco_ndof->push_back(j_kSReco_ndof);
   m_branches->kShortReco_px->push_back(j_kSReco_px);
@@ -192,6 +322,23 @@ void KShortRecoBranches::fill(const xAOD::Jet& jet,const xAOD::VertexContainer& 
   m_branches->kShortReco_kShortMassErr->push_back(j_kSReco_kShortMassErr);
   m_branches->kShortReco_d0->push_back(j_kSReco_d0);
   m_branches->kShortReco_z0->push_back(j_kSReco_z0);
+
+  m_branches->kShortRecoGood_ndof->push_back(j_kSRecoGood_ndof);
+  m_branches->kShortRecoGood_px->push_back(j_kSRecoGood_px);
+  m_branches->kShortRecoGood_py->push_back(j_kSRecoGood_py);
+  m_branches->kShortRecoGood_pz->push_back(j_kSRecoGood_pz);
+  m_branches->kShortRecoGood_pt->push_back(j_kSRecoGood_pt);
+  m_branches->kShortRecoGood_ptErr->push_back(j_kSRecoGood_ptErr);
+  m_branches->kShortRecoGood_x->push_back(j_kSRecoGood_x);
+  m_branches->kShortRecoGood_y->push_back(j_kSRecoGood_y);
+  m_branches->kShortRecoGood_z->push_back(j_kSRecoGood_z);
+  m_branches->kShortRecoGood_Rxy->push_back(j_kSRecoGood_Rxy);
+  m_branches->kShortRecoGood_RxyErr->push_back(j_kSRecoGood_RxyErr);
+  m_branches->kShortRecoGood_chi2->push_back(j_kSRecoGood_chi2);
+  m_branches->kShortRecoGood_kShortMass->push_back(j_kSRecoGood_kShortMass);
+  m_branches->kShortRecoGood_kShortMassErr->push_back(j_kSRecoGood_kShortMassErr);
+  m_branches->kShortRecoGood_d0->push_back(j_kSRecoGood_d0);
+  m_branches->kShortRecoGood_z0->push_back(j_kSRecoGood_z0);
 
 }
 
@@ -218,7 +365,23 @@ void KShortRecoBranches::clear() {
   m_branches->kShortReco_d0->clear(); 
   m_branches->kShortReco_z0->clear();
  
-
+  m_branches->nKShortRecoGood->clear();
+  m_branches->kShortRecoGood_ndof->clear();
+  m_branches->kShortRecoGood_px->clear();
+  m_branches->kShortRecoGood_py->clear();
+  m_branches->kShortRecoGood_pz->clear();
+  m_branches->kShortRecoGood_pt->clear();
+  m_branches->kShortRecoGood_ptErr->clear();
+  m_branches->kShortRecoGood_x->clear();
+  m_branches->kShortRecoGood_y->clear();
+  m_branches->kShortRecoGood_z->clear();
+  m_branches->kShortRecoGood_Rxy->clear();
+  m_branches->kShortRecoGood_RxyErr->clear();
+  m_branches->kShortRecoGood_chi2->clear();
+  m_branches->kShortRecoGood_kShortMass->clear();
+  m_branches->kShortRecoGood_kShortMassErr->clear();
+  m_branches->kShortRecoGood_d0->clear();
+  m_branches->kShortRecoGood_z0->clear();
 
 }
 
