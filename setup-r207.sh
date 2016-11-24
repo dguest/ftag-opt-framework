@@ -19,14 +19,10 @@ echo "done"
 
 )
 
-if [[ ! -d WorkArea ]] ; then
-    setupWorkArea.py
-else
-    echo 'Already setup WorkArea, skipping `setupWorkArea.py`'
-fi
-if [[ ! -d InstallArea ]] ; then
+if [[ ! -d packages ]] ; then
     ./scripts/build-r207.sh
 else
-    echo 'Found InstallArea, not building.'
+    echo 'found `packages` directory, not building.'
     echo 'Use `./scripts/build-r207.sh` to rebuild'
 fi
+echo 'use `./scripts/checkout-dev-r207.sh` to get development branches'

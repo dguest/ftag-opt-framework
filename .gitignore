@@ -7,15 +7,19 @@ repofile
 /run/
 /packages/
 /build/
+
+# this stuff is CMT stuff for r20.7, it will be nice to remove it
 /WorkArea/
 genConf/
 *-*-gcc*
 /InstallArea/
 
-# commit messages
-*commit.txt
-
-# ignore all but a few cmt files
+# ignore all but a few CMT files
 */cmt/*
 !*/cmt/requirements
 !*/cmt/version.cmt
+
+# commit messages
+*commit.txt
+
+
