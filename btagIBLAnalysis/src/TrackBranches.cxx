@@ -198,7 +198,7 @@ void TrackBranches::fill(const TrackBranches::PartVector& tracks,
     nNextToInnHits.push_back(get(track, xAOD::numberOfNextToInnermostPixelLayerHits));
     nBLHits.push_back(get(track, xAOD::numberOfBLayerHits));
     nsharedBLHits.push_back(get(track, xAOD::numberOfBLayerSharedHits));
-    nsplitPixHits.push_back(get(track, xAOD::numberOfBLayerSplitHits));
+    nsplitBLHits.push_back(get(track, xAOD::numberOfBLayerSplitHits));
     nPixHits.push_back(get(track, xAOD::numberOfPixelHits));
     nPixHoles.push_back(get(track, xAOD::numberOfPixelHoles));
     nsharedPixHits.push_back(get(track, xAOD::numberOfPixelSharedHits));
