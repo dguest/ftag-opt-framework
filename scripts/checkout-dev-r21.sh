@@ -4,8 +4,8 @@
 mkdir -p packages
 cd packages
 
+svnco ParticleJetTools-00-03-52
 svnco JetTagTools
 svnco BTagging
-svn co svn+ssh://svn.cern.ch/reps/atlasoff/InnerDetector/InDetRecTools/InDetSVWithMuonTool/tags/InDetSVWithMuonTool-00-00-02 InDetSVWithMuonTool
 
 cd ..
