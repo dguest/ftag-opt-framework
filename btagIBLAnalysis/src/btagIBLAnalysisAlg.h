@@ -373,6 +373,7 @@ private:
   bool m_calibrateJets;
   bool m_cleanJets;
   bool m_clean_parent_jet;
+  std::string m_track_associator;
 
   std::string m_triggerLogic;
 

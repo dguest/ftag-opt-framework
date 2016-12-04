@@ -140,6 +140,8 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   declareProperty( "CalibrateJets", m_calibrateJets = true );
   declareProperty( "CleanJets", m_cleanJets = true );
   declareProperty( "CleanParentJet", m_clean_parent_jet = false );
+  declareProperty( "TrackAssociator",
+                   m_track_associator = "BTagTrackToJetAssociator");
 
   declareProperty( "GRLname", m_GRLname = "" );
   declareProperty( "JetCollectionName", m_jetCollectionName = "AntiKt4LCTopoJets" );
@@ -761,6 +763,9 @@ namespace {
 }
 
 StatusCode btagIBLAnalysisAlg::execute() {
+  typedef ElementLink<xAOD::TrackParticleContainer> TrackLink;
+  typedef std::vector<TrackLink> TrackLinks;
+
   ATH_MSG_DEBUG ("Executing " << name() << "...");
 
   std::string triggerLogic = "HLT_j[0-9]+|L1_MBTS_1_1|L1_RD0_FILLED";
@@ -1316,15 +1321,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // getting manual distribution on the number of tracks per jet with the selection
-    std::vector< ElementLink< xAOD::TrackParticleContainer > > assocTracks;
-
-    // get tracks from different track<->jet associators for trimmed large-R jets vs other jet collections
-    if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(m_jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0) {
-      assocTracks = bjet->auxdata<std::vector<ElementLink<xAOD::TrackParticleContainer> > >("BTagTrackToJetAssociatorBB");
-    }
-    else {
-      assocTracks = bjet->auxdata<std::vector<ElementLink<xAOD::TrackParticleContainer> > >("BTagTrackToJetAssociator");
-    }
+    TrackLinks assocTracks = bjet->auxdata<TrackLinks>(m_track_associator);
 
     // temporary track loop - sums up the 4vectors of all valid b-tag tracks and outputs
     TLorentzVector pseudoTrackJet(0, 0, 0, 0);
