@@ -92,7 +92,6 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   AthHistogramAlgorithm(name, pSvcLocator),
   m_stream("BTAGSTREAM"),
   m_dumpCaloInfo(false),
-  m_subjetInfo(false),
   m_dumpTrackCovariance(false),
   m_dumpGATracks(false),
   m_doMSV(false),
@@ -102,13 +101,10 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   m_jetfitter_branches(),
   m_cluster_branches(),
   m_substructure_moment_branches(),
-  m_exkt_branches(),
-  m_trkjet_branches(),
-  m_vrtrkjet_branches(),
+  m_subjet_collections(),
   m_track_cov_branches(),
   m_ga_track_branches(),
   m_ga_track_cov_branches(),
-  m_unclustered_vertices(),
   m_arb_branches(0),
   m_jetCleaningTool("JetCleaningTool/JetCleaningTool", this),
   m_jetCalibrationTool(""),
@@ -133,7 +129,6 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
 
   declareProperty( "EssentialInfo", m_essentialInfo =true );
   declareProperty( "ReduceInfo"   , m_reduceInfo=false );
-  declareProperty( "SubjetInfo"   , m_subjetInfo=false );
   declareProperty( "DumpTrackCovariance"   , m_dumpTrackCovariance=false );
   declareProperty( "DumpGATracks"   , m_dumpGATracks=false );
   declareProperty( "Rel20", m_rel20 = false );
@@ -144,6 +139,7 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   declareProperty( "kShortRecoBranches", m_kShortRecoInfo = false );
   declareProperty( "CalibrateJets", m_calibrateJets = true );
   declareProperty( "CleanJets", m_cleanJets = true );
+  declareProperty( "CleanParentJet", m_clean_parent_jet = false );
 
   declareProperty( "GRLname", m_GRLname = "" );
   declareProperty( "JetCollectionName", m_jetCollectionName = "AntiKt4LCTopoJets" );
@@ -154,6 +150,8 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   declareProperty( "DumpCaloInfo", m_dumpCaloInfo);
   declareProperty( "ArbitraryDoubleBranches", m_arb_double_names);
   declareProperty( "ArbitraryFloatVectorBranches", m_arb_float_vec_names);
+
+  declareProperty( "subjetCollections", m_subjet_collections);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -161,6 +159,10 @@ btagIBLAnalysisAlg::~btagIBLAnalysisAlg() {
   delete m_arb_branches;
   // FIXME: we're leaking memory with all the vectors, that we never
   // delete, but I suppose there are bigger issues with this code.
+  for (auto coll_br: m_subjet_branches) {
+    delete coll_br.second;
+    coll_br.second = 0;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -241,11 +243,11 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     m_cluster_branches.set_tree(*tree);
     m_substructure_moment_branches.set_tree(*tree);
   }
-  if (m_subjetInfo) {
-    m_exkt_branches.set_tree(*tree, "jet_exktsubjet_");
-    m_trkjet_branches.set_tree(*tree, "jet_trkjet_");
-    m_vrtrkjet_branches.set_tree(*tree, "jet_vrtrkjet_");
-    m_unclustered_vertices.set_tree(*tree, "jet_unclustered_vertices_");
+  for (const auto& prefix_name_collection_name: m_subjet_collections) {
+    const auto& prefix = prefix_name_collection_name.first;
+    const auto& collection = prefix_name_collection_name.second;
+    m_subjet_branches.emplace_back(collection, new SubjetBranches);
+    m_subjet_branches.back().second->set_tree(*tree, prefix);
   }
   if (m_dumpTrackCovariance && !m_reduceInfo) {
     m_track_cov_branches.set_tree(*tree, "jet_trk_");
@@ -1064,12 +1066,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
   for (unsigned int j = 0; j < selJets.size(); j++) {
     const xAOD::Jet *jet = selJets.at(j);
 
-    // additions by nikola
-    const xAOD::Jet *jet_parent = 0;
-    if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(m_jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0) {
-      jet_parent = GetParentJet(jet, "Parent");
-    }
-
     // protection against not properly filled objects ... IT SHOULD NEVER HAPPEN THOUGH
     try {
       const std::vector<ElementLink<xAOD::VertexContainer > > TMPvertices = jet->btagging()->auxdata<std::vector<ElementLink<xAOD::VertexContainer > > >("SV1_vertices");
@@ -1184,8 +1180,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     if (m_cleanJets) {
       const xAOD::Jet *jet_to_clean = jet;
       // additions by nikola
-      if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(m_jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0) {
-        jet_to_clean = jet_parent;
+      if (m_clean_parent_jet) {
+        jet_to_clean = GetParentJet(jet, "Parent");
       }
       v_jet_isBadMedium->push_back(!m_jetCleaningTool->keep(*jet_to_clean));
     }
@@ -1680,15 +1676,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sv_scaled_efc->push_back(sv_scaled_efc);
     v_jet_jf_scaled_efc->push_back(jf_scaled_efc);
 
-    // additions by nikola for ghost associated track jets
-    if (strcmp(m_jetCollectionName.c_str(), "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets") == 0 || strcmp(m_jetCollectionName.c_str(), "Akt10LCTopoTrmJets") == 0) {
     // ExKtbbTag
     if (bjet->isAvailable<double>("ExKtbb_Hbb_DoubleMV2c20")) {
-      std::vector<const xAOD::Jet*> exKtJets;
-      jet->getAssociatedObjects<xAOD::Jet>("ExKt2SubJets", exKtJets);
-      if (exKtJets.size() == 2) {
-        m_exkt_branches.fill(exKtJets);
-      }
 
       v_jet_ExKtbb_Hbb_DoubleMV2c20->push_back(bjet->auxdata<double>("ExKtbb_Hbb_DoubleMV2c20"));
 
@@ -1708,20 +1697,12 @@ StatusCode btagIBLAnalysisAlg::execute() {
     else {
       ATH_MSG_DEBUG("WARNING! No ExKtbbTag run on " << m_jetCollectionName.c_str());
     }
-      // ATH_MSG_INFO("this is a trimmed large-R jet collection, adding information (pt and mv2c00) of track jets associated to parent untrimmed jet collection");
 
-      std::vector<const xAOD::Jet*> ghostTrackJet2;
-
-//      jet_parent->getAssociatedObjects<xAOD::Jet>("GhostAntiKt2TrackJet", ghostTrackJet2);
-      jet->getAssociatedObjects<xAOD::Jet>("GhostAntiKt2TrackJet", ghostTrackJet2);
-      m_trkjet_branches.fill(ghostTrackJet2);
-      if (ghostTrackJet2.size() >= 2) {
-        m_unclustered_vertices.fill(ghostTrackJet2);
-      }
-
-      std::vector<const xAOD::Jet*> ghostVRTrackJet;
-      jet->getAssociatedObjects<xAOD::Jet>("GhostVR50Rmax4Rmin0TrackJet", ghostVRTrackJet);
-      m_vrtrkjet_branches.fill(ghostVRTrackJet);
+    for (const auto& collection_branches: m_subjet_branches) {
+      const auto& name = collection_branches.first;
+      // std::vector<const xAOD::Jet*> subjet;
+      auto subjet = jet->getAssociatedObjects<xAOD::Jet>(name);
+      collection_branches.second->fill(subjet);
     }
 
     // now the tracking part: prepare all the tmpVectors
@@ -2368,13 +2349,12 @@ StatusCode btagIBLAnalysisAlg::execute() {
   m_jetfitter_branches.clear();
   m_cluster_branches.clear();
   m_substructure_moment_branches.clear();
-  m_exkt_branches.clear();
-  m_trkjet_branches.clear();
-  m_vrtrkjet_branches.clear();
+  for (auto coll_br: m_subjet_branches) {
+    coll_br.second->clear();
+  }
   m_track_cov_branches.clear();
   m_ga_track_branches.clear();
   m_ga_track_cov_branches.clear();
-  m_unclustered_vertices.clear();
 
   if (m_arb_branches) m_arb_branches->clear();
 

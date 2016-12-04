@@ -69,6 +69,7 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   virtual StatusCode  execute();
   virtual StatusCode  finalize();
 
+private:
   TFile* output;
   TTree* tree;
   std::string m_stream;
@@ -358,7 +359,6 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   bool m_reduceInfo;               // if set to true is allows to run over xAOD and not crashing when info are missing
   bool m_essentialInfo;            // basically as slim as possible ntuple which will only allow to make efficiency plots
   bool m_dumpCaloInfo;
-  bool m_subjetInfo;
   bool m_dumpTrackCovariance;
   bool m_dumpGATracks;
   bool m_doMSV;                    // if set to true it includes variables from multi SV tagger
@@ -372,10 +372,9 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   float m_jetPtCut;                // pT cut to apply
   bool m_calibrateJets;
   bool m_cleanJets;
+  bool m_clean_parent_jet;
 
   std::string m_triggerLogic;
-
- private:
 
   // additions by Dan: branch collections
 
@@ -392,15 +391,13 @@ class btagIBLAnalysisAlg: public ::AthHistogramAlgorithm {
   ClusterBranches m_cluster_branches;
   SubstructureMomentBranches m_substructure_moment_branches;
   // subjet dumper
-  SubjetBranches m_exkt_branches;
-  SubjetBranches m_trkjet_branches;
-  SubjetBranches m_vrtrkjet_branches;
+  // first string is the name we call it, second is the EDM name
+  std::map<std::string, std::string> m_subjet_collections;
+  std::vector<std::pair<std::string, SubjetBranches*> > m_subjet_branches;
   // track dumper
   TrackCovBranches m_track_cov_branches;
   TrackBranches m_ga_track_branches;
   TrackCovBranches m_ga_track_cov_branches;
-  // unclustered vertices
-  UnclusteredVertexBranches m_unclustered_vertices;
   // must be initialized after the constructor
   ArbitraryJetBranches* m_arb_branches;
   std::vector<std::string> m_arb_double_names;
