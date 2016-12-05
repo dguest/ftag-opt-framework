@@ -124,6 +124,8 @@ for JetCollection in fatJetCollections:
   alg.JetCleaningTool.CutLevel= "LooseBad"
   alg.JetCleaningTool.DoUgly  = True
 
+  algSeq += alg
+
   ###print JetCollection
   calibfile        = "JES_Prerecommendation2015_Feb2015.config"
   collectionForTool="AntiKt4LCTopo"
