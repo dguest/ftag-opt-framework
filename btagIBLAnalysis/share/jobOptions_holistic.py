@@ -5,12 +5,8 @@
 ONLYEssentialInfo =False  ## write minimal amount of info on the output file
 DoMSV             =True   ## include variables for MSV tagger
 doSMT             =True   ## include variables for SMT tagger
-doComputeReference=False
-subJetCollections = ['AntiKt2PV0TrackJets', 'AntiKtVR50Rmax4Rmin0TrackJets']
-fatJetCollections = ['AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets']
-# JetCollections = ['AntiKt2PV0TrackJets', 'AntiKtVR50Rmax4Rmin0TrackJets', 'AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets']
-#JetCollections = ['AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets']
 
+fatJetCollections = ['AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets']
 
 #########################################################################################################################################################
 #########################################################################################################################################################
@@ -21,34 +17,19 @@ jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(10)
 
 # nikola's input file with VR jets
 jp.AthenaCommonFlags.FilesInput = [
-  "/afs/cern.ch/work/d/dguest/data/group.phys-exotics.301488.RS_G_hh_bbbb_c10_M300.e3820_s2608_s2183_r7772_r7676.FTAG5.T3_EXT0/group.phys-exotics.9012214.EXT0._000003.DAOD_FTAG5.pool.root" ]
-
+  '/afs/cern.ch/user/d/dguest/afswork/data/group.perf-flavtag.410000.ttbar_hdamp172p5_nonallhad.DAOD_FTAG5.e3698_s2608_s2183_r7725_r7676.v10_EXT0/group.perf-flavtag.9771960.EXT0._005939.DAOD_FTAG5.pool.root'
+]
 # name shortener function
 from btagIBLAnalysis.configHelpers import get_short_name
 svcMgr += CfgMgr.THistSvc()
 for jet in fatJetCollections:
   shortJetName = get_short_name(jet)
   svcMgr.THistSvc.Output += [ shortJetName+" DATAFILE='flav_"+shortJetName+".root' OPT='RECREATE'"]
-#svcMgr.THistSvc.Output += ["BTAGSTREAM DATAFILE='flavntuple.root' OPT='RECREATE'"]
 
-
-
-##########################################################################################################################################################
-##########################################################################################################################################################
-### you should normally not need to touch this part
-
-doRecomputePV=False  ## do not touch unless you know what you are doing
-if doComputeReference:
-  doRecomputePV=False
 
 ##########################################################################################################################################################
 ##########################################################################################################################################################
 ### VD: put first all the RecExCommon things, then the B-tagging stuff
-if doRecomputePV:
-  from InDetRecExample.InDetJobProperties import InDetFlags
-  InDetFlags.doVertexFinding.set_Value_and_Lock(True)
-  from InDetRecExample.InDetKeys import InDetKeys
-  InDetKeys.xAODVertexContainer.StoredValue='PrimaryVerticesValerio'
 
 ## from Anthony: needed to compute truth quantities of tracks
 from AthenaCommon.DetFlags import DetFlags
@@ -95,39 +76,6 @@ print "Fat Jet Collection:", fatJetCollections
 
 ##########################################################################################################################################################
 ##########################################################################################################################################################
-### VD: this is if you want to re-tag with another calibration file
-from BTagging.BTaggingFlags import BTaggingFlags
-
-#### if the new file is already in the datatbase: simple edit the name
-BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-18'
-
-#### if you want to use your own calibration file use this part below
-#BTaggingFlags.CalibrationFromLocalReplica = True
-#BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
-#BTaggingFlags.CalibrationTag = 'Run2DC14' ## '0801C' ##'k0002'
-
-defaultTaggers = ['IP2D', 'IP3D', 'SV0', 'MultiSVbb1', 'MultiSVbb2', 'SV1', 'BasicJetFitter', 'JetFitterTag', 'JetFitterNN', 'GbbNNTag', 'MV2c00', 'MV2c10', 'MV2c20', 'MV2c100', 'MV2m']
-
-### setup calibration aliases ###
-aliased_collecions = [
-  'AntiKt10LCTopoTrimmedPtFrac5SmallR20',
-  ]
-aliases = ['AntiKt10LCTopo', 'AntiKt6LCTopo', 'AntiKt6TopoEM',
-           'AntiKt4LCTopo', 'AntiKt4TopoEM', 'AntiKt4EMTopo']
-for aliased in aliased_collecions:
-  BTaggingFlags.CalibrationChannelAliases.append(
-    "{}->{}".format(aliased, ','.join(aliases)))
-
-# For debugging
-###BTaggingFlags.OutputLevel = 1
-
-from DerivationFrameworkFlavourTag.FlavourTagCommon import FlavorTagInit
-FlavorTagInit(myTaggers      = defaultTaggers,
-              JetCollections = subJetCollections + fatJetCollections,
-              Sequencer      = algSeq)
-
-##########################################################################################################################################################
-##########################################################################################################################################################
 ##########################################################################################################################################################
 ##########################################################################################################################################################
 ### Additional Tools needed by the dumper
@@ -139,6 +87,9 @@ setupTools(ToolSvc, CfgMgr)
 ##########################################################################################################################################################
 ##########################################################################################################################################################
 ### Main Ntuple Dumper Algorithm
+associated_subjets = {
+  'jet_vrtrkjet_': 'GhostVR30Rmax4Rmin02PV0TrackJet',
+}
 for JetCollection in fatJetCollections:
   shortJetName=get_short_name(JetCollection)
   alg = CfgMgr.btagIBLAnalysisAlg(
@@ -167,11 +118,11 @@ for JetCollection in fatJetCollections:
   alg.EssentialInfo=ONLYEssentialInfo
   alg.DoMSV     =DoMSV
   alg.Rel20     =True
-  alg.SubjetInfo = True
-  #alg.CleanParentJets = True
+  alg.subjetCollections = associated_subjets
+  # needed for some trimmed collections
+  alg.CleanParentJet = True
   alg.JetCleaningTool.CutLevel= "LooseBad"
   alg.JetCleaningTool.DoUgly  = True
-  if not doComputeReference: algSeq += alg
 
   ###print JetCollection
   calibfile        = "JES_Prerecommendation2015_Feb2015.config"
