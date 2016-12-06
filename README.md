@@ -35,7 +35,7 @@ In Release 21:
 --------------
 
 ```sh
-git clone ssh://git@gitlab.cern.ch:7999/jshlomi/FlavourTagPerformanceFramework.git
+git clone ssh://git@gitlab.cern.ch:7999/atlas-flavor-tagging-tools/FlavourTagPerformanceFramework.git
 cd FlavourTagPerformanceFramework
 . setup-r21.sh
 ```
