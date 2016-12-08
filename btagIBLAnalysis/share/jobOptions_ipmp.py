@@ -111,19 +111,19 @@ from BTagging.BTaggingFlags import BTaggingFlags
 BTaggingFlags.JetVertexCharge = False
 
 #### if the new file is already in the datatbase: simple edit the name
-BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-18'
+BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-30'
 
 #### if you want to use your own calibration file use this part below
 #BTaggingFlags.CalibrationFromLocalReplica = True
 #BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
 #BTaggingFlags.CalibrationTag = 'BTagCalibRUN2-test'
 
-# blank second field means read from file
+# there are also two 'ipz_grade' with and without the RW
+rnn_taggers = ['ipmp_hits', 'ipz_hits', 'ipz_hits_rw']
+
 BTaggingFlags.RNNIP = True
-BTaggingFlags.RNNIPConfig = {
-  'ipmp': 'ipmp.json',
-  'ipz': 'ipz.json',
-  'ipz_rw': 'ipz_pTreweight.json'}
+# blank second field means read from DB
+BTaggingFlags.RNNIPConfig = {x: '' for x in rnn_taggers}
 BTaggingFlags.OutputLevel = DEBUG
 
 # some globals have to be defined for this to work
@@ -181,7 +181,7 @@ for JetCollection in JetCollections:
   algSeq += alg
 
   # add RNN outputs
-  for tagger in ['ipmp', 'ipz', 'ipz_rw']:
+  for tagger in rnn_taggers:
     for flav in ['pu', 'pc', 'pb', 'ptau']:
       alg.ArbitraryDoubleBranches.append(tagger + '_' + flav)
     for inpt in ipnn_inputs:
