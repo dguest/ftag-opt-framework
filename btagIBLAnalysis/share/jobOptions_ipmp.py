@@ -119,11 +119,15 @@ BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-30'
 #BTaggingFlags.CalibrationTag = 'BTagCalibRUN2-test'
 
 # there are also two 'ipz_grade' with and without the RW
-rnn_taggers = ['ipmp_hits', 'ipz_hits', 'ipz_hits_rw']
+rnn_taggers = [
+  'ipmp_hits',
+  # 'ipz_hits',
+  # 'ipz_hits_rw'
+]
 
 BTaggingFlags.RNNIP = True
 # blank second field means read from DB
-BTaggingFlags.RNNIPConfig = {x: '' for x in rnn_taggers}
+# BTaggingFlags.RNNIPConfig = {x: '' for x in rnn_taggers}
 BTaggingFlags.OutputLevel = DEBUG
 
 # some globals have to be defined for this to work
