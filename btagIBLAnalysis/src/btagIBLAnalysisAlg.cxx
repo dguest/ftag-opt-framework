@@ -289,6 +289,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_GhostL_HadI = new std::vector<int>();
   v_jet_GhostL_HadF = new std::vector<int>();
   v_jet_LabDr_HadF = new std::vector<int>();
+  v_jet_DoubleHadLabel = new std::vector<int>();
   v_jet_aliveAfterOR = new std::vector<int>();
   v_jet_aliveAfterORmu =new std::vector<int>();
   v_jet_truthMatch = new std::vector<int>();
@@ -507,6 +508,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   if (!m_essentialInfo) tree->Branch("jet_GhostL_HadI", &v_jet_GhostL_HadI);
   if (!m_essentialInfo) tree->Branch("jet_GhostL_HadF", &v_jet_GhostL_HadF);
   tree->Branch("jet_LabDr_HadF", &v_jet_LabDr_HadF);
+  tree->Branch("jet_DoubleHadLabel", &v_jet_DoubleHadLabel);
   tree->Branch("jet_aliveAfterOR", &v_jet_aliveAfterOR);
   tree->Branch("jet_aliveAfterORmu" ,&v_jet_aliveAfterORmu);
   tree->Branch("jet_truthMatch", &v_jet_truthMatch);
@@ -1187,7 +1189,14 @@ StatusCode btagIBLAnalysisAlg::execute() {
       jet->getAttribute("HadronConeExclTruthLabelID", tmpLabel);
     } catch(...) {};
     v_jet_LabDr_HadF->push_back(tmpLabel);
-
+    
+    int tmpLabelDoubleHadron = -1;
+    try {
+      jet->getAttribute("HadronConeExclExtendedTruthLabelID", tmpLabelDoubleHadron);
+    } catch(...) {};
+    v_jet_DoubleHadLabel->push_back(tmpLabelDoubleHadron);
+    
+    
     // requested by P.Berta
     float mindRtoB = 10;
     float mindRtoC = 10;
@@ -2298,6 +2307,7 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_GhostL_HadI->clear();
   v_jet_GhostL_HadF->clear();
   v_jet_LabDr_HadF->clear();
+  v_jet_DoubleHadLabel->clear();
   v_jet_aliveAfterOR->clear();
   v_jet_aliveAfterORmu->clear();
   v_jet_truthMatch->clear();
