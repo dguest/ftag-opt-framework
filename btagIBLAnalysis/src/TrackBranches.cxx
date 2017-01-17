@@ -15,39 +15,45 @@ TrackBranches::TrackBranches():
   m_branches(new TrackBranchBuffer),
   m_active(false)
 {
+  typedef std::vector<std::vector<int> > vvi_t;
+  typedef std::vector<std::vector<float> > vvf_t;
+
   m_branches->ntrk = new std::vector<int>;
 
-  m_branches->pt = new std::vector<std::vector<float> >;
-  m_branches->eta = new std::vector<std::vector<float> >;
-  m_branches->theta = new std::vector<std::vector<float> >;
-  m_branches->phi = new std::vector<std::vector<float> >;
+  m_branches->pt = new vvf_t;
+  m_branches->eta = new vvf_t;
+  m_branches->theta = new vvf_t;
+  m_branches->phi = new vvf_t;
 
-  m_branches->qoverp = new std::vector<std::vector<float> >;
-  m_branches->chi2 = new std::vector<std::vector<float> >;
-  m_branches->ndf = new std::vector<std::vector<float> >;
+  m_branches->qoverp = new vvf_t;
+  m_branches->chi2 = new vvf_t;
+  m_branches->ndf = new vvf_t;
 
-  m_branches->nNextToInnHits = new std::vector<std::vector<int> >;
-  m_branches->nInnHits = new std::vector<std::vector<int> >;
-  m_branches->nBLHits = new std::vector<std::vector<int> >; // soo this will be deprecated
-  m_branches->nsharedBLHits = new std::vector<std::vector<int> >;
-  m_branches->nsplitBLHits = new std::vector<std::vector<int> >;
-  m_branches->nPixHits = new std::vector<std::vector<int> >;
-  m_branches->nPixHoles = new std::vector<std::vector<int> >;
-  m_branches->nsharedPixHits = new std::vector<std::vector<int> >;
-  m_branches->nsplitPixHits = new std::vector<std::vector<int> >;
-  m_branches->nSCTHits = new std::vector<std::vector<int> >;
-  m_branches->nSCTHoles = new std::vector<std::vector<int> >;
-  m_branches->nsharedSCTHits = new std::vector<std::vector<int> >;
-  m_branches->expectBLayerHit = new std::vector<std::vector<int> >;
+  m_branches->nNextToInnHits = new vvi_t;
+  m_branches->nInnHits = new vvi_t;
+  m_branches->nBLHits = new vvi_t; // soo this will be deprecated
+  m_branches->nsharedBLHits = new vvi_t;
+  m_branches->nsplitBLHits = new vvi_t;
+  m_branches->nPixHits = new vvi_t;
+  m_branches->nPixHoles = new vvi_t;
+  m_branches->nsharedPixHits = new vvi_t;
+  m_branches->nsplitPixHits = new vvi_t;
+  m_branches->nSCTHits = new vvi_t;
+  m_branches->nSCTHoles = new vvi_t;
+  m_branches->nsharedSCTHits = new vvi_t;
 
-  m_branches->d0 = new std::vector<std::vector<float> >;
-  m_branches->z0 = new std::vector<std::vector<float> >;
+  m_branches->expectBLayerHit = new vvi_t;
+  m_branches->expectInnermostPixelLayerHit = new vvi_t;
+  m_branches->expectNextToInnermostPixelLayerHit = new vvi_t;
+
+  m_branches->d0 = new vvf_t;
+  m_branches->z0 = new vvf_t;
 
   // actual d0 variables (not lifetime-signed)
-  m_branches->ip_d0 = new std::vector<std::vector<float> >;
-  m_branches->ip_z0 = new std::vector<std::vector<float> >;
-  m_branches->ip_d0sig = new std::vector<std::vector<float> >;
-  m_branches->ip_z0sig = new std::vector<std::vector<float> >;
+  m_branches->ip_d0 = new vvf_t;
+  m_branches->ip_z0 = new vvf_t;
+  m_branches->ip_d0sig = new vvf_t;
+  m_branches->ip_z0sig = new vvf_t;
 
 }
 
@@ -76,7 +82,11 @@ TrackBranches::~TrackBranches()
   delete m_branches->nSCTHits;
   delete m_branches->nSCTHoles;
   delete m_branches->nsharedSCTHits;
+
   delete m_branches->expectBLayerHit;
+  delete m_branches->expectInnermostPixelLayerHit;
+  delete m_branches->expectNextToInnermostPixelLayerHit;
+
   delete m_branches->d0;
   delete m_branches->z0;
   // actual d0 variables (not lifetime-signed)
@@ -125,7 +135,10 @@ void TrackBranches::set_tree(TTree& output_tree,
   ADD_SIMPLE(nSCTHits);
   ADD_SIMPLE(nSCTHoles);
   ADD_SIMPLE(nsharedSCTHits);
+
   ADD_SIMPLE(expectBLayerHit);
+  ADD_SIMPLE(expectInnermostPixelLayerHit);
+  ADD_SIMPLE(expectNextToInnermostPixelLayerHit);
 
   ADD_SIMPLE(d0);
   ADD_SIMPLE(z0);
@@ -173,7 +186,10 @@ void TrackBranches::fill(const TrackBranches::PartVector& tracks,
   std::vector<int> nSCTHits;
   std::vector<int> nSCTHoles;
   std::vector<int> nsharedSCTHits;
+
   std::vector<int> expectBLayerHit;
+  std::vector<int> expectInnermostPixelLayerHit;
+  std::vector<int> expectNextToInnermostPixelLayerHit;
 
   std::vector<float> d0;
   std::vector<float> z0;
@@ -206,7 +222,12 @@ void TrackBranches::fill(const TrackBranches::PartVector& tracks,
     nSCTHits.push_back(get(track, xAOD::numberOfSCTHits));
     nSCTHoles.push_back(get(track, xAOD::numberOfSCTHoles));
     nsharedSCTHits.push_back(get(track, xAOD::numberOfSCTSharedHits));
-    expectBLayerHit.push_back(get(track, xAOD::expectBLayerHit));
+
+#define GET(NAME) NAME.push_back(get(track, xAOD::NAME))
+    GET(expectBLayerHit);
+    GET(expectInnermostPixelLayerHit);
+    GET(expectNextToInnermostPixelLayerHit);
+#undef GET
 
     d0.push_back(track.d0());
     z0.push_back(track.z0());
@@ -242,7 +263,10 @@ void TrackBranches::fill(const TrackBranches::PartVector& tracks,
   PUSH(nSCTHits);
   PUSH(nSCTHoles);
   PUSH(nsharedSCTHits);
+
   PUSH(expectBLayerHit);
+  PUSH(expectInnermostPixelLayerHit);
+  PUSH(expectNextToInnermostPixelLayerHit);
 
   PUSH(d0);
   PUSH(z0);
@@ -277,7 +301,10 @@ void TrackBranches::clear() {
   CLEAR(nSCTHits);
   CLEAR(nSCTHoles);
   CLEAR(nsharedSCTHits);
+
   CLEAR(expectBLayerHit);
+  CLEAR(expectInnermostPixelLayerHit);
+  CLEAR(expectNextToInnermostPixelLayerHit);
 
   CLEAR(d0);
   CLEAR(z0);

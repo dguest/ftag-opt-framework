@@ -27,7 +27,10 @@ struct TrackBranchBuffer {
   std::vector<std::vector<int> > *nSCTHits;
   std::vector<std::vector<int> > *nSCTHoles;
   std::vector<std::vector<int> > *nsharedSCTHits;
+
   std::vector<std::vector<int> > *expectBLayerHit;
+  std::vector<std::vector<int> > *expectInnermostPixelLayerHit;
+  std::vector<std::vector<int> > *expectNextToInnermostPixelLayerHit;
 
   std::vector<std::vector<float> > *d0;
   std::vector<std::vector<float> > *z0;
