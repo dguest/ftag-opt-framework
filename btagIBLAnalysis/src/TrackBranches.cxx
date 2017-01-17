@@ -2,6 +2,7 @@
 #include "TrackBranchBuffer.hh"
 
 #include "xAODTracking/TrackParticleContainer.h"
+#include "xAODTracking/Vertex.h"
 #include "TrkVertexFitterInterfaces/ITrackToVertexIPEstimator.h"
 #include "AthContainers/exceptions.h"
 
@@ -230,7 +231,7 @@ void TrackBranches::fill(const TrackBranches::PartVector& tracks,
 #undef GET
 
     d0.push_back(track.d0());
-    z0.push_back(track.z0());
+    z0.push_back(track.z0() + track.vz() - vxp.z());
 
     auto ip = std::unique_ptr<const Trk::ImpactParametersAndSigma>(
       trk2vrt.estimate(&track, &vxp));

@@ -245,15 +245,8 @@ private:
   // track info
   std::vector<int>   *v_jet_btag_ntrk;
 
-  std::vector<std::vector<float> > *v_jet_trk_pt;
-  std::vector<std::vector<float> > *v_jet_trk_eta;
-  std::vector<std::vector<float> > *v_jet_trk_theta;
-  std::vector<std::vector<float> > *v_jet_trk_phi;
-  std::vector<std::vector<float> > *v_jet_trk_qoverp;
   std::vector<std::vector<float> > *v_jet_trk_dr;
   std::vector<std::vector<int> > *v_jet_trk_assoc_msv;
-  std::vector<std::vector<float> > *v_jet_trk_chi2;
-  std::vector<std::vector<float> > *v_jet_trk_ndf;
 
   std::vector<std::vector<int> > *v_jet_trk_algo;
   //std::vector<std::vector<int> > *v_jet_trk_orig;
@@ -267,21 +260,6 @@ private:
   std::vector<std::vector<float> > *v_jet_trk_vtx_Y;
   std::vector<std::vector<float> > *v_jet_trk_vtx_Z;
 
-  std::vector<std::vector<int> > *v_jet_trk_nNextToInnHits;
-  std::vector<std::vector<int> > *v_jet_trk_nInnHits;
-  std::vector<std::vector<int> > *v_jet_trk_nBLHits; // soo this will be deprecated
-  std::vector<std::vector<int> > *v_jet_trk_nsharedBLHits;
-  std::vector<std::vector<int> > *v_jet_trk_nsplitBLHits;
-  std::vector<std::vector<int> > *v_jet_trk_nPixHits;
-  std::vector<std::vector<int> > *v_jet_trk_nPixHoles;
-  std::vector<std::vector<int> > *v_jet_trk_nsharedPixHits;
-  std::vector<std::vector<int> > *v_jet_trk_nsplitPixHits;
-  std::vector<std::vector<int> > *v_jet_trk_nSCTHits;
-  std::vector<std::vector<int> > *v_jet_trk_nSCTHoles;
-  std::vector<std::vector<int> > *v_jet_trk_nsharedSCTHits;
-  std::vector<std::vector<int> > *v_jet_trk_expectBLayerHit;
-  std::vector<std::vector<float> > *v_jet_trk_d0;
-  std::vector<std::vector<float> > *v_jet_trk_z0;
   std::vector<std::vector<float> > *v_jet_trk_d0_truth;
   std::vector<std::vector<float> > *v_jet_trk_z0_truth;
 
@@ -293,10 +271,6 @@ private:
   std::vector<std::vector<float> > *v_jet_trk_IP3D_z0sig;
   std::vector<std::vector<float> > *v_jet_trk_IP2D_llr;
   std::vector<std::vector<float> > *v_jet_trk_IP3D_llr;
-
-  // actual d0 variables (not lifetime-signed)
-  std::vector<std::vector<float> > *v_jet_trk_ip_d0;
-  std::vector<std::vector<float> > *v_jet_trk_ip_z0;
 
   std::vector<std::vector<int> > *v_jet_trk_jf_Vertex; //mod Remco
 
@@ -396,6 +370,7 @@ private:
   std::map<std::string, std::string> m_subjet_collections;
   std::vector<std::pair<std::string, SubjetBranches*> > m_subjet_branches;
   // track dumper
+  TrackBranches m_track_branches;
   TrackCovBranches m_track_cov_branches;
   TrackBranches m_ga_track_branches;
   TrackCovBranches m_ga_track_cov_branches;

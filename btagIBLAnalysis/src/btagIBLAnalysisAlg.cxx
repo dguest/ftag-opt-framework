@@ -102,6 +102,7 @@ btagIBLAnalysisAlg::btagIBLAnalysisAlg( const std::string& name, ISvcLocator *pS
   m_cluster_branches(),
   m_substructure_moment_branches(),
   m_subjet_collections(),
+  m_track_branches(),
   m_track_cov_branches(),
   m_ga_track_branches(),
   m_ga_track_cov_branches(),
@@ -391,15 +392,8 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_ExKtbb_Hbb_MV2andTopos = new std::vector<double>();
 
   v_jet_btag_ntrk = new std::vector<int>();
-  v_jet_trk_pt = new std::vector<std::vector<float> >();
-  v_jet_trk_eta = new std::vector<std::vector<float> >();
-  v_jet_trk_theta = new std::vector<std::vector<float> >();
-  v_jet_trk_phi = new std::vector<std::vector<float> >();
-  v_jet_trk_qoverp = new std::vector<std::vector<float> >();
   v_jet_trk_dr = new std::vector<std::vector<float> >();
   v_jet_trk_assoc_msv = new std::vector<std::vector<int> >();   // mod nikola
-  v_jet_trk_chi2 = new std::vector<std::vector<float> >();
-  v_jet_trk_ndf = new std::vector<std::vector<float> >();
   v_jet_trk_algo = new std::vector<std::vector<int> >();
   // v_jet_trk_orig = new std::vector<std::vector<int> >();
   v_jet_trk_is_tracking_cp_loose = new std::vector<std::vector<int> >();
@@ -410,21 +404,6 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_trk_vtx_dx = new std::vector<std::vector<float> >();
   v_jet_trk_vtx_dy = new std::vector<std::vector<float> >();
 
-  v_jet_trk_nNextToInnHits = new std::vector<std::vector<int> >();
-  v_jet_trk_nInnHits = new std::vector<std::vector<int> >();
-  v_jet_trk_nBLHits = new std::vector<std::vector<int> >();
-  v_jet_trk_nsharedBLHits = new std::vector<std::vector<int> >();
-  v_jet_trk_nsplitBLHits = new std::vector<std::vector<int> >();
-  v_jet_trk_nPixHits = new std::vector<std::vector<int> >();
-  v_jet_trk_nPixHoles = new std::vector<std::vector<int> >();
-  v_jet_trk_nsharedPixHits = new std::vector<std::vector<int> >();
-  v_jet_trk_nsplitPixHits = new std::vector<std::vector<int> >();
-  v_jet_trk_nSCTHits = new std::vector<std::vector<int> >();
-  v_jet_trk_nSCTHoles = new std::vector<std::vector<int> >();
-  v_jet_trk_nsharedSCTHits = new std::vector<std::vector<int> >();
-  v_jet_trk_expectBLayerHit = new std::vector<std::vector<int> >();
-  v_jet_trk_d0 = new std::vector<std::vector<float> >();
-  v_jet_trk_z0 = new std::vector<std::vector<float> >();
   // v_jet_trk_d0sig = new std::vector<std::vector<float> >();
   // v_jet_trk_z0sig = new std::vector<std::vector<float> >();
 
@@ -439,10 +418,6 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_trk_IP3D_z0sig = new std::vector<std::vector<float> >();
   v_jet_trk_IP2D_llr = new std::vector<std::vector<float> >();
   v_jet_trk_IP3D_llr = new std::vector<std::vector<float> >();
-
-  // non-lifetime signed
-  v_jet_trk_ip_d0 = new std::vector<std::vector<float> >();
-  v_jet_trk_ip_z0 = new std::vector<std::vector<float> >();
 
   v_jet_trk_jf_Vertex = new std::vector<std::vector<int> >(); // mod Remco
   v_jet_trk_pdg_id = new std::vector<std::vector<int> >();
@@ -643,15 +618,9 @@ StatusCode btagIBLAnalysisAlg::initialize() {
 
   tree->Branch("jet_btag_ntrk", &v_jet_btag_ntrk);
   if (!m_reduceInfo) {
-    tree->Branch("jet_trk_pt", &v_jet_trk_pt);
-    tree->Branch("jet_trk_eta", &v_jet_trk_eta);
-    tree->Branch("jet_trk_theta", &v_jet_trk_theta);
-    tree->Branch("jet_trk_phi", &v_jet_trk_phi);
-    tree->Branch("jet_trk_qoverp", &v_jet_trk_qoverp);
+    m_track_branches.set_tree(*tree, "jet_trk_");
     tree->Branch("jet_trk_dr", &v_jet_trk_dr);
     tree->Branch("jet_trk_assoc_msv", &v_jet_trk_assoc_msv);    // mod nikola
-    tree->Branch("jet_trk_chi2", &v_jet_trk_chi2);
-    tree->Branch("jet_trk_ndf", &v_jet_trk_ndf);
     tree->Branch("jet_trk_algo", &v_jet_trk_algo);
     // tree->Branch("jet_trk_orig", &v_jet_trk_orig); moved to BHadronBranches
     if (!m_CPTrackingLooseLabel.empty()) {
@@ -663,22 +632,6 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     tree->Branch("jet_trk_vtx_Y", &v_jet_trk_vtx_Y);
     tree->Branch("jet_trk_vtx_Z", &v_jet_trk_vtx_Z);
 
-    tree->Branch("jet_trk_nInnHits", &v_jet_trk_nInnHits);
-    tree->Branch("jet_trk_nNextToInnHits", &v_jet_trk_nNextToInnHits);
-    tree->Branch("jet_trk_nBLHits", &v_jet_trk_nBLHits);
-    tree->Branch("jet_trk_nsharedBLHits", &v_jet_trk_nsharedBLHits);
-    tree->Branch("jet_trk_nsplitBLHits", &v_jet_trk_nsplitBLHits);
-    tree->Branch("jet_trk_nPixHits", &v_jet_trk_nPixHits);
-    tree->Branch("jet_trk_nPixHoles", &v_jet_trk_nPixHoles);
-    tree->Branch("jet_trk_nsharedPixHits", &v_jet_trk_nsharedPixHits);
-    tree->Branch("jet_trk_nsplitPixHits", &v_jet_trk_nsplitPixHits);
-    tree->Branch("jet_trk_nSCTHits", &v_jet_trk_nSCTHits);
-    tree->Branch("jet_trk_nSCTHoles", &v_jet_trk_nSCTHoles);
-    tree->Branch("jet_trk_nsharedSCTHits", &v_jet_trk_nsharedSCTHits);
-    tree->Branch("jet_trk_expectBLayerHit", &v_jet_trk_expectBLayerHit);
-
-    tree->Branch("jet_trk_d0", &v_jet_trk_d0);
-    tree->Branch("jet_trk_z0", &v_jet_trk_z0);
     tree->Branch("jet_trk_d0_truth", &v_jet_trk_d0_truth);
     tree->Branch("jet_trk_z0_truth", &v_jet_trk_z0_truth);
     tree->Branch("jet_trk_ip3d_grade", &v_jet_trk_IP3D_grade);
@@ -687,9 +640,6 @@ StatusCode btagIBLAnalysisAlg::initialize() {
     tree->Branch("jet_trk_ip3d_z0", &v_jet_trk_IP3D_z0);
     tree->Branch("jet_trk_ip3d_d0sig", &v_jet_trk_IP3D_d0sig);
     tree->Branch("jet_trk_ip3d_z0sig", &v_jet_trk_IP3D_z0sig);
-
-    tree->Branch("jet_trk_ip_d0", &v_jet_trk_ip_d0);
-    tree->Branch("jet_trk_ip_z0", &v_jet_trk_ip_z0);
 
     tree->Branch("jet_trk_ip2d_llr", &v_jet_trk_IP2D_llr);
     tree->Branch("jet_trk_ip3d_llr", &v_jet_trk_IP3D_llr);
@@ -1708,41 +1658,19 @@ StatusCode btagIBLAnalysisAlg::execute() {
     int j_ip3d_ntrk = 0;
     int j_jf_ntrk = 0;
 
-    std::vector<float> j_trk_pt;
-    std::vector<float> j_trk_eta;
-    std::vector<float> j_trk_theta;
-    std::vector<float> j_trk_phi;
-    std::vector<float> j_trk_qoverp;
     std::vector<float> j_trk_dr; // mod nikola
     std::vector<int> j_trk_assoc_msv; // mod nikola
-    std::vector<float> j_trk_chi2;
-    std::vector<float> j_trk_ndf;
     std::vector<int> j_trk_algo;
     //std::vector<int> j_trk_orig; //moved to BHadronBranches
     std::vector<int> j_trk_pdgid;
     std::vector<int> j_trk_barcode;
     std::vector<int> j_trk_parent_pdgid;
     std::vector<int> j_trk_cploose;
-    std::vector<int> j_trk_nInnHits;
-    std::vector<int> j_trk_nNextToInnHits;
-    std::vector<int> j_trk_nBLHits;
-    std::vector<int> j_trk_nsharedBLHits;
-    std::vector<int> j_trk_nsplitBLHits;
-    std::vector<int> j_trk_nPixHits;
-    std::vector<int> j_trk_nPixHoles;
-    std::vector<int> j_trk_nsharedPixHits;
-    std::vector<int> j_trk_nsplitPixHits;
-    std::vector<int> j_trk_nSCTHits;
-    std::vector<int> j_trk_nSCTHoles;
-    std::vector<int> j_trk_nsharedSCTHits;
-    std::vector<int> j_trk_expectBLayerHit;
     std::vector<float> j_trk_vtx_X;
     std::vector<float> j_trk_vtx_Y;
     std::vector<float> j_trk_vtx_Z;
     std::vector<float> j_trk_vtx_dx;
     std::vector<float>  j_trk_vtx_dy;
-    std::vector<float> j_trk_d0;
-    std::vector<float> j_trk_z0;
     std::vector<float> j_trk_d0_truth;
     std::vector<float> j_trk_z0_truth;
     std::vector<int> j_trk_ip3d_grade;
@@ -1753,9 +1681,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> j_trk_ip3d_z0sig;
     std::vector<float> j_trk_ip2d_llr;
     std::vector<float> j_trk_ip3d_llr;
-
-    std::vector<float> j_trk_ip_d0;
-    std::vector<float> j_trk_ip_z0;
 
     std::vector<float> j_sv0_vtxx;
     std::vector<float> j_sv0_vtxy;
@@ -2056,18 +1981,12 @@ StatusCode btagIBLAnalysisAlg::execute() {
     }
 
     // fill cov branches
-    m_track_cov_branches.fill(Particles(selectedTracks.begin(),
-                                        selectedTracks.end()));
-
+    Particles track_particles(selectedTracks.begin(), selectedTracks.end());
+    m_track_cov_branches.fill(track_particles);
+    m_track_branches.fill(track_particles, *myVertex,
+                          *m_trackToVertexIPEstimator);
     for (const auto* tmpTrk: selectedTracks) {
       j_btag_ntrk++;
-      j_trk_pt.push_back(tmpTrk->pt());
-      j_trk_eta.push_back(tmpTrk->eta());
-      j_trk_theta.push_back(tmpTrk->theta());
-      j_trk_phi.push_back(tmpTrk->phi());
-      j_trk_qoverp.push_back(tmpTrk->qOverP());
-      j_trk_chi2.push_back(tmpTrk->chiSquared());
-      j_trk_ndf.push_back(tmpTrk->numberDoF());
 
       // addition by nikola
       TLorentzVector jet4vector, trk4vector;
@@ -2162,53 +2081,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
       }
       // std::cout << " ..... after origin" << std::endl;
 
-      // hit content
-      // Blayer
-      tmpTrk->summaryValue(getInt, xAOD::numberOfInnermostPixelLayerHits);
-      j_trk_nInnHits.push_back(getInt);
-      tmpTrk->summaryValue(getInt, xAOD::numberOfNextToInnermostPixelLayerHits);
-      j_trk_nNextToInnHits.push_back(getInt);
-
-      tmpTrk->summaryValue(getInt, xAOD::numberOfBLayerHits);
-      j_trk_nBLHits.push_back(getInt);
-      getInt = 0;
-      tmpTrk->summaryValue(getInt, xAOD::numberOfBLayerSharedHits);
-      j_trk_nsharedBLHits.push_back(getInt);
-      getInt = 0;
-      tmpTrk->summaryValue(getInt, xAOD::numberOfBLayerSplitHits);
-      j_trk_nsplitBLHits.push_back(getInt);
-      getInt = 0;
-      tmpTrk->summaryValue(getInt, xAOD::expectBLayerHit);
-      j_trk_expectBLayerHit.push_back(getInt);
-      getInt = 0;
-      // Pixel
-      tmpTrk->summaryValue(getInt, xAOD::numberOfPixelHits);
-      j_trk_nPixHits.push_back(getInt);
-      getInt = 0;
-      tmpTrk->summaryValue(getInt, xAOD::numberOfPixelHoles);
-      j_trk_nPixHoles.push_back(getInt);
-      getInt = 0;
-      tmpTrk->summaryValue(getInt, xAOD::numberOfPixelSharedHits);
-      j_trk_nsharedPixHits.push_back(getInt);
-      getInt = 0;
-      tmpTrk->summaryValue(getInt, xAOD::numberOfPixelSplitHits);
-      j_trk_nsplitPixHits.push_back(getInt);
-      getInt = 0;
-      // SCT
-      tmpTrk->summaryValue(getInt, xAOD::numberOfSCTHits);
-      j_trk_nSCTHits.push_back(getInt);
-      getInt = 0;
-      tmpTrk->summaryValue(getInt, xAOD::numberOfSCTHoles);
-      j_trk_nSCTHoles.push_back(getInt);
-      getInt = 0;
-      tmpTrk->summaryValue(getInt, xAOD::numberOfSCTSharedHits);
-      j_trk_nsharedSCTHits.push_back(getInt);
-      getInt = 0;
-
-      // default spatial coordinates
-      j_trk_d0.push_back(tmpTrk->d0());
-      j_trk_z0.push_back(tmpTrk->z0() + tmpTrk->vz() - myVertex->z());
-
       // spatial coordinates: now from the tool:
       float d0wrtPriVtx = -999;
       float d0ErrwrtPriVtx = -999;
@@ -2244,10 +2116,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
       j_trk_ip3d_d0sig.push_back( significance );
       j_trk_ip3d_z0sig.push_back(z0Sig);
 
-      // unsigned parameters
-      j_trk_ip_d0.push_back(d0wrtPriVtx);
-      j_trk_ip_z0.push_back(z0wrtPriVtx);
-
       // TRUTH track info ......
       if (!truth) {
         j_trk_d0_truth.push_back(-999);
@@ -2271,15 +2139,8 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_sv1_ntrk->push_back(j_sv1_ntrk);
     v_jet_ip3d_ntrk->push_back(j_ip3d_ntrk);
     v_jet_jf_ntrk->push_back(j_jf_ntrk);
-    v_jet_trk_pt->push_back(j_trk_pt);
-    v_jet_trk_eta->push_back(j_trk_eta);
-    v_jet_trk_theta->push_back(j_trk_theta);
-    v_jet_trk_phi->push_back(j_trk_phi);
-    v_jet_trk_qoverp->push_back(j_trk_qoverp);
     v_jet_trk_dr->push_back(j_trk_dr);
     v_jet_trk_assoc_msv->push_back(j_trk_assoc_msv);
-    v_jet_trk_chi2->push_back(j_trk_chi2);
-    v_jet_trk_ndf->push_back(j_trk_ndf);
     v_jet_trk_algo->push_back(j_trk_algo);
     //v_jet_trk_orig->push_back(j_trk_orig); moved to BHadronBranches
     v_jet_trk_pdg_id->push_back(j_trk_pdgid);
@@ -2289,21 +2150,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_trk_vtx_X->push_back(j_trk_vtx_X);
     v_jet_trk_vtx_Y->push_back(j_trk_vtx_Y);
     v_jet_trk_vtx_Z->push_back(j_trk_vtx_Z);
-    v_jet_trk_nInnHits->push_back(j_trk_nInnHits);
-    v_jet_trk_nNextToInnHits->push_back(j_trk_nNextToInnHits);
-    v_jet_trk_nBLHits->push_back(j_trk_nBLHits);
-    v_jet_trk_nsharedBLHits->push_back(j_trk_nsharedBLHits);
-    v_jet_trk_nsplitBLHits->push_back(j_trk_nsplitBLHits);
-    v_jet_trk_nPixHits->push_back(j_trk_nPixHits);
-    v_jet_trk_nPixHoles->push_back(j_trk_nPixHoles);
-    v_jet_trk_nsharedPixHits->push_back(j_trk_nsharedPixHits);
-    v_jet_trk_nsplitPixHits->push_back(j_trk_nsplitPixHits);
-    v_jet_trk_nSCTHits->push_back(j_trk_nSCTHits);
-    v_jet_trk_nSCTHoles->push_back(j_trk_nSCTHoles);
-    v_jet_trk_nsharedSCTHits->push_back(j_trk_nsharedSCTHits);
-    v_jet_trk_expectBLayerHit->push_back(j_trk_expectBLayerHit);
-    v_jet_trk_d0->push_back(j_trk_d0);
-    v_jet_trk_z0->push_back(j_trk_z0);
     v_jet_trk_d0_truth->push_back(j_trk_d0_truth);
     v_jet_trk_z0_truth->push_back(j_trk_z0_truth);
     v_jet_trk_IP3D_grade->push_back(j_trk_ip3d_grade);
@@ -2312,9 +2158,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_trk_IP3D_z0->push_back(j_trk_ip3d_z0);
     v_jet_trk_IP3D_d0sig->push_back(j_trk_ip3d_d0sig);
     v_jet_trk_IP3D_z0sig->push_back(j_trk_ip3d_z0sig);
-
-    v_jet_trk_ip_d0->  push_back(j_trk_ip_d0);
-    v_jet_trk_ip_z0->  push_back(j_trk_ip_z0);
 
     v_jet_trk_IP2D_llr->push_back(j_trk_ip2d_llr);
     v_jet_trk_IP3D_llr->push_back(j_trk_ip3d_llr);
@@ -2349,6 +2192,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
   for (auto coll_br: m_subjet_branches) {
     coll_br.second->clear();
   }
+  m_track_branches.clear();
   m_track_cov_branches.clear();
   m_ga_track_branches.clear();
   m_ga_track_cov_branches.clear();
@@ -2560,36 +2404,14 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_ExKtbb_Hbb_MV2andTopos->clear();
 
   v_jet_btag_ntrk->clear();
-  v_jet_trk_pt->clear();
-  v_jet_trk_eta->clear();
-  v_jet_trk_theta->clear();
-  v_jet_trk_phi->clear();
-  v_jet_trk_qoverp->clear();
   v_jet_trk_dr->clear();
   v_jet_trk_assoc_msv->clear();
-  v_jet_trk_chi2->clear();
-  v_jet_trk_ndf->clear();
   v_jet_trk_algo->clear();
   //v_jet_trk_orig->clear();
   v_jet_trk_pdg_id->clear();
   v_jet_trk_parent_pdgid->clear();
   v_jet_trk_barcode->clear();
   v_jet_trk_is_tracking_cp_loose->clear();
-  v_jet_trk_nInnHits->clear();
-  v_jet_trk_nNextToInnHits->clear();
-  v_jet_trk_nBLHits->clear();
-  v_jet_trk_nsharedBLHits->clear();
-  v_jet_trk_nsplitBLHits->clear();
-  v_jet_trk_nPixHits->clear();
-  v_jet_trk_nPixHoles->clear();
-  v_jet_trk_nsharedPixHits->clear();
-  v_jet_trk_nsplitPixHits->clear();
-  v_jet_trk_nSCTHits->clear();
-  v_jet_trk_nSCTHoles->clear();
-  v_jet_trk_nsharedSCTHits->clear();
-  v_jet_trk_expectBLayerHit->clear();
-  v_jet_trk_d0->clear();
-  v_jet_trk_z0->clear();
   v_jet_trk_d0_truth->clear();
   v_jet_trk_z0_truth->clear();
   v_jet_trk_IP3D_grade->clear();
@@ -2598,10 +2420,6 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_trk_IP3D_z0->clear();
   v_jet_trk_IP3D_d0sig->clear();
   v_jet_trk_IP3D_z0sig->clear();
-
-  v_jet_trk_ip_d0->clear();
-  v_jet_trk_ip_z0->clear();
-
 
   v_jet_trk_vtx_X->clear();
   v_jet_trk_vtx_Y->clear();
