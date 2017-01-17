@@ -126,6 +126,7 @@ private:
   std::vector<int> *v_jet_GhostL_HadI;
   std::vector<int> *v_jet_GhostL_HadF;
   std::vector<int> *v_jet_LabDr_HadF;
+  std::vector<int> *v_jet_DoubleHadLabel;
   std::vector<int> *v_jet_aliveAfterOR;
   std::vector<int> *v_jet_aliveAfterORmu;
   std::vector<int> *v_jet_truthMatch;
