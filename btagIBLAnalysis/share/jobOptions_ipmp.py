@@ -5,7 +5,7 @@
 ONLYEssentialInfo =False   ## write minimal amount of info on the output file
 ReduceInfo        =False    ## write minimal amount of info on the output file
 DoMSV             =True   ## include variables for MSV tagger
-doSMT             =False   ## include variables for SMT tagger
+doSMT             =True   ## include variables for SMT tagger
 doRetag           =True   ## perform retagging
 JetCollections = [
   ##"AntiKt10LCTopoJets"
@@ -111,19 +111,14 @@ from BTagging.BTaggingFlags import BTaggingFlags
 BTaggingFlags.JetVertexCharge = False
 
 #### if the new file is already in the datatbase: simple edit the name
-BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-30'
+# BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-30'
 
 #### if you want to use your own calibration file use this part below
-#BTaggingFlags.CalibrationFromLocalReplica = True
-#BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
-#BTaggingFlags.CalibrationTag = 'BTagCalibRUN2-test'
+BTaggingFlags.CalibrationFromLocalReplica = True
+BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
+BTaggingFlags.CalibrationTag = 'BTagCalibRUN2-test'
 
-# there are also two 'ipz_grade' with and without the RW
-rnn_taggers = [
-  'ipmp_hits',
-  # 'ipz_hits',
-  # 'ipz_hits_rw'
-]
+rnn_taggers = ['ptrw_hits', 'ptrw_grade']
 
 BTaggingFlags.RNNIP = True
 # blank second field means read from DB
