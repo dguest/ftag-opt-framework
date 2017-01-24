@@ -82,6 +82,11 @@ OPTS+=" --nFilesPerJob 5"
 if [[ -n $UPLOAD_LOCAL ]] ; then
     JSON_FILES=$(echo *.json | tr " " ",")
     OPTS+=" --extFile $JSON_FILES"
+    if [[ -f mycool.db ]]; then
+        DB_FILES=""
+        DB_FILES+=$(echo BTag*.root *.db | tr " " ",")
+        OPTS+=",$DB_FILES"
+    fi
 fi
 
 # pack stuff into a tarball before submitting
