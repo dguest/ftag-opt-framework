@@ -1,5 +1,7 @@
 # include the info flags
 from AthenaCommon.Constants import *
+from subprocess import call
+from glob import glob
 
 # short names for jet collections
 _short_jet_names = [
@@ -68,3 +70,12 @@ def get_calibration_tool(CfgMgr, JetCollection, isAF2):
         CalibSequence=calSeg,
         JetCollection=collectionForTool)
     return tool
+
+
+def add_to_pfc(pattern='BTag*.root'):
+    calib_files = glob('BTag*.root')
+    assert len(calib_files) < 2
+    if calib_files:
+        print 'adding {} to pool file catalog'.format(calib_files[0])
+        call('coolHist_insertFileToCatalog.py {}'.format(calib_files[0]),
+             shell=True)

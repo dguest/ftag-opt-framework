@@ -22,12 +22,19 @@ JetCollections = [
 ### 0= SLIM, 1=FULL
 ContentMode=  vars().get('CONTENT',-1)
 if ContentMode!=-1:
-  if ContentMode==0: ReduceInfo=True
-  if ContentMode==1: ReduceInfo=False
-  if ContentMode==2: ONLYEssentialInfo=True
+    if ContentMode==0: ReduceInfo=True
+    if ContentMode==1: ReduceInfo=False
+    if ContentMode==2: ONLYEssentialInfo=True
 
-#########################################################################################################################################################
-#########################################################################################################################################################
+
+##############################################################################
+##############################################################################
+### insert files into pool file catalog
+from btagIBLAnalysis.configHelpers import add_to_pfc
+add_to_pfc('BTag*.root')
+
+##############################################################################
+##############################################################################
 ### Define input xAOD and output ntuple file name
 import glob
 from AthenaCommon.AthenaCommonFlags import jobproperties as jp
