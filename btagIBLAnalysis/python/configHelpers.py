@@ -5,12 +5,12 @@ from glob import glob
 
 # short names for jet collections
 _short_jet_names = [
-  ("AntiKt","Akt"), ("TrackJets","Tr"), ("TopoJets","To"),
-  ("TrimmedPtFrac5SmallR20", "Trm")]
+    ("AntiKt","Akt"), ("TrackJets","Tr"), ("TopoJets","To"),
+    ("TrimmedPtFrac5SmallR20", "Trm")]
 def get_short_name(jet_collection_name):
-  for pair in _short_jet_names:
-    jet_collection_name = jet_collection_name.replace(*pair)
-  return jet_collection_name
+    for pair in _short_jet_names:
+        jet_collection_name = jet_collection_name.replace(*pair)
+    return jet_collection_name
 
 def is_af2(af):
     if af.fileinfos.has_key("evt_type"):

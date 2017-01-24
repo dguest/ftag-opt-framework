@@ -1,5 +1,5 @@
-##########################################################################################################################################################
-##########################################################################################################################################################
+##############################################################################
+##############################################################################
 ### MAIN SWITCHES
 
 ONLYEssentialInfo =False   ## write minimal amount of info on the output file
@@ -8,13 +8,13 @@ DoMSV             =True   ## include variables for MSV tagger
 doSMT             =True   ## include variables for SMT tagger
 doRetag           =True   ## perform retagging
 JetCollections = [
-  ##"AntiKt10LCTopoJets"
-  'AntiKt4EMTopoJets',
-  # 'AntiKt4PV0TrackJets',
-  # 'AntiKt3PV0TrackJets',
-  # 'AntiKt2PV0TrackJets',
-  #'AntiKt4LCTopoJets',
-  ]
+    ##"AntiKt10LCTopoJets"
+    'AntiKt4EMTopoJets',
+    # 'AntiKt4PV0TrackJets',
+    # 'AntiKt3PV0TrackJets',
+    # 'AntiKt2PV0TrackJets',
+    #'AntiKt4LCTopoJets',
+    ]
 
 #### automatic AF2 switch
 #### reading from outside the ReduceInfo
@@ -42,8 +42,8 @@ from AthenaCommon.AthenaCommonFlags import jobproperties as jp
 jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(10)
 
 jp.AthenaCommonFlags.FilesInput = [
-  "/afs/cern.ch/work/m/malanfer/public/training/AOD.root"
-  ]
+    "/afs/cern.ch/work/m/malanfer/public/training/AOD.root"
+]
 
 ##svcMgr.EventSelector.InputCollections = jp.AthenaCommonFlags.FilesInput()
 from PyUtils import AthFile
@@ -60,12 +60,13 @@ svcMgr += CfgMgr.AthenaEventLoopMgr( EventPrintoutInterval=evtPrintoutInterval )
 svcMgr += CfgMgr.THistSvc()
 from btagIBLAnalysis.configHelpers import get_short_name
 for jet in JetCollections:
-  shortJetName=get_short_name(jet)
-  svcMgr.THistSvc.Output += [ shortJetName+" DATAFILE='flav_"+shortJetName+".root' OPT='RECREATE'"]
+    shortJetName=get_short_name(jet)
+    svcMgr.THistSvc.Output += [
+        shortJetName+" DATAFILE='flav_"+shortJetName+".root' OPT='RECREATE'"]
 
 
-##########################################################################################################################################################
-##########################################################################################################################################################
+##############################################################################
+##############################################################################
 ### VD: put first all the RecExCommon things, then the B-tagging stuff
 
 ## from Anthony: needed to compute truth quantities of tracks
@@ -100,8 +101,8 @@ include ("RecExCommon/RecExCommon_topOptions.py")
 from AthenaCommon.AlgSequence import AlgSequence
 algSeq = AlgSequence()
 
-##########################################################################################################################################################
-##########################################################################################################################################################
+##############################################################################
+##############################################################################
 ### GEO Business
 from AthenaCommon.GlobalFlags import globalflags
 print "detDescr from global flags= "+str(globalflags.DetDescrVersion)
@@ -110,8 +111,8 @@ print "geoFlags.Run()   = "+geoFlags.Run()
 print "geoFlags.isIBL() = "+str(  geoFlags.isIBL() )
 
 
-##########################################################################################################################################################
-##########################################################################################################################################################
+##############################################################################
+##############################################################################
 ### VD: this is if you want to re-tag with another calibration file
 from BTagging.BTaggingFlags import BTaggingFlags
 
@@ -137,65 +138,65 @@ doComputeReference = False
 doRecomputePV = False
 include("RetagFragment.py")
 
-##########################################################################################################################################################
-##########################################################################################################################################################
-##########################################################################################################################################################
-##########################################################################################################################################################
+#############################################################################
+#############################################################################
+#############################################################################
+#############################################################################
 ### Additional Tools needed by the dumper
 from btagIBLAnalysis.configHelpers import setupTools
 setupTools(ToolSvc, CfgMgr)
 
-##########################################################################################################################################################
-##########################################################################################################################################################
-##########################################################################################################################################################
-##########################################################################################################################################################
+#############################################################################
+#############################################################################
+#############################################################################
+#############################################################################
 
 ipnn_inputs = []
 
 ### Main Ntuple Dumper Algorithm
 for JetCollection in JetCollections:
-  shortJetName=get_short_name(JetCollection)
-  alg = CfgMgr.btagIBLAnalysisAlg(
-    "BTagDumpAlg_"+JetCollection,
-    OutputLevel=INFO,
-    Stream=shortJetName,
-    InDetTrackSelectionTool   =ToolSvc.InDetTrackSelTool,
-    CPTrackingLooseLabel = ToolSvc.CPTrackingLooseLabel,
-    TrackVertexAssociationTool=ToolSvc.TightVertexAssocTool,
-    TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator,
-    JVTtool=ToolSvc.JVT,
-  ) #DEBUG
-  alg.JetCollectionName = JetCollection
-  alg.doSMT = doSMT
-  if "AntiKt2PV0TrackJets" in JetCollection or "Truth" in JetCollection:
-    alg.JetPtCut = 10.e3
-    alg.CleanJets     = False
-    alg.CalibrateJets = False
-  elif "AntiKt3PV0TrackJets" in JetCollection or "AntiKt4PV0TrackJets" in JetCollection:
-    alg.JetPtCut = 7.e3
-    alg.CleanJets     = False
-    alg.CalibrateJets = False
-  else:
-    alg.JetPtCut = 20.e3
-  alg.doSMT     =doSMT
-  alg.ReduceInfo=ReduceInfo
-  alg.EssentialInfo=ONLYEssentialInfo
-  alg.DoMSV     =DoMSV
-  alg.Rel20     =True
-  alg.JetCleaningTool.CutLevel= "LooseBad"
-  alg.JetCleaningTool.DoUgly  = True
-  algSeq += alg
+    shortJetName=get_short_name(JetCollection)
+    alg = CfgMgr.btagIBLAnalysisAlg(
+        "BTagDumpAlg_"+JetCollection,
+        OutputLevel=INFO,
+        Stream=shortJetName,
+        InDetTrackSelectionTool   =ToolSvc.InDetTrackSelTool,
+        CPTrackingLooseLabel = ToolSvc.CPTrackingLooseLabel,
+        TrackVertexAssociationTool=ToolSvc.TightVertexAssocTool,
+        TrackToVertexIPEstimator  =ToolSvc.trkIPEstimator,
+        JVTtool=ToolSvc.JVT,
+    ) #DEBUG
+    alg.JetCollectionName = JetCollection
+    alg.doSMT = doSMT
+    if "AntiKt2PV0TrackJets" in JetCollection or "Truth" in JetCollection:
+        alg.JetPtCut = 10.e3
+        alg.CleanJets     = False
+        alg.CalibrateJets = False
+    elif "AntiKt3PV0TrackJets" in JetCollection or "AntiKt4PV0TrackJets" in JetCollection:
+        alg.JetPtCut = 7.e3
+        alg.CleanJets     = False
+        alg.CalibrateJets = False
+    else:
+        alg.JetPtCut = 20.e3
+    alg.doSMT     =doSMT
+    alg.ReduceInfo=ReduceInfo
+    alg.EssentialInfo=ONLYEssentialInfo
+    alg.DoMSV     =DoMSV
+    alg.Rel20     =True
+    alg.JetCleaningTool.CutLevel= "LooseBad"
+    alg.JetCleaningTool.DoUgly  = True
+    algSeq += alg
 
-  # add RNN outputs
-  for tagger in rnn_taggers:
-    for flav in ['pu', 'pc', 'pb', 'ptau']:
-      alg.ArbitraryDoubleBranches.append(tagger + '_' + flav)
-    for inpt in ipnn_inputs:
-      alg.ArbitraryFloatVectorBranches.append(tagger + '_' + inpt)
+    # add RNN outputs
+    for tagger in rnn_taggers:
+        for flav in ['pu', 'pc', 'pb', 'ptau']:
+            alg.ArbitraryDoubleBranches.append(tagger + '_' + flav)
+        for inpt in ipnn_inputs:
+            alg.ArbitraryFloatVectorBranches.append(tagger + '_' + inpt)
 
-  ###print JetCollection
-  from btagIBLAnalysis.configHelpers import get_calibration_tool
-  ToolSvc += get_calibration_tool(CfgMgr, JetCollection, isAF2)
+    ###print JetCollection
+    from btagIBLAnalysis.configHelpers import get_calibration_tool
+    ToolSvc += get_calibration_tool(CfgMgr, JetCollection, isAF2)
 
 
-###########################################################################################################################################################################
+##############################################################################
