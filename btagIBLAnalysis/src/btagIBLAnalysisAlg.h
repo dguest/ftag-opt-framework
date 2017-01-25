@@ -289,6 +289,7 @@ private:
   std::vector<float> *v_jet_jf_scaled_efc;
 
   // additions by Andrea
+  std::vector<double> *v_jet_mu_smt;
   std::vector<float> *v_jet_mu_truthflav;
   std::vector<float> *v_jet_mu_dR;
   std::vector<float> *v_jet_mu_pTrel;

@@ -439,6 +439,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_jf_scaled_efc  = new std::vector<float>();
 
   // additions by andrea
+  v_jet_mu_smt = new std::vector<double>();
   v_jet_mu_assJet_pt = new std::vector<float>();
   v_jet_mu_truthflav = new std::vector<float>();
   v_jet_mu_dR = new std::vector<float>();
@@ -666,6 +667,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
 
   // additions by andrea
   if (m_SMT) {
+    tree->Branch("jet_mu_smt", &v_jet_mu_smt);
     tree->Branch("jet_mu_assJet_pt", &v_jet_mu_assJet_pt);
     tree->Branch("jet_mu_truthflav", &v_jet_mu_truthflav);
     tree->Branch("jet_mu_dR", &v_jet_mu_dR);
@@ -1719,6 +1721,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
     v_jet_sv0_Nvtx->push_back(SV0vertices.size());
 
+    double jet_mu_dRmin_smt=999;
     float jet_mu_dRmin_pt=999,jet_mu_dRmin_dR=999,jet_mu_dRmin_truthflav=999,jet_mu_dRmin_eta=999,jet_mu_dRmin_phi=999,jet_mu_dRmin_assJet_pt=999,jet_mu_dRmin_qOverPratio=999,jet_mu_dRmin_mombalsignif=999,jet_mu_dRmin_scatneighsignif=999,jet_mu_dRmin_pTrel=999,jet_mu_dRmin_VtxTyp=999,jet_mu_dRmin_d0=999,jet_mu_dRmin_z0=999,jet_mu_dRmin_parent_pdgid=999,jet_mu_dRmin_ID_qOverP_var=999,jet_mu_dRmin_muonType=999;
     float jet_mu_fatjet_nMu = 0, jet_mu_fatjet_pTmax_pT = 999, jet_mu_fatjet_pTmax_pTrel = 999, jet_mu_fatjet_pTmax_pTrelFrac = 999;
     if (m_SMT) {
@@ -1766,6 +1769,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
       // new from Valerio: if the variables are already available, do not calculate them
       if ( bjet->isAvailable<float>("SMT_mu_pt") ) {
 	//std::cout << "SMT info already available, will get them from there ... " << std::endl;
+	jet_mu_dRmin_smt            = bjet->auxdata<double>("SMT_discriminant");
 	jet_mu_dRmin_dR             = bjet->auxdata<float>("SMT_dR");
 	jet_mu_dRmin_pt             = bjet->auxdata<float>("SMT_mu_pt");
 	jet_mu_dRmin_qOverPratio    = bjet->auxdata<float>("SMT_qOverPratio");
@@ -1898,6 +1902,7 @@ StatusCode btagIBLAnalysisAlg::execute() {
 
 
     if (m_SMT) {
+      v_jet_mu_smt->push_back(jet_mu_dRmin_smt);
       v_jet_mu_assJet_pt->push_back(jet_mu_dRmin_assJet_pt);
       v_jet_mu_truthflav->push_back(jet_mu_dRmin_truthflav);
       v_jet_mu_pt->push_back(jet_mu_dRmin_pt);
@@ -2455,6 +2460,7 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_jf_scaled_efc->clear();
 
   // additions by andrea
+  v_jet_mu_smt->clear();
   v_jet_mu_pt->clear();
   v_jet_mu_eta->clear();
   v_jet_mu_phi->clear();
