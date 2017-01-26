@@ -6,7 +6,7 @@ ONLYEssentialInfo =False   ## write minimal amount of info on the output file
 ReduceInfo        =False    ## write minimal amount of info on the output file
 DoMSV             =False   ## include variables for MSV tagger
 doSMT             =False   ## include variables for SMT tagger
-doRetag           =False   ## perform retagging
+doRetag           =True   ## perform retagging
 doComputeReference=False
 JetCollections = [
   ##"AntiKt10LCTopoJets"
@@ -132,6 +132,8 @@ print "geoFlags.isIBL() = "+str(  geoFlags.isIBL() )
 ### VD: this is if you want to re-tag with another calibration file
 from BTagging.BTaggingFlags import BTaggingFlags
 
+BTaggingFlags.OutputLevel = DEBUG
+
 #### if the new file is already in the datatbase: simple edit the name
 ###############BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-10'
 
@@ -205,6 +207,7 @@ for JetCollection in JetCollections:
   alg.kShortBranches  = False
   alg.kShortRecoBranches  = False
   alg.JetCollectionName = JetCollection
+  alg.svxCollections = {'jet_sv1_': 'SV1'}
   alg.doSMT = doSMT
   if "AntiKt2PV0TrackJets" in JetCollection or "Truth" in JetCollection:
     alg.JetPtCut = 10.e3

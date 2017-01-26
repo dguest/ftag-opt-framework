@@ -167,6 +167,7 @@ for JetCollection in JetCollections:
         JVTtool=ToolSvc.JVT,
     ) #DEBUG
     alg.JetCollectionName = JetCollection
+    alg.svxCollections = {'jet_sv1_': 'SV1'}
     alg.doSMT = doSMT
     if "AntiKt2PV0TrackJets" in JetCollection or "Truth" in JetCollection:
         alg.JetPtCut = 10.e3

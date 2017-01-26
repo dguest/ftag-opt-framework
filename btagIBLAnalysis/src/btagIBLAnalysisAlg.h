@@ -12,6 +12,7 @@
 #include "JetFitterBranches.hh"
 #include "SubstructureMomentBranches.hh"
 #include "UnclusteredVertexBranches.hh"
+#include "SVBranches.hh"
 
 #include "AthenaBaseComps/AthHistogramAlgorithm.h"
 #include "GaudiKernel/ToolHandle.h"
@@ -154,34 +155,18 @@ private:
   std::vector<float> *v_jet_ip3d_llr;
 
   // SV0
-  std::vector<float> *v_jet_sv0_sig3d;
-  std::vector<int> *v_jet_sv0_ntrkj;
-  std::vector<int> *v_jet_sv0_ntrkv;
-  std::vector<int> *v_jet_sv0_n2t;
-  std::vector<float> *v_jet_sv0_m;
-  std::vector<float> *v_jet_sv0_efc;
-  std::vector<float> *v_jet_sv0_normdist;
-  std::vector<int> *v_jet_sv0_Nvtx;
-  std::vector<std::vector<float> > *v_jet_sv0_vtxx;
-  std::vector<std::vector<float> > *v_jet_sv0_vtxy;
-  std::vector<std::vector<float> > *v_jet_sv0_vtxz;
+  // std::vector<std::vector<float> > *v_jet_sv0_vtxx;
+  // std::vector<std::vector<float> > *v_jet_sv0_vtxy;
+  // std::vector<std::vector<float> > *v_jet_sv0_vtxz;
 
   // SV1
-  std::vector<int> *v_jet_sv1_ntrkj;
-  std::vector<int> *v_jet_sv1_ntrkv;
-  std::vector<int> *v_jet_sv1_n2t;
-  std::vector<float> *v_jet_sv1_m;
-  std::vector<float> *v_jet_sv1_efc;
-  std::vector<float> *v_jet_sv1_normdist;
   std::vector<float> *v_jet_sv1_pb;
   std::vector<float> *v_jet_sv1_pc;
   std::vector<float> *v_jet_sv1_pu;
   std::vector<float> *v_jet_sv1_llr;
-  std::vector<int>   *v_jet_sv1_Nvtx;
-  std::vector<float> *v_jet_sv1_sig3d;
-  std::vector<std::vector<float> > *v_jet_sv1_vtxx;
-  std::vector<std::vector<float> > *v_jet_sv1_vtxy;
-  std::vector<std::vector<float> > *v_jet_sv1_vtxz;
+  // std::vector<std::vector<float> > *v_jet_sv1_vtxx;
+  // std::vector<std::vector<float> > *v_jet_sv1_vtxy;
+  // std::vector<std::vector<float> > *v_jet_sv1_vtxz;
 
 
 
@@ -202,13 +187,6 @@ private:
   std::vector<float> *v_jet_dl1_pb;
   std::vector<float> *v_jet_dl1_pc;
   std::vector<float> *v_jet_dl1_pu;
-
-
-  std::vector<double> *v_jet_ip2dNT_llr;
-  std::vector<double> *v_jet_ip3dNT_llr;
-  std::vector<double> *v_jet_sv1flip_llr;
-  std::vector<double> *v_jet_jfflip_llr;
-  std::vector<double> *v_jet_mv2c20flip;
 
   //MSV
   std::vector<double> *v_jet_multisvbb1;
@@ -270,7 +248,6 @@ private:
   std::vector<std::vector<float> > *v_jet_trk_IP3D_z0;
   std::vector<std::vector<float> > *v_jet_trk_IP3D_d0sig;
   std::vector<std::vector<float> > *v_jet_trk_IP3D_z0sig;
-  std::vector<std::vector<float> > *v_jet_trk_IP2D_llr;
   std::vector<std::vector<float> > *v_jet_trk_IP3D_llr;
 
   std::vector<std::vector<int> > *v_jet_trk_jf_Vertex; //mod Remco
@@ -354,6 +331,11 @@ private:
   std::string m_triggerLogic;
 
   // additions by Dan: branch collections
+
+  // SVx branches
+  // first is the prefix in the ntuple, second is edm name
+  std::map<std::string, std::string> m_svx_collections;
+  std::vector<SVBranches*> m_svx_branches;
 
   // B-hadron quantities
   BHadronBranches m_bhadron_branches;
