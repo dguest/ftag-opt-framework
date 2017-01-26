@@ -726,7 +726,6 @@ void BHadronBranches::fill(const xAOD::Jet& jet, std::string jetCollectionName) 
   m_branches->nBHadr->push_back(ghostB.size());
   m_branches->nCHadr->push_back(ghostC.size());
 
-  m_branches->bH_pt->push_back(j_bH_pt);
   m_branches->bH_pdgId->push_back(j_bH_pdgId);
   m_branches->bH_parent_pdgId->push_back(j_bH_parent_pdgId);
   m_branches->bH_pt->push_back(j_bH_pt);
@@ -765,7 +764,6 @@ void BHadronBranches::fill(const xAOD::Jet& jet, std::string jetCollectionName) 
   m_branches->bH_child_decay_z->push_back(j_bH_child_decay_z);
 
 
-  m_branches->cH_pt->push_back(j_cH_pt);
   m_branches->cH_pdgId->push_back(j_cH_pdgId);
   m_branches->cH_parent_pdgId->push_back(j_cH_parent_pdgId);
   m_branches->cH_pt->push_back(j_cH_pt);
