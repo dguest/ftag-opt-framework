@@ -86,6 +86,7 @@ void SVBranches::fill(const xAOD::BTagging& btag) {
     m_branches->NGTinSvx->push_back(-1);
     m_branches->N2Tpair->push_back(-1);
     m_branches->masssvx->push_back(-99);
+    m_branches->efracsvx->push_back(-99);
     m_branches->normdist->push_back(-99);
     m_branches->significance3d->push_back(-99);
   }
