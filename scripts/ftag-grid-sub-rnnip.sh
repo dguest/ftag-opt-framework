@@ -16,7 +16,7 @@ DSS=(
 )
 
 for DS in ${DSS[*]}; do
-    ${SCRIPT_DIR}/ftag-grid-sub.sh -j $JO -d $DS -u -z job.tar
+    ${SCRIPT_DIR}/ftag-grid-sub.sh -j $JO -d $DS -u -z job.tar -e
 done
 
 

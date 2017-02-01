@@ -117,6 +117,7 @@ print "geoFlags.isIBL() = "+str(  geoFlags.isIBL() )
 from BTagging.BTaggingFlags import BTaggingFlags
 
 BTaggingFlags.JetVertexCharge = False
+# BTaggingFlags.WriteRNNInputs = True
 
 #### if the new file is already in the datatbase: simple edit the name
 # BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-30'
@@ -151,6 +152,32 @@ setupTools(ToolSvc, CfgMgr)
 #############################################################################
 #############################################################################
 
+ipnn_inputs = [
+    "d0",
+    "d0sig",
+    "z0",
+    "z0sig",
+    "d0z0sig",
+    "grade",
+    "fromV0",
+    "pt",
+    "dPhi",
+    "absEta",
+    "pTFrac",
+    "dR",
+    "chi2",
+    "nInnHits",
+    "nNextToInnHits",
+    "nBLHits",
+    "nsharedBLHits",
+    "nsplitBLHits",
+    "nPixHits",
+    "nsharedPixHits",
+    "nsplitPixHits",
+    "nSCTHits",
+    "nsharedSCTHits",
+    "expectBLayerHit",
+]
 ipnn_inputs = []
 
 ### Main Ntuple Dumper Algorithm
@@ -192,12 +219,16 @@ for JetCollection in JetCollections:
     for tagger in rnn_taggers:
         for flav in ['pu', 'pc', 'pb', 'ptau']:
             alg.ArbitraryDoubleBranches.append(tagger + '_' + flav)
-        for inpt in ipnn_inputs:
-            alg.ArbitraryFloatVectorBranches.append(tagger + '_' + inpt)
+
+    # we only write out the first tagger inputs in Athena
+    tagger = sorted(rnn_taggers)[0]
+    for inpt in ipnn_inputs:
+        alg.ArbitraryFloatVectorBranches.append(tagger + '_' + inpt)
 
     ###print JetCollection
     from btagIBLAnalysis.configHelpers import get_calibration_tool
     ToolSvc += get_calibration_tool(CfgMgr, JetCollection, isAF2)
+    print alg
 
 
 ##############################################################################

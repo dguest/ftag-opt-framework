@@ -73,11 +73,9 @@ if ! git diff-index --quiet HEAD && [[ ! $FORCE ]]; then
 fi
 
 SCRIPT_DIR=$(dirname $BASH_SOURCE)
-OUT_OPTS=$(${SCRIPT_DIR}/ftag-grid-name.sh $DS $TAG)
 
 # setup options
-OPTS=${OUT_OPTS}
-OPTS+=" --nFilesPerJob 5"
+OPTS=" --nFilesPerJob 5"
 # OPTS+=" --excludedSite=ANALY_FZK,ANALY_FZK_HI"
 if [[ -n $UPLOAD_LOCAL ]] ; then
     JSON_FILES=$(echo *.json | tr " " ",")
@@ -86,8 +84,15 @@ if [[ -n $UPLOAD_LOCAL ]] ; then
         DB_FILES=""
         DB_FILES+=$(echo BTag*.root *.db | tr " " ",")
         OPTS+=",$DB_FILES"
+        if [[ -z $TAG ]] ; then
+            TAG=db-$(sha1sum BTag*.root | head -c 8)
+        fi
     fi
 fi
+
+OUT_OPTS=$(${SCRIPT_DIR}/ftag-grid-name.sh $DS $TAG)
+OPTS=${OUT_OPTS}
+
 
 # pack stuff into a tarball before submitting
 if [[ -n $ZIP ]] ; then
