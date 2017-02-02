@@ -91,7 +91,7 @@ if [[ -n $UPLOAD_LOCAL ]] ; then
 fi
 
 OUT_OPTS=$(${SCRIPT_DIR}/ftag-grid-name.sh $DS $TAG)
-OPTS+=${OUT_OPTS}
+OPTS+=" ${OUT_OPTS}"
 
 
 # pack stuff into a tarball before submitting
