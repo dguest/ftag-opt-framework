@@ -7,6 +7,10 @@ else
     set -eu
 fi
 
+ZIPFILE=job.tar
+if [[ -f $ZIPFILE ]] ; then
+    rm $ZIPFILE
+fi
 
 SCRIPT_DIR=$(dirname $BASH_SOURCE)
 JO=jobOptions_ipmp.py
