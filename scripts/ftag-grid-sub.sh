@@ -10,6 +10,7 @@ fi
 # defaults
 JO=jobOptions_ipmp.py
 DS=mc15_13TeV:mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.DAOD_FTAG2.e3698_s2608_s2183_r7725_r7676_p2625/
+N_FILES_PER_JOB=5
 
 _usage() {
     echo "usage: ${0##*/} [-h] [options]"
@@ -39,6 +40,7 @@ Options:
  -u: upload local json files
  -e: test run, just echo command
  -f: force submit even if uncommited changes exist
+ -p <number>: nfiles per job (default ${N_FILES_PER_JOB})
 
 EOF
 }
@@ -49,7 +51,7 @@ TAG=""
 UPLOAD_LOCAL=""
 ZIP=""
 FORCE=""
-while getopts ":hn:j:d:t:z:uef" opt $@; do
+while getopts ":hn:j:d:t:z:uefp:" opt $@; do
     case $opt in
         h) _help; exit 1;;
         n) OPTS+=" --nFiles ${OPTARG}";;
@@ -60,6 +62,7 @@ while getopts ":hn:j:d:t:z:uef" opt $@; do
         u) UPLOAD_LOCAL=1;;
         e) ECHO=1;;
         f) FORCE=1;;
+        p) N_FILES_PER_JOB=${OPTARG};;
         # handle errors
         \?) _usage; echo "Unknown option: -$OPTARG" >&2; exit 1;;
         :) _usage; echo "Missing argument for -$OPTARG" >&2; exit 1;;
@@ -75,7 +78,7 @@ fi
 SCRIPT_DIR=$(dirname $BASH_SOURCE)
 
 # setup options
-OPTS=" --nFilesPerJob 5"
+OPTS=" --nFilesPerJob $N_FILES_PER_JOB"
 # OPTS+=" --excludedSite=ANALY_FZK,ANALY_FZK_HI"
 if [[ -n $UPLOAD_LOCAL ]] ; then
     JSON_FILES=$(echo *.json | tr " " ",")
