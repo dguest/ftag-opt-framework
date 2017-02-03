@@ -4,7 +4,6 @@
 mkdir -p packages
 cd packages
 
-svnco ParticleJetTools-00-03-52
 svnco JetTagTools
 svnco BTagging
 
