@@ -127,7 +127,7 @@ BTaggingFlags.CalibrationFromLocalReplica = True
 BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
 BTaggingFlags.CalibrationTag = 'BTagCalibRUN2-test'
 
-rnn_taggers = ['ptrw_hits', 'ptrw_grade']
+rnn_taggers = ['rnnip']
 
 BTaggingFlags.RNNIP = True
 # blank second field means read from DB
