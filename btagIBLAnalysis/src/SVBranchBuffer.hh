@@ -17,6 +17,10 @@ struct SVAccessors {
   SG::AuxElement::ConstAccessor<float> normdist;
   SG::AuxElement::ConstAccessor<float> significance3d;
 
+  SG::AuxElement::ConstAccessor<float> deltaR;
+  SG::AuxElement::ConstAccessor<float> Lxy;
+  SG::AuxElement::ConstAccessor<float> L3d;
+
   SVAccessors(const std::string& prefix):
 #define SET_PREFIX(name) name(prefix + "_" #name)
     SET_PREFIX(vertices),
@@ -26,7 +30,10 @@ struct SVAccessors {
     SET_PREFIX(masssvx),
     SET_PREFIX(efracsvx),
     SET_PREFIX(normdist),
-    SET_PREFIX(significance3d)
+    SET_PREFIX(significance3d),
+    SET_PREFIX(deltaR),
+    SET_PREFIX(Lxy),
+    SET_PREFIX(L3d)
     {}
 #undef SET_PREFIX
 
@@ -42,6 +49,10 @@ struct SVBranchBuffer {
   std::vector<float>* efracsvx;
   std::vector<float>* normdist;
   std::vector<float>* significance3d;
+
+  std::vector<float>* deltaR;
+  std::vector<float>* Lxy;
+  std::vector<float>* L3d;
 
   std::vector<std::vector<float> >* vtxx;
   std::vector<std::vector<float> >* vtxy;

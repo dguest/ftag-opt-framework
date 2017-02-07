@@ -28,6 +28,10 @@ SVBranches::SVBranches(const std::string& prefix):
   m_branches->normdist = new vf_t;
   m_branches->significance3d = new vf_t;
 
+  m_branches->deltaR = new vf_t;
+  m_branches->Lxy = new vf_t;
+  m_branches->L3d = new vf_t;
+
   m_branches->vtxx = new vvf_t;
   m_branches->vtxy = new vvf_t;
   m_branches->vtxz = new vvf_t;
@@ -41,6 +45,10 @@ SVBranches::~SVBranches() {
   delete m_branches->efracsvx;
   delete m_branches->normdist;
   delete m_branches->significance3d;
+
+  delete m_branches->deltaR;
+  delete m_branches->Lxy;
+  delete m_branches->L3d;
 
   delete m_branches->vtxx;
   delete m_branches->vtxy;
@@ -58,8 +66,11 @@ void SVBranches::set_tree(TTree& tree, const std::string& pfx) const {
   tree.Branch((pfx + "m").c_str(), &m_branches->masssvx);
   tree.Branch((pfx + "efc").c_str(), &m_branches->efracsvx);
   tree.Branch((pfx + "sig3d").c_str(), &m_branches->significance3d);
-#define BRANCH(name) tree.Branch((pfx + "_" #name).c_str(), &m_branches->name)
+#define BRANCH(name) tree.Branch((pfx + #name).c_str(), &m_branches->name)
   BRANCH(normdist);
+  BRANCH(deltaR);
+  BRANCH(Lxy);
+  BRANCH(L3d);
 #undef BRANCH
   tree.Branch((pfx + "vtx_x").c_str(), &m_branches->vtxx);
   tree.Branch((pfx + "vtx_y").c_str(), &m_branches->vtxy);
@@ -79,6 +90,9 @@ void SVBranches::fill(const xAOD::BTagging& btag) {
     FILL(efracsvx);
     FILL(normdist);
     FILL(significance3d);
+    FILL(deltaR);
+    FILL(Lxy);
+    FILL(L3d);
 #undef FILL
   } else {
     // this is supposed to mimic what we do in MV2
@@ -89,6 +103,9 @@ void SVBranches::fill(const xAOD::BTagging& btag) {
     m_branches->efracsvx->push_back(-99);
     m_branches->normdist->push_back(-99);
     m_branches->significance3d->push_back(-99);
+    m_branches->deltaR->push_back(NAN);
+    m_branches->Lxy->push_back(NAN);
+    m_branches->L3d->push_back(NAN);
   }
 
   m_branches->vtxx->emplace_back();
@@ -117,6 +134,10 @@ void SVBranches::clear() {
   m_branches->efracsvx->clear();
   m_branches->normdist->clear();
   m_branches->significance3d->clear();
+
+  m_branches->deltaR->clear();
+  m_branches->Lxy->clear();
+  m_branches->L3d->clear();
 
   m_branches->vtxx->clear();
   m_branches->vtxy->clear();
