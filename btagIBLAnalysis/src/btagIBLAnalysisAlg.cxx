@@ -332,11 +332,21 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_dl1_pc=new std::vector<float>();
   v_jet_dl1_pu=new std::vector<float>();
 
+  v_jet_dl1mu_pb=new std::vector<float>();
+  v_jet_dl1mu_pc=new std::vector<float>();
+  v_jet_dl1mu_pu=new std::vector<float>();
+
+  v_jet_dl1rnn_pb=new std::vector<float>();
+  v_jet_dl1rnn_pc=new std::vector<float>();
+  v_jet_dl1rnn_pu=new std::vector<float>();
+
   v_jet_sv1ip3d = new std::vector<double>();
   v_jet_mv1 = new std::vector<double>();
   v_jet_mv1c = new std::vector<double>();
   v_jet_mv2c00 = new std::vector<double>();
   v_jet_mv2c10 = new std::vector<double>();
+  v_jet_mv2c10mu = new std::vector<double>();
+  v_jet_mv2c10rnn = new std::vector<double>();
   v_jet_mv2c20 = new std::vector<double>();
   v_jet_mv2c100 = new std::vector<double>();
   v_jet_mv2cl100 = new std::vector<double>();
@@ -521,15 +531,25 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   if (!m_essentialInfo) tree->Branch("jet_sv1_pu", &v_jet_sv1_pu);
   tree->Branch("jet_sv1_llr", &v_jet_sv1_llr);
 
-  if (!m_essentialInfo) tree->Branch("jet_dl1_pb",&v_jet_dl1_pb);
-  if (!m_essentialInfo) tree->Branch("jet_dl1_pc",&v_jet_dl1_pc);
-  if (!m_essentialInfo) tree->Branch("jet_dl1_pu",&v_jet_dl1_pu);
+  tree->Branch("jet_dl1_pb",&v_jet_dl1_pb);
+  tree->Branch("jet_dl1_pc",&v_jet_dl1_pc);
+  tree->Branch("jet_dl1_pu",&v_jet_dl1_pu);
+
+  tree->Branch("jet_dl1mu_pb",&v_jet_dl1mu_pb);
+  tree->Branch("jet_dl1mu_pc",&v_jet_dl1mu_pc);
+  tree->Branch("jet_dl1mu_pu",&v_jet_dl1mu_pu);
+
+  tree->Branch("jet_dl1rnn_pb",&v_jet_dl1rnn_pb);
+  tree->Branch("jet_dl1rnn_pc",&v_jet_dl1rnn_pc);
+  tree->Branch("jet_dl1rnn_pu",&v_jet_dl1rnn_pu);
 
   if (!m_essentialInfo) tree->Branch("jet_sv1ip3d", &v_jet_sv1ip3d);
   if (!m_essentialInfo) tree->Branch("jet_mv1", &v_jet_mv1);
   if (!m_essentialInfo) tree->Branch("jet_mv1c", &v_jet_mv1c);
   tree->Branch("jet_mv2c00", &v_jet_mv2c00);
   tree->Branch("jet_mv2c10", &v_jet_mv2c10);
+  tree->Branch("jet_mv2c10mu", &v_jet_mv2c10mu);
+  tree->Branch("jet_mv2c10rnn", &v_jet_mv2c10rnn);
   tree->Branch("jet_mv2c20", &v_jet_mv2c20);
   tree->Branch("jet_mv2c100", &v_jet_mv2c100);
   tree->Branch("jet_mv2cl100", &v_jet_mv2cl100);
@@ -1142,14 +1162,14 @@ StatusCode btagIBLAnalysisAlg::execute() {
       jet->getAttribute("HadronConeExclTruthLabelID", tmpLabel);
     } catch(...) {};
     v_jet_LabDr_HadF->push_back(tmpLabel);
-    
+
     int tmpLabelDoubleHadron = -1;
     try {
       jet->getAttribute("HadronConeExclExtendedTruthLabelID", tmpLabelDoubleHadron);
     } catch(...) {};
     v_jet_DoubleHadLabel->push_back(tmpLabelDoubleHadron);
-    
-    
+
+
     // requested by P.Berta
     float mindRtoB = 10;
     float mindRtoC = 10;
@@ -1296,6 +1316,16 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_dl1_pc->push_back(bjet->auxdata<double>("DL1_pc"));
       v_jet_dl1_pu->push_back(bjet->auxdata<double>("DL1_pu"));
     } catch(...) {}
+    try {
+      v_jet_dl1mu_pb->push_back(bjet->auxdata<double>("DL1mu_pb"));
+      v_jet_dl1mu_pc->push_back(bjet->auxdata<double>("DL1mu_pc"));
+      v_jet_dl1mu_pu->push_back(bjet->auxdata<double>("DL1mu_pu"));
+    } catch(...) {}
+      try {
+      v_jet_dl1rnn_pb->push_back(bjet->auxdata<double>("DL1rnn_pb"));
+      v_jet_dl1rnn_pc->push_back(bjet->auxdata<double>("DL1rnn_pc"));
+      v_jet_dl1rnn_pu->push_back(bjet->auxdata<double>("DL1rnn_pu"));
+    } catch(...) {}
 
     // Other
     v_jet_sv1ip3d->push_back(bjet->SV1plusIP3D_discriminant());
@@ -1304,13 +1334,15 @@ StatusCode btagIBLAnalysisAlg::execute() {
       v_jet_mv1c   ->push_back(bjet->auxdata<double>("MV1c_discriminant"));
     } catch(...){ }
 
-    try {
-      v_jet_mv2c00->push_back(bjet->auxdata<double>("MV2c00_discriminant"));
-      v_jet_mv2c10->push_back(bjet->auxdata<double>("MV2c10_discriminant"));
-      v_jet_mv2c20->push_back(bjet->auxdata<double>("MV2c20_discriminant"));
-      v_jet_mv2c100->push_back(bjet->auxdata<double>("MV2c100_discriminant"));
-      v_jet_mv2cl100->push_back(bjet->auxdata<double>("MV2cl100_discriminant"));
-    } catch(...) { }
+
+      try { v_jet_mv2c00->push_back(bjet->auxdata<double>("MV2c00_discriminant")); } catch(...) { }
+      try { v_jet_mv2c10->push_back(bjet->auxdata<double>("MV2c10_discriminant")); } catch(...) { }
+      try { v_jet_mv2c10mu->push_back(bjet->auxdata<double>("MV2c10mu_discriminant")); } catch(...) { }
+      try { v_jet_mv2c10rnn->push_back(bjet->auxdata<double>("MV2c10rnn_discriminant")); } catch(...) { }
+      try { v_jet_mv2c20->push_back(bjet->auxdata<double>("MV2c20_discriminant")); } catch(...) { }
+      try { v_jet_mv2c100->push_back(bjet->auxdata<double>("MV2c100_discriminant")); } catch(...) { }
+      try { v_jet_mv2cl100->push_back(bjet->auxdata<double>("MV2cl100_discriminant")); } catch(...) { }
+
 
     try {
       v_jet_mv2m_pu->push_back(bjet->auxdata<double>("MV2m_pu"));
@@ -2209,11 +2241,22 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_dl1_pc->clear();
   v_jet_dl1_pu->clear();
 
+  v_jet_dl1mu_pb->clear();
+  v_jet_dl1mu_pc->clear();
+  v_jet_dl1mu_pu->clear();
+
+  v_jet_dl1rnn_pb->clear();
+  v_jet_dl1rnn_pc->clear();
+  v_jet_dl1rnn_pu->clear();
+
+
   v_jet_sv1ip3d->clear();
   v_jet_mv1->clear();
   v_jet_mv1c->clear();
   v_jet_mv2c00->clear();
   v_jet_mv2c10->clear();
+  v_jet_mv2c10mu->clear();
+  v_jet_mv2c10rnn->clear();
   v_jet_mv2c20->clear();
   v_jet_mv2c100->clear();
   v_jet_mv2cl100->clear();
