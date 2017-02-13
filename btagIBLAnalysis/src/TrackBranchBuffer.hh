@@ -12,9 +12,13 @@ struct TrackBranchBuffer {
   std::vector<std::vector<float> > *phi;
   std::vector<std::vector<float> > *qoverp;
 
+  std::vector<std::vector<float> > *charge;
+
   std::vector<std::vector<float> > *chi2;
   std::vector<std::vector<float> > *ndf;
 
+  // note: these don't use the EDM name, which is unnessisarily confusing
+  // but we do it for backward compatibitlity.
   std::vector<std::vector<int> > *nNextToInnHits;
   std::vector<std::vector<int> > *nInnHits;
   std::vector<std::vector<int> > *nBLHits; // soo this will be deprecated
@@ -28,6 +32,8 @@ struct TrackBranchBuffer {
   std::vector<std::vector<int> > *nSCTHoles;
   std::vector<std::vector<int> > *nsharedSCTHits;
 
+  // note: where possible (and when adding new branches) it's better to
+  // use the EDM name as we do here.
   std::vector<std::vector<int> > *expectBLayerHit;
   std::vector<std::vector<int> > *expectInnermostPixelLayerHit;
   std::vector<std::vector<int> > *expectNextToInnermostPixelLayerHit;

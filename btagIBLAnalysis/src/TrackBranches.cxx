@@ -25,8 +25,10 @@ TrackBranches::TrackBranches():
   m_branches->eta = new vvf_t;
   m_branches->theta = new vvf_t;
   m_branches->phi = new vvf_t;
-
   m_branches->qoverp = new vvf_t;
+
+  m_branches->charge = new vvf_t;
+
   m_branches->chi2 = new vvf_t;
   m_branches->ndf = new vvf_t;
 
@@ -66,8 +68,10 @@ TrackBranches::~TrackBranches()
   delete m_branches->eta;
   delete m_branches->theta;
   delete m_branches->phi;
-
   delete m_branches->qoverp;
+
+  delete m_branches->charge;
+
   delete m_branches->chi2;
   delete m_branches->ndf;
 
@@ -121,6 +125,8 @@ void TrackBranches::set_tree(TTree& output_tree,
   ADD_SIMPLE(phi);
   ADD_SIMPLE(qoverp);
 
+  ADD_SIMPLE(charge);
+
   ADD_SIMPLE(chi2);
   ADD_SIMPLE(ndf);
 
@@ -172,6 +178,8 @@ void TrackBranches::fill(const TrackBranches::PartVector& tracks,
   std::vector<float> phi;
   std::vector<float> qoverp;
 
+  std::vector<float> charge;
+
   std::vector<float> chi2;
   std::vector<float> ndf;
 
@@ -208,6 +216,9 @@ void TrackBranches::fill(const TrackBranches::PartVector& tracks,
     theta.push_back(tmpTrk->theta());
     phi.push_back(tmpTrk->phi());
     qoverp.push_back(tmpTrk->qOverP());
+
+    charge.push_back(tmpTrk->charge());
+
     chi2.push_back(tmpTrk->chiSquared());
     ndf.push_back(tmpTrk->numberDoF());
 
@@ -249,6 +260,8 @@ void TrackBranches::fill(const TrackBranches::PartVector& tracks,
   PUSH(phi);
   PUSH(qoverp);
 
+  PUSH(charge);
+
   PUSH(chi2);
   PUSH(ndf);
 
@@ -286,6 +299,8 @@ void TrackBranches::clear() {
   CLEAR(theta);
   CLEAR(phi);
   CLEAR(qoverp);
+
+  CLEAR(charge);
 
   CLEAR(chi2);
   CLEAR(ndf);
