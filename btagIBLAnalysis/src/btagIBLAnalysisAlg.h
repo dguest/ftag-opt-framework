@@ -176,6 +176,8 @@ private:
   std::vector<double> *v_jet_mv1c;
   std::vector<double> *v_jet_mv2c00;
   std::vector<double> *v_jet_mv2c10;
+  std::vector<double> *v_jet_mv2c10mu;
+  std::vector<double> *v_jet_mv2c10rnn;
   std::vector<double> *v_jet_mv2c20;
   std::vector<double> *v_jet_mv2c100;
   std::vector<double> *v_jet_mv2cl100;
@@ -188,6 +190,13 @@ private:
   std::vector<float> *v_jet_dl1_pc;
   std::vector<float> *v_jet_dl1_pu;
 
+  std::vector<float> *v_jet_dl1mu_pb;
+  std::vector<float> *v_jet_dl1mu_pc;
+  std::vector<float> *v_jet_dl1mu_pu;
+
+  std::vector<float> *v_jet_dl1rnn_pb;
+  std::vector<float> *v_jet_dl1rnn_pc;
+  std::vector<float> *v_jet_dl1rnn_pu;
   //MSV
   std::vector<double> *v_jet_multisvbb1;
   std::vector<double> *v_jet_multisvbb2;
