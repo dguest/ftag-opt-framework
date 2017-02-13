@@ -13,7 +13,7 @@ JetCollections = [
     # 'AntiKt4PV0TrackJets',
     # 'AntiKt3PV0TrackJets',
     # 'AntiKt2PV0TrackJets',
-    #'AntiKt4LCTopoJets',
+    'AntiKt4LCTopoJets',
     ]
 
 #### automatic AF2 switch
@@ -117,15 +117,14 @@ print "geoFlags.isIBL() = "+str(  geoFlags.isIBL() )
 from BTagging.BTaggingFlags import BTaggingFlags
 
 BTaggingFlags.JetVertexCharge = False
-# BTaggingFlags.WriteRNNInputs = True
 
 #### if the new file is already in the datatbase: simple edit the name
-# BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-30'
+BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-34'
 
 #### if you want to use your own calibration file use this part below
-BTaggingFlags.CalibrationFromLocalReplica = True
-BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
-BTaggingFlags.CalibrationTag = 'BTagCalibRUN2-test'
+# BTaggingFlags.CalibrationFromLocalReplica = True
+# BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
+# BTaggingFlags.CalibrationTag = 'BTagCalibRUN2-test'
 
 rnn_taggers = ['rnnip']
 
@@ -133,6 +132,7 @@ BTaggingFlags.RNNIP = True
 # blank second field means read from DB
 BTaggingFlags.RNNIPConfig = {x: '' for x in rnn_taggers}
 BTaggingFlags.OutputLevel = DEBUG
+# BTaggingFlags.WriteRNNInputs = True
 
 # some globals have to be defined for this to work
 doComputeReference = False
@@ -159,9 +159,11 @@ ipnn_inputs = [
     "z0sig",
     "d0z0sig",
     "grade",
+    "charge",
     "fromV0",
     "pt",
     "dPhi",
+    "dEta",
     "absEta",
     "pTFrac",
     "dR",
@@ -178,7 +180,8 @@ ipnn_inputs = [
     "nsharedSCTHits",
     "expectBLayerHit",
 ]
-ipnn_inputs = []
+if not BTaggingFlags.WriteRNNInputs:
+    ipnn_inputs = []
 
 ### Main Ntuple Dumper Algorithm
 for JetCollection in JetCollections:
