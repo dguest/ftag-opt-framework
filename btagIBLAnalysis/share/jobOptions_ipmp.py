@@ -126,7 +126,7 @@ BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-34'
 # BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
 # BTaggingFlags.CalibrationTag = 'BTagCalibRUN2-test'
 
-rnn_taggers = ['rnnip']
+rnn_taggers = ['rnnip', 'rnnipll']
 
 BTaggingFlags.RNNIP = True
 # blank second field means read from DB
