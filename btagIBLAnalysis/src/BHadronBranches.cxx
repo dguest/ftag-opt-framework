@@ -33,6 +33,7 @@ BHadronBranches::BHadronBranches():
   m_branches->bH_eta          = new std::vector<std::vector< float> >();
   m_branches->bH_phi          = new std::vector<std::vector< float> >();
   m_branches->bH_E            = new std::vector<std::vector< float> >();
+  m_branches->bH_charge       = new std::vector<std::vector< float> >();
   m_branches->bH_Lxy          = new std::vector<std::vector< float> >();
   m_branches->bH_x            = new std::vector<std::vector< float> >();
   m_branches->bH_y            = new std::vector<std::vector< float> >();
@@ -70,6 +71,7 @@ BHadronBranches::BHadronBranches():
   m_branches->cH_eta          = new std::vector<std::vector< float> >();
   m_branches->cH_phi          = new std::vector<std::vector< float> >();
   m_branches->cH_E            = new std::vector<std::vector< float> >();
+  m_branches->cH_charge       = new std::vector<std::vector< float> >();
   m_branches->cH_Lxy          = new std::vector<std::vector< float> >();
   m_branches->cH_x            = new std::vector<std::vector< float> >();
   m_branches->cH_y            = new std::vector<std::vector< float> >();
@@ -161,6 +163,7 @@ BHadronBranches::~BHadronBranches() {
   delete m_branches->bH_eta;
   delete m_branches->bH_phi;
   delete m_branches->bH_E;
+  delete m_branches->bH_charge;
   delete m_branches->bH_Lxy;
   delete m_branches->bH_x;
   delete m_branches->bH_y;
@@ -197,6 +200,7 @@ BHadronBranches::~BHadronBranches() {
   delete m_branches->cH_eta;
   delete m_branches->cH_phi;
   delete m_branches->cH_E;
+  delete m_branches->cH_charge;
   delete m_branches->cH_Lxy;
   delete m_branches->cH_x;
   delete m_branches->cH_y;
@@ -242,6 +246,7 @@ void BHadronBranches::set_tree(TTree& output_tree, bool extra_info) const {
   output_tree.Branch( "jet_bH_eta"         , &m_branches->bH_eta);
   output_tree.Branch( "jet_bH_phi"         , &m_branches->bH_phi);
   output_tree.Branch( "jet_bH_E"           , &m_branches->bH_E);
+  output_tree.Branch( "jet_bH_charge"      , &m_branches->bH_charge);
   output_tree.Branch( "jet_bH_Lxy"         , &m_branches->bH_Lxy);
   output_tree.Branch( "jet_bH_x"           , &m_branches->bH_x);
   output_tree.Branch( "jet_bH_y"           , &m_branches->bH_y);
@@ -254,6 +259,7 @@ void BHadronBranches::set_tree(TTree& output_tree, bool extra_info) const {
   output_tree.Branch( "jet_cH_eta"         , &m_branches->cH_eta);
   output_tree.Branch( "jet_cH_phi"         , &m_branches->cH_phi);
   output_tree.Branch( "jet_cH_E"           , &m_branches->cH_E);
+  output_tree.Branch( "jet_cH_charge"      , &m_branches->cH_charge);
   output_tree.Branch( "jet_cH_Lxy"         , &m_branches->cH_Lxy);
   output_tree.Branch( "jet_cH_x"           , &m_branches->cH_x);
   output_tree.Branch( "jet_cH_y"           , &m_branches->cH_y);
@@ -398,6 +404,7 @@ void BHadronBranches::fill(const xAOD::Jet& jet, std::string jetCollectionName) 
   std::vector<float>   j_bH_eta;
   std::vector<float>   j_bH_phi;
   std::vector<float>   j_bH_E;
+  std::vector<float>   j_bH_charge;
   std::vector<float>   j_bH_Lxy;
   std::vector<float>   j_bH_x;
   std::vector<float>   j_bH_y;
@@ -434,6 +441,7 @@ void BHadronBranches::fill(const xAOD::Jet& jet, std::string jetCollectionName) 
   std::vector<float>   j_cH_eta;
   std::vector<float>   j_cH_phi;
   std::vector<float>   j_cH_E;
+  std::vector<float>   j_cH_charge;
   std::vector<float>   j_cH_Lxy;
   std::vector<float>   j_cH_x;
   std::vector<float>   j_cH_y;
@@ -478,6 +486,7 @@ void BHadronBranches::fill(const xAOD::Jet& jet, std::string jetCollectionName) 
       j_bH_eta.push_back( myB->eta()  );
       j_bH_phi.push_back( myB->phi()  );
       j_bH_E.push_back( myB->e()  );
+      j_bH_charge.push_back( myB->charge() );
       j_bH_Lxy.push_back( sqrt( pow(myB->decayVtx()->x(), 2) + pow(myB->decayVtx()->y(), 2) )  );
       j_bH_x.push_back( myB->decayVtx()->x()  );
       j_bH_y.push_back( myB->decayVtx()->y() );
@@ -571,6 +580,7 @@ void BHadronBranches::fill(const xAOD::Jet& jet, std::string jetCollectionName) 
     j_bH_eta.push_back(-99);
     j_bH_phi.push_back(-99);
     j_bH_E.push_back(-99);
+    j_bH_charge.push_back(NAN);
     j_bH_Lxy.push_back(-99);
     j_bH_x.push_back(-99);
     j_bH_y.push_back(-99);
@@ -616,6 +626,7 @@ void BHadronBranches::fill(const xAOD::Jet& jet, std::string jetCollectionName) 
       j_cH_eta.push_back( myC->eta()  );
       j_cH_phi.push_back( myC->phi()  );
       j_cH_E.push_back( myC->e()  );
+      j_cH_charge.push_back( myC->charge() );
       j_cH_Lxy.push_back( sqrt( pow(myC->decayVtx()->x(), 2) + pow(myC->decayVtx()->y(), 2) )  );
       j_cH_x.push_back( myC->decayVtx()->x()  );
       j_cH_y.push_back( myC->decayVtx()->y() );
@@ -691,6 +702,7 @@ void BHadronBranches::fill(const xAOD::Jet& jet, std::string jetCollectionName) 
     j_cH_eta.push_back(-99);
     j_cH_phi.push_back(-99);
     j_cH_E.push_back(-99);
+    j_cH_charge.push_back(NAN);
     j_cH_Lxy.push_back(-99);
     j_cH_x.push_back(-99);
     j_cH_y.push_back(-99);
@@ -732,6 +744,7 @@ void BHadronBranches::fill(const xAOD::Jet& jet, std::string jetCollectionName) 
   m_branches->bH_eta->push_back(j_bH_eta);
   m_branches->bH_phi->push_back(j_bH_phi);
   m_branches->bH_E->push_back(j_bH_E);
+  m_branches->bH_charge->push_back(j_bH_charge);
   m_branches->bH_Lxy->push_back(j_bH_Lxy);
   m_branches->bH_x->push_back(j_bH_x);
   m_branches->bH_y->push_back(j_bH_y);
@@ -770,6 +783,7 @@ void BHadronBranches::fill(const xAOD::Jet& jet, std::string jetCollectionName) 
   m_branches->cH_eta->push_back(j_cH_eta);
   m_branches->cH_phi->push_back(j_cH_phi);
   m_branches->cH_E->push_back(j_cH_E);
+  m_branches->cH_charge->push_back(j_cH_charge);
   m_branches->cH_Lxy->push_back(j_cH_Lxy);
   m_branches->cH_x->push_back(j_cH_x);
   m_branches->cH_y->push_back(j_cH_y);
@@ -1108,6 +1122,7 @@ void BHadronBranches::clear() {
   m_branches->bH_eta->clear();
   m_branches->bH_phi->clear();
   m_branches->bH_E->clear();
+  m_branches->bH_charge->clear();
   m_branches->bH_Lxy->clear();
   m_branches->bH_x->clear();
   m_branches->bH_y->clear();
@@ -1144,6 +1159,7 @@ void BHadronBranches::clear() {
   m_branches->cH_eta->clear();
   m_branches->cH_phi->clear();
   m_branches->cH_E->clear();
+  m_branches->cH_charge->clear();
   m_branches->cH_Lxy->clear();
   m_branches->cH_x->clear();
   m_branches->cH_y->clear();

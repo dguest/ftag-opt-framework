@@ -17,6 +17,7 @@ struct BHadronBranchBuffer {
   std::vector<std::vector< float> > *bH_eta;
   std::vector<std::vector< float> > *bH_phi;
   std::vector<std::vector< float> > *bH_E;
+  std::vector<std::vector< float> > *bH_charge;
   std::vector<std::vector< float> > *bH_Lxy;
   std::vector<std::vector< float> > *bH_x;
   std::vector<std::vector< float> > *bH_y;
@@ -55,6 +56,7 @@ struct BHadronBranchBuffer {
   std::vector<std::vector< float> > *cH_eta;
   std::vector<std::vector< float> > *cH_phi;
   std::vector<std::vector< float> > *cH_E;
+  std::vector<std::vector< float> > *cH_charge;
   std::vector<std::vector< float> > *cH_Lxy;
   std::vector<std::vector< float> > *cH_x;
   std::vector<std::vector< float> > *cH_y;
