@@ -237,7 +237,7 @@ private:
   std::vector<std::vector<int> > *v_jet_trk_assoc_msv;
 
   std::vector<std::vector<int> > *v_jet_trk_algo;
-  //std::vector<std::vector<int> > *v_jet_trk_orig;
+  //std::vector<std::vector<int> > *v_jet_trk_orig; moved to BHadronBranches
   std::vector<std::vector<int> > *v_jet_trk_pdg_id;
   std::vector<std::vector<int> > *v_jet_trk_barcode;
   std::vector<std::vector<int> > *v_jet_trk_parent_pdgid;
@@ -259,7 +259,7 @@ private:
   std::vector<std::vector<float> > *v_jet_trk_IP3D_z0sig;
   std::vector<std::vector<float> > *v_jet_trk_IP3D_llr;
 
-  std::vector<std::vector<int> > *v_jet_trk_jf_Vertex; //mod Remco
+  //std::vector<std::vector<int> > *v_jet_trk_jf_Vertex; moved to JetFitterBranches
 
   // those are just quick accessors
   std::vector<int>   *v_jet_sv1_ntrk;

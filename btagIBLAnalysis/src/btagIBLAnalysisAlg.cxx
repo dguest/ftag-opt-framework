@@ -390,7 +390,7 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_trk_dr = new std::vector<std::vector<float> >();
   v_jet_trk_assoc_msv = new std::vector<std::vector<int> >();   // mod nikola
   v_jet_trk_algo = new std::vector<std::vector<int> >();
-  // v_jet_trk_orig = new std::vector<std::vector<int> >();
+  // v_jet_trk_orig = new std::vector<std::vector<int> >(); moved to BHadronBranches
   v_jet_trk_is_tracking_cp_loose = new std::vector<std::vector<int> >();
 
   v_jet_trk_vtx_X = new std::vector<std::vector<float> >();
@@ -413,7 +413,6 @@ StatusCode btagIBLAnalysisAlg::initialize() {
   v_jet_trk_IP3D_z0sig = new std::vector<std::vector<float> >();
   v_jet_trk_IP3D_llr = new std::vector<std::vector<float> >();
 
-  v_jet_trk_jf_Vertex = new std::vector<std::vector<int> >(); // mod Remco
   v_jet_trk_pdg_id = new std::vector<std::vector<int> >();
   v_jet_trk_barcode = new std::vector<std::vector<int> >();
   v_jet_trk_parent_pdgid = new std::vector<std::vector<int> >();
@@ -618,7 +617,6 @@ StatusCode btagIBLAnalysisAlg::initialize() {
 
     tree->Branch("jet_trk_ip3d_llr", &v_jet_trk_IP3D_llr);
 
-    tree->Branch("jet_trk_jf_Vertex", &v_jet_trk_jf_Vertex); // mod Remco
     tree->Branch("jet_trk_pdg_id", &v_jet_trk_pdg_id);
     tree->Branch("jet_trk_barcode", &v_jet_trk_barcode);
     tree->Branch("jet_trk_parent_pdgid", &v_jet_trk_parent_pdgid);
@@ -1631,8 +1629,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
     std::vector<float> j_trk_ip3d_z0sig;
     std::vector<float> j_trk_ip3d_llr;
 
-    std::vector<int> j_trk_jf_Vertex; // mod Remco
-
     // if (m_reduceInfo) continue;
 
     bool is8TeV = true;
@@ -1829,7 +1825,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
     // if (m_reduceInfo) continue;
 
 
-    // std::cout << " VALERIO: " << jfvertices.size() << " , " << jfnvtx << " , " << jfnvtx1t << " ..... and: " << fittedPosition.size() << std::endl;
     for (unsigned int jfv = 0; jfv < jfvertices.size(); jfv++) {
       if (!jfvertices.at(jfv).isValid()) continue;
       const xAOD::BTagVertex *tmpVertex = *(jfvertices.at(jfv));
@@ -1939,16 +1934,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
       if (particleInCollection(tmpTrk, SV1Tracks)) trackAlgo +=1 << SV1;
       if (particleInCollection(tmpTrk, JFTracks)) trackAlgo +=1 << JF; // mod Remco
       j_trk_algo.push_back(trackAlgo);
-
-      int myVtx = -1; // mod Remco
-      for (unsigned int jfv = 0; jfv < jfvertices.size(); jfv++) { // mod Remco
-        if (!jfvertices.at(jfv).isValid()) continue;
-        const xAOD::BTagVertex *tmpVertex = *(jfvertices.at(jfv)); // mod Remco
-        const std::vector< ElementLink<xAOD::TrackParticleContainer> > tmpVect = tmpVertex->track_links(); // mod Remco
-        if (particleInCollection(tmpTrk, tmpVect)) myVtx = jfv; // mod Remco
-      } // mod Remco
-      j_trk_jf_Vertex.push_back(myVtx); // mod Remco
-      // std::cout << " ..... after Remco" << std::endl;
 
       // origin
       // moved to BHadronBranches
@@ -2068,8 +2053,6 @@ StatusCode btagIBLAnalysisAlg::execute() {
     v_jet_trk_IP3D_z0sig->push_back(j_trk_ip3d_z0sig);
 
     v_jet_trk_IP3D_llr->push_back(j_trk_ip3d_llr);
-
-    v_jet_trk_jf_Vertex->push_back(j_trk_jf_Vertex); // mod Remco
 
   } // end jet loop
 
@@ -2300,7 +2283,7 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_trk_dr->clear();
   v_jet_trk_assoc_msv->clear();
   v_jet_trk_algo->clear();
-  //v_jet_trk_orig->clear();
+  //v_jet_trk_orig->clear(); moved to BHadronBranches
   v_jet_trk_pdg_id->clear();
   v_jet_trk_parent_pdgid->clear();
   v_jet_trk_barcode->clear();
@@ -2321,8 +2304,6 @@ void btagIBLAnalysisAlg :: clearvectors() {
   v_jet_trk_vtx_dy->clear();
 
   v_jet_trk_IP3D_llr->clear();
-
-  v_jet_trk_jf_Vertex->clear(); // mod Remco
 
   v_jet_sv1_ntrk->clear();
   v_jet_ip3d_ntrk->clear();

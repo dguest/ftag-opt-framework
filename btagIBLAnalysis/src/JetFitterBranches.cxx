@@ -19,6 +19,8 @@ JetFitterBranches::JetFitterBranches():
 {
   // instantiate all the vectors here ...
 
+  m_branches->v_jet_trk_jf_Vertex = new std::vector<std::vector<int> >();
+
   m_branches->jet_jf_pb           = new std::vector<float>();
   m_branches->jet_jf_pc           = new std::vector<float>();
   m_branches->jet_jf_pu           = new std::vector<float>();
@@ -60,11 +62,35 @@ JetFitterBranches::JetFitterBranches():
   m_branches->jet_jfcombnn_llr    = new std::vector<float>();
 
 
+  m_branches->nTrk_vtx1                   = new std::vector<int>();
+  m_branches->mass_first_vtx              = new std::vector<float>();
+  m_branches->e_first_vtx                 = new std::vector<float>();
+  m_branches->e_frac_vtx1                 = new std::vector<float>();
+  m_branches->closestVtx_L3D              = new std::vector<float>();
+  m_branches->JF_Lxy1                     = new std::vector<float>();
+  m_branches->vtx1_MaxTrkRapidity_jf_path = new std::vector<float>();
+  m_branches->vtx1_AvgTrkRapidity_jf_path = new std::vector<float>();
+  m_branches->vtx1_MinTrkRapidity_jf_path = new std::vector<float>();
+  m_branches->nTrk_vtx2                   = new std::vector<int>();
+  m_branches->mass_second_vtx             = new std::vector<float>();
+  m_branches->e_second_vtx                = new std::vector<float>();
+  m_branches->e_frac_vtx2                 = new std::vector<float>();
+  m_branches->second_closestVtx_L3D       = new std::vector<float>();
+  m_branches->JF_Lxy2                     = new std::vector<float>();
+  m_branches->vtx2_MaxTrkRapidity_jf_path = new std::vector<float>();
+  m_branches->vtx2_AvgTrkRapidity_jf_path = new std::vector<float>();
+  m_branches->vtx2_MinTrkRapidity_jf_path = new std::vector<float>();
+  m_branches->MaxTrkRapidity_jf_path      = new std::vector<float>();
+  m_branches->MinTrkRapidity_jf_path      = new std::vector<float>();
+  m_branches->AvgTrkRapidity_jf_path      = new std::vector<float>();
+
+
 }
 
 //!-----------------------------------------------------------------------------------------------------------------------------!//
 JetFitterBranches::~JetFitterBranches() {
   // delete all the vectors here ...
+  delete m_branches->v_jet_trk_jf_Vertex;
   delete m_branches->jet_jf_pb;
   delete m_branches->jet_jf_pc;
   delete m_branches->jet_jf_pu;
@@ -102,6 +128,29 @@ JetFitterBranches::~JetFitterBranches() {
   delete m_branches->jet_jfcombnn_pu;
   delete m_branches->jet_jfcombnn_llr;
 
+  delete m_branches->nTrk_vtx1;
+  delete m_branches->mass_first_vtx;
+  delete m_branches->e_first_vtx;
+  delete m_branches->e_frac_vtx1;
+  delete m_branches->closestVtx_L3D;
+  delete m_branches->JF_Lxy1;
+  delete m_branches->vtx1_MaxTrkRapidity_jf_path;
+  delete m_branches->vtx1_AvgTrkRapidity_jf_path;
+  delete m_branches->vtx1_MinTrkRapidity_jf_path;
+  delete m_branches->nTrk_vtx2;
+  delete m_branches->mass_second_vtx;
+  delete m_branches->e_second_vtx;
+  delete m_branches->e_frac_vtx2;
+  delete m_branches->second_closestVtx_L3D;
+  delete m_branches->JF_Lxy2;
+  delete m_branches->vtx2_MaxTrkRapidity_jf_path;
+  delete m_branches->vtx2_AvgTrkRapidity_jf_path;
+  delete m_branches->vtx2_MinTrkRapidity_jf_path;
+  delete m_branches->MaxTrkRapidity_jf_path;
+  delete m_branches->MinTrkRapidity_jf_path;
+  delete m_branches->AvgTrkRapidity_jf_path;
+
+
   delete m_branches;
 }
 
@@ -110,6 +159,7 @@ void JetFitterBranches::set_tree(TTree& output_tree) const {
   output_tree.Branch("PV_jf_x"            , &m_branches->PV_jf_x); // mod Remco
   output_tree.Branch("PV_jf_y"            , &m_branches->PV_jf_y); // mod Remco
   output_tree.Branch("PV_jf_z"            , &m_branches->PV_jf_z); // mod Remco
+  output_tree.Branch("jet_trk_jf_Vertex"  , &m_branches->v_jet_trk_jf_Vertex); // mod Remco
   output_tree.Branch("jet_jf_pb"          , &m_branches->jet_jf_pb);
   output_tree.Branch("jet_jf_pc"          , &m_branches->jet_jf_pc);
   output_tree.Branch("jet_jf_pu"          , &m_branches->jet_jf_pu);
@@ -147,6 +197,28 @@ void JetFitterBranches::set_tree(TTree& output_tree) const {
   output_tree.Branch("jet_jfcombnn_pu"    , &m_branches->jet_jfcombnn_pu);
   output_tree.Branch("jet_jfcombnn_llr"   , &m_branches->jet_jfcombnn_llr);
 
+  output_tree.Branch( "nTrk_vtx1"                  , &m_branches->nTrk_vtx1);
+  output_tree.Branch( "mass_first_vtx"             , &m_branches->mass_first_vtx);
+  output_tree.Branch( "e_first_vtx"                , &m_branches->e_first_vtx);
+  output_tree.Branch( "e_frac_vtx1"                , &m_branches->e_frac_vtx1);
+  output_tree.Branch( "closestVtx_L3D"             , &m_branches->closestVtx_L3D);
+  output_tree.Branch( "JF_Lxy1"                    , &m_branches->JF_Lxy1);
+  output_tree.Branch( "vtx1_MaxTrkRapidity", &m_branches->vtx1_MaxTrkRapidity_jf_path);
+  output_tree.Branch( "vtx1_AvgTrkRapidity", &m_branches->vtx1_AvgTrkRapidity_jf_path);
+  output_tree.Branch( "vtx1_MinTrkRapidity", &m_branches->vtx1_MinTrkRapidity_jf_path);
+  output_tree.Branch( "nTrk_vtx2"                  , &m_branches->nTrk_vtx2);
+  output_tree.Branch( "mass_second_vtx"            , &m_branches->mass_second_vtx);
+  output_tree.Branch( "e_second_vtx"               , &m_branches->e_second_vtx);
+  output_tree.Branch( "e_frac_vtx2"                , &m_branches->e_frac_vtx2);
+  output_tree.Branch( "second_closestVtx_L3D"      , &m_branches->second_closestVtx_L3D);
+  output_tree.Branch( "JF_Lxy2"                    , &m_branches->JF_Lxy2);
+  output_tree.Branch( "vtx2_MaxTrkRapidity", &m_branches->vtx2_MaxTrkRapidity_jf_path);
+  output_tree.Branch( "vtx2_AvgTrkRapidity", &m_branches->vtx2_AvgTrkRapidity_jf_path);
+  output_tree.Branch( "vtx2_MinTrkRapidity", &m_branches->vtx2_MinTrkRapidity_jf_path);
+  output_tree.Branch( "MaxTrkRapidity"     , &m_branches->MaxTrkRapidity_jf_path);
+  output_tree.Branch( "MinTrkRapidity"     , &m_branches->MinTrkRapidity_jf_path);
+  output_tree.Branch( "AvgTrkRapidity"     , &m_branches->AvgTrkRapidity_jf_path);
+
 }
 
 //!-----------------------------------------------------------------------------------------------------------------------------!//
@@ -167,6 +239,28 @@ void JetFitterBranches::fill(const xAOD::Jet& jet) {
     int   jfn2t       = -1;
     float massUncorr  = -99;  // eloi
     float dRFlightDir = -99; // eloi
+
+    int   nTrk_vtx1                   = 0;
+    float mass_first_vtx              = -100;
+    float e_first_vtx                 = -100;
+    float e_frac_vtx1                 = 0;
+    float closestVtx_L3D              = -10;
+    float JF_Lxy1                     = -5;
+    float vtx1_MaxTrkRapidity_jf_path = 0;
+    float vtx1_AvgTrkRapidity_jf_path = 0;
+    float vtx1_MinTrkRapidity_jf_path = 0;
+    int   nTrk_vtx2                   = 0;
+    float mass_second_vtx             = -100;
+    float e_second_vtx                = -100;
+    float e_frac_vtx2                 = 0;
+    float second_closestVtx_L3D       = -10;
+    float JF_Lxy2                     = -5;
+    float vtx2_MaxTrkRapidity_jf_path = 0;
+    float vtx2_AvgTrkRapidity_jf_path = 0;
+    float vtx2_MinTrkRapidity_jf_path = 0;
+    float MaxTrkRapidity_jf_path      = 0;
+    float MinTrkRapidity_jf_path      = 0;
+    float AvgTrkRapidity_jf_path      = 0;
 
     std::vector<ElementLink<xAOD::BTagVertexContainer> > jfvertices;
     try {
@@ -245,14 +339,17 @@ void JetFitterBranches::fill(const xAOD::Jet& jet) {
     std::vector<float> fittedPosition = bjet->auxdata<std::vector<float> >("JetFitter_fittedPosition"); // mod Remco
     std::vector<float> fittedCov = bjet->auxdata<std::vector<float> >("JetFitter_fittedCov"); // mod Remco
 
+    float jf_theta = 0;
+    float jf_phi = 0;
+
     if (fittedPosition.size() > 0) {
       m_branches->PV_jf_x = fittedPosition[0]; // mod Remco
       m_branches->PV_jf_y = fittedPosition[1]; // mod Remco
       m_branches->PV_jf_z = fittedPosition[2]; // mod Remco
 
-      float jf_theta = fittedPosition[4];
+      jf_theta = fittedPosition[4];
       float jf_theta_err = TMath::Sqrt(fittedCov[4]);
-      float jf_phi = fittedPosition[3];
+      jf_phi = fittedPosition[3];
       float jf_phi_err = TMath::Sqrt(fittedCov[3]);
 
       m_branches->jet_jf_phi->push_back(jf_phi); // mod Remco
@@ -268,6 +365,12 @@ void JetFitterBranches::fill(const xAOD::Jet& jet) {
       m_branches->jet_jf_theta_err->push_back(-999);
     }
 
+    TVector3 flightDir(0,0,0);
+    flightDir.SetMagThetaPhi(1., jf_theta, jf_phi ); //flight directon of JF decay chain
+
+    // the index in jfvertices for the vertices closest and second closest to primary vertex
+    int secondary_vertex_index = -99;
+    int tertiary_vertex_index = -99;
 
     for (unsigned int jfv = 0; jfv < jfvertices.size(); jfv++) {
 
@@ -283,13 +386,30 @@ void JetFitterBranches::fill(const xAOD::Jet& jet) {
 
       if (jfv < fittedPosition.size()-5) {
 
-        float jf_theta = fittedPosition[4];
+        jf_theta = fittedPosition[4];
         float jf_theta_err = TMath::Sqrt(fittedCov[4]);
-        float jf_phi = fittedPosition[3];
+        jf_phi = fittedPosition[3];
         float jf_phi_err = TMath::Sqrt(fittedCov[3]);
         float jf_vtx_L3d = fittedPosition[jfv + 5];
         float jf_vtx_L3d_err = TMath::Sqrt(fittedCov[jfv + 5]);
         float jf_vtx_Transverse_err = JF_Transverse_error(jf_vtx_L3d, jf_theta, jf_theta_err, jf_phi, jf_phi_err);
+
+        //find secondary and tertiary vertices
+        if(jf_vtx_L3d > 0){
+          if( jf_vtx_L3d < closestVtx_L3D || closestVtx_L3D < 0 ){
+
+              second_closestVtx_L3D = closestVtx_L3D;
+              tertiary_vertex_index = secondary_vertex_index;
+
+              closestVtx_L3D = jf_vtx_L3d;
+              secondary_vertex_index = jfv;
+
+          }else if( jf_vtx_L3d < second_closestVtx_L3D ){
+
+              second_closestVtx_L3D = jf_vtx_L3d;
+              tertiary_vertex_index = jfv;
+          }
+        }
 
         j_jf_vtx_L3d.push_back(jf_vtx_L3d); // mod Remco
 
@@ -334,7 +454,159 @@ void JetFitterBranches::fill(const xAOD::Jet& jet) {
     m_branches->jet_jf_vtx_z->push_back(j_jf_vtx_z);
     m_branches->jet_jf_vtx_z_err->push_back(j_jf_vtx_z_err);
 
+    std::vector< ElementLink< xAOD::TrackParticleContainer > > assocTracks;
+    std::vector<const xAOD::TrackParticle*> selectedTracks; // tracks passing number of Pixel and SCT hits requirements
 
+    assocTracks = bjet->auxdata<std::vector<ElementLink<xAOD::TrackParticleContainer> > >("BTagTrackToJetAssociator");
+
+    //track loop, select only tracks with 2 or more hits
+    uint8_t getInt(0);   // for accessing summary information
+
+    for (unsigned int iT = 0; iT < assocTracks.size(); iT++) {
+
+      if (!assocTracks.at(iT).isValid()) continue;
+
+      const xAOD::TrackParticle *tmpTrk = *(assocTracks.at(iT));
+
+      tmpTrk->summaryValue(getInt, xAOD::numberOfPixelHits);
+      int nSi = getInt;
+      tmpTrk->summaryValue(getInt, xAOD::numberOfSCTHits);
+      nSi += getInt;
+      if (nSi < 2) continue;
+      selectedTracks.push_back(tmpTrk);
+
+    }
+
+    //track loop variables
+    std::vector<int> j_trk_jf_Vertex;
+    TLorentzVector tracksTot4Mom(0,0,0,0);
+    TLorentzVector tracksTot4Mom_firstVtx(0,0,0,0);
+    TLorentzVector tracksTot4Mom_secondVtx(0,0,0,0);
+
+    float sumTrackRapidity = 0;
+    float vtx1_sumTrackRapidity = 0;
+    int vtx1_first_track =0;
+    float vtx2_sumTrackRapidity = 0;
+    int vtx2_first_track =0;
+    float track_mass = 139.570;
+    int trkIndex=0;
+
+
+    //track loop
+
+    for (const auto* tmpTrk: selectedTracks) {
+
+      int myVtx = -1;
+      for (unsigned int jfv = 0; jfv < jfvertices.size(); jfv++) { // mod Remco
+
+        if (!jfvertices.at(jfv).isValid()) continue;
+        const xAOD::BTagVertex *tmpVertex = *(jfvertices.at(jfv));
+        const std::vector< ElementLink<xAOD::TrackParticleContainer> > tmpVect = tmpVertex->track_links();
+
+        if (particleInCollection(tmpTrk, tmpVect)) myVtx = jfv;
+
+      }
+      j_trk_jf_Vertex.push_back(myVtx);
+
+
+      TLorentzVector trk;
+      trk.SetPtEtaPhiM(tmpTrk->pt(), tmpTrk->eta(), tmpTrk->phi(), track_mass);
+      tracksTot4Mom += trk;
+
+      TVector3 trkvector(0,0,0);
+      trkvector = trk.Vect();
+
+      float trackRapidity = (trkvector.Mag2()>0 ? tan( 0.5*trkvector.Angle(flightDir) ) : 0); // steps to protect against log(0)
+
+      trackRapidity = (trackRapidity < 0.000001 ? (-1)*log(0.000001) : (-1)*log(trackRapidity) ); // value of 0.000001 should provide enough margin for typical values of trackRapidity
+
+      sumTrackRapidity += trackRapidity;
+
+      if(trkIndex==0){
+        MaxTrkRapidity_jf_path = trackRapidity;
+        MinTrkRapidity_jf_path = trackRapidity;
+      }else{
+        MaxTrkRapidity_jf_path = trackRapidity > MaxTrkRapidity_jf_path ? trackRapidity : MaxTrkRapidity_jf_path;
+        MinTrkRapidity_jf_path = trackRapidity < MinTrkRapidity_jf_path ? trackRapidity : MinTrkRapidity_jf_path;
+      }
+
+      if(myVtx == secondary_vertex_index){
+        nTrk_vtx1 += 1;
+
+        tracksTot4Mom_firstVtx += trk;
+        vtx1_sumTrackRapidity += trackRapidity;
+        if(!vtx1_first_track){
+          vtx1_MaxTrkRapidity_jf_path = trackRapidity;
+          vtx1_MinTrkRapidity_jf_path = trackRapidity;
+          vtx1_first_track=1;
+        }else{
+          vtx1_MaxTrkRapidity_jf_path = trackRapidity > vtx1_MaxTrkRapidity_jf_path ? trackRapidity : vtx1_MaxTrkRapidity_jf_path;
+          vtx1_MinTrkRapidity_jf_path = trackRapidity < vtx1_MinTrkRapidity_jf_path ? trackRapidity : vtx1_MinTrkRapidity_jf_path;
+        }
+      }
+      if(myVtx == tertiary_vertex_index){
+        nTrk_vtx2 += 1;
+
+        tracksTot4Mom_secondVtx += trk;
+        vtx2_sumTrackRapidity += trackRapidity;
+        if(!vtx2_first_track){
+          vtx2_MaxTrkRapidity_jf_path = trackRapidity;
+          vtx2_MinTrkRapidity_jf_path = trackRapidity;
+          vtx2_first_track=1;
+        }else{
+          vtx2_MaxTrkRapidity_jf_path = trackRapidity > vtx2_MaxTrkRapidity_jf_path ? trackRapidity : vtx2_MaxTrkRapidity_jf_path;
+          vtx2_MinTrkRapidity_jf_path = trackRapidity < vtx2_MinTrkRapidity_jf_path ? trackRapidity : vtx2_MinTrkRapidity_jf_path;
+        }
+      }
+
+
+      trkIndex++;
+    } // end track loop
+
+
+    AvgTrkRapidity_jf_path = trkIndex > 0 ? sumTrackRapidity/trkIndex : 0;
+
+    if(nTrk_vtx1 > 0){
+      JF_Lxy1 = closestVtx_L3D*sin(jf_theta);
+      mass_first_vtx = tracksTot4Mom_firstVtx.M();
+      e_first_vtx = tracksTot4Mom_firstVtx.E();
+      e_frac_vtx1 = e_first_vtx/tracksTot4Mom.E();
+      vtx1_AvgTrkRapidity_jf_path = vtx1_sumTrackRapidity/nTrk_vtx1;
+    }
+
+
+    if(nTrk_vtx2 > 0){
+      JF_Lxy2 = second_closestVtx_L3D*sin(jf_theta);
+      mass_second_vtx = tracksTot4Mom_secondVtx.M();
+      e_second_vtx = tracksTot4Mom_secondVtx.E();
+      e_frac_vtx2 = e_second_vtx/tracksTot4Mom.E();
+      vtx2_AvgTrkRapidity_jf_path = vtx2_sumTrackRapidity/nTrk_vtx2;
+    }
+
+
+    m_branches->v_jet_trk_jf_Vertex->push_back(j_trk_jf_Vertex);
+
+    m_branches->nTrk_vtx1->push_back(nTrk_vtx1);
+    m_branches->mass_first_vtx->push_back(mass_first_vtx);
+    m_branches->e_first_vtx->push_back(e_first_vtx);
+    m_branches->e_frac_vtx1->push_back(e_frac_vtx1);
+    m_branches->closestVtx_L3D->push_back(closestVtx_L3D);
+    m_branches->JF_Lxy1->push_back(JF_Lxy1);
+    m_branches->vtx1_MaxTrkRapidity_jf_path->push_back(vtx1_MaxTrkRapidity_jf_path);
+    m_branches->vtx1_AvgTrkRapidity_jf_path->push_back(vtx1_AvgTrkRapidity_jf_path);
+    m_branches->vtx1_MinTrkRapidity_jf_path->push_back(vtx1_MinTrkRapidity_jf_path);
+    m_branches->nTrk_vtx2->push_back(nTrk_vtx2);
+    m_branches->mass_second_vtx->push_back(mass_second_vtx);
+    m_branches->e_second_vtx->push_back(e_second_vtx);
+    m_branches->e_frac_vtx2->push_back(e_frac_vtx2);
+    m_branches->second_closestVtx_L3D->push_back(second_closestVtx_L3D);
+    m_branches->JF_Lxy2->push_back(JF_Lxy2);
+    m_branches->vtx2_MaxTrkRapidity_jf_path->push_back(vtx2_MaxTrkRapidity_jf_path);
+    m_branches->vtx2_AvgTrkRapidity_jf_path->push_back(vtx2_AvgTrkRapidity_jf_path);
+    m_branches->vtx2_MinTrkRapidity_jf_path->push_back(vtx2_MinTrkRapidity_jf_path);
+    m_branches->MaxTrkRapidity_jf_path->push_back(MaxTrkRapidity_jf_path);
+    m_branches->MinTrkRapidity_jf_path->push_back(MinTrkRapidity_jf_path);
+    m_branches->AvgTrkRapidity_jf_path->push_back(AvgTrkRapidity_jf_path);
 }
 
 //!-----------------------------------------------------------------------------------------------------------------------------!//
@@ -345,6 +617,7 @@ void JetFitterBranches::clear() {
   m_branches->PV_jf_y = -999;
   m_branches->PV_jf_z = -999;
 
+  m_branches->v_jet_trk_jf_Vertex->clear();
   m_branches->jet_jf_pb->clear();
   m_branches->jet_jf_pc->clear();
   m_branches->jet_jf_pu->clear();
@@ -382,6 +655,14 @@ void JetFitterBranches::clear() {
   m_branches->jet_jfcombnn_pu->clear();
   m_branches->jet_jfcombnn_llr->clear();
 }
+
+bool JetFitterBranches :: particleInCollection( const xAOD::TrackParticle *trkPart, std::vector< ElementLink< xAOD::TrackParticleContainer > > trkColl ) {
+  for (unsigned int iT = 0; iT < trkColl.size(); iT++) {
+    if (trkPart == *(trkColl.at(iT))) return true;
+  }
+  return false;
+}
+
 
 float JetFitterBranches :: JF_Transverse_error(float L3D, float Theta, float Theta_err, float Phi, float Phi_err){
   TVector3 vertexPos;
@@ -462,52 +743,4 @@ std::vector<float> JetFitterBranches :: JF_xyz_errors(float L3D, float L3Derr, f
     return results;
 }
 
-// void JetFitterBranches :: GetAllChildren(const xAOD::TruthParticle* particle,
-//                                            std::vector<const xAOD::TruthParticle*> &tracksFromB,
-//                                            std::vector<const xAOD::TruthParticle*> &tracksFromC,
-//                                            bool isFromC){
 
-
-//   if(!particle->hasDecayVtx()) return;
-
-//   const xAOD::TruthVertex* decayvtx = particle->decayVtx();
-
-//   for(unsigned i=0; i< decayvtx->nOutgoingParticles(); i++){
-
-//      const xAOD::TruthParticle* child = decayvtx->outgoingParticle(i);
-
-//      if (child->barcode() > 200e3) continue;
-//      if ( !child->isCharmHadron() && !child->isBottomHadron() ){
-
-//         if(child->isCharged()){ tracksFromB.push_back(child);}
-//         if(child->isCharged() && isFromC){
-//           tracksFromC.push_back(child);
-//         }
-//      }
-
-//      if (isFromC) GetAllChildren(child, tracksFromB, tracksFromC, true);
-//      else GetAllChildren(child, tracksFromB, tracksFromC, child->isCharmHadron() );
-
-
-//   }
-
-// }
-
-
-// std::vector<int> JetFitterBranches :: getDRSortedIndices(std::vector<const xAOD::IParticle*> ghostHads, const xAOD::Jet *jet){
-//     std::vector<float> dRofhadrons;
-
-//     for(unsigned int ip = 0; ip < ghostHads.size(); ip++){
-//       float dEta = (ghostHads.at(ip))->eta() - (jet->eta()) ;
-//       float dPhi = acos(cos( fabs( (ghostHads.at(ip))->phi()-jet->phi() ) ) );
-//       float dr = sqrt(pow(dEta, 2) + pow(dPhi, 2));
-//       dRofhadrons.push_back(dr);
-//     }
-
-//     std::vector<int> y(dRofhadrons.size());
-//     std::size_t n(0);
-//     std::generate(std::begin(y), std::end(y), [&]{ return n++; });
-//     std::sort(std::begin(y),std::end(y),[&](int i1, int i2) { return dRofhadrons[i1] < dRofhadrons[i2]; });
-
-//     return y;
-// }

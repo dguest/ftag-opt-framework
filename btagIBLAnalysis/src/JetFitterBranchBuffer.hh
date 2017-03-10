@@ -10,6 +10,8 @@ struct JetFitterBranchBuffer {
   float PV_jf_y; //mod Remco
   float PV_jf_z; //mod Remco
 
+  std::vector<std::vector<int> > *v_jet_trk_jf_Vertex;
+
   std::vector<float> *jet_jf_pb;
   std::vector<float> *jet_jf_pc;
   std::vector<float> *jet_jf_pu;
@@ -44,11 +46,42 @@ struct JetFitterBranchBuffer {
   std::vector<float> *jet_jf_theta; //mod Remco
   std::vector<float> *jet_jf_theta_err;
 
+  //additional variables used by MV2cl100 and MV2c100 (for c-tagging)
+
+  // JF vertex closest to primary
+  std::vector<int>   *nTrk_vtx1;
+  std::vector<float> *mass_first_vtx;
+  std::vector<float> *e_first_vtx;
+  std::vector<float> *e_frac_vtx1;
+  std::vector<float> *closestVtx_L3D;
+  std::vector<float> *JF_Lxy1;
+  std::vector<float> *vtx1_MaxTrkRapidity_jf_path;
+  std::vector<float> *vtx1_AvgTrkRapidity_jf_path;
+  std::vector<float> *vtx1_MinTrkRapidity_jf_path;
+
+  // JF vertex second closest to primary
+  std::vector<int>   *nTrk_vtx2;
+  std::vector<float> *mass_second_vtx;
+  std::vector<float> *e_second_vtx;
+  std::vector<float> *e_frac_vtx2;
+  std::vector<float> *second_closestVtx_L3D;
+  std::vector<float> *JF_Lxy2;
+  std::vector<float> *vtx2_MaxTrkRapidity_jf_path;
+  std::vector<float> *vtx2_AvgTrkRapidity_jf_path;
+  std::vector<float> *vtx2_MinTrkRapidity_jf_path;
+
+  // for all tracks in the jet
+  std::vector<float> *MaxTrkRapidity_jf_path;
+  std::vector<float> *MinTrkRapidity_jf_path;
+  std::vector<float> *AvgTrkRapidity_jf_path;
+
+
   // JetFitterCombNN
   std::vector<float> *jet_jfcombnn_pb;
   std::vector<float> *jet_jfcombnn_pc;
   std::vector<float> *jet_jfcombnn_pu;
   std::vector<float> *jet_jfcombnn_llr;
+
 
 };
 
