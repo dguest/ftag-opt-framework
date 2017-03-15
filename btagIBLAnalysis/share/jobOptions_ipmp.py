@@ -12,7 +12,7 @@ JetCollections = [
     'AntiKt4EMTopoJets',
     # 'AntiKt4PV0TrackJets',
     # 'AntiKt3PV0TrackJets',
-    # 'AntiKt2PV0TrackJets',
+    'AntiKt2PV0TrackJets',
     'AntiKt4LCTopoJets',
     ]
 
@@ -199,11 +199,11 @@ for JetCollection in JetCollections:
     alg.JetCollectionName = JetCollection
     alg.svxCollections = {'jet_sv1_': 'SV1'}
     alg.doSMT = doSMT
-    if "AntiKt2PV0TrackJets" in JetCollection or "Truth" in JetCollection:
+    if "AntiKt2PV0Track" in JetCollection or "Truth" in JetCollection:
         alg.JetPtCut = 10.e3
         alg.CleanJets     = False
         alg.CalibrateJets = False
-    elif "AntiKt3PV0TrackJets" in JetCollection or "AntiKt4PV0TrackJets" in JetCollection:
+    elif "Track" in JetCollection:
         alg.JetPtCut = 7.e3
         alg.CleanJets     = False
         alg.CalibrateJets = False

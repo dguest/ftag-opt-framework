@@ -5,7 +5,7 @@ alias setupATLAS='source ${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh'
 echo -n "setting up local ATLAS environment..."
 setupATLAS -q
 lsetup asetup -q
-. $AtlasSetup/scripts/asetup.sh 21.0.14,here > /dev/null
+. $AtlasSetup/scripts/asetup.sh 21.0.19,here > /dev/null
 echo "done"
 
 if [[ ! -d build ]] ; then

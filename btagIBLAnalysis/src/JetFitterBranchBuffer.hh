@@ -76,13 +76,6 @@ struct JetFitterBranchBuffer {
   std::vector<float> *AvgTrkRapidity_jf_path;
 
 
-  // JetFitterCombNN
-  std::vector<float> *jet_jfcombnn_pb;
-  std::vector<float> *jet_jfcombnn_pc;
-  std::vector<float> *jet_jfcombnn_pu;
-  std::vector<float> *jet_jfcombnn_llr;
-
-
 };
 
 #endif // JETFITTER_BRANCH_BUFFER_HH

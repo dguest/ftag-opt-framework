@@ -229,20 +229,22 @@ for JetCollection in JetCollections:
   if not doComputeReference: algSeq += alg
 
   ###print JetCollection
-  calibfile        = "JES_MC15cRecommendation_May2016.config"
-  collectionForTool="AntiKt4LCTopo"
-  calSeg           ="JetArea_Residual_Origin_EtaJES_GSC"
-  if "EM" in JetCollection:
-    collectionForTool="AntiKt4EMTopo"
-    calibfile  ="JES_MC15cRecommendation_May2016.config"
-    if isAF2: calibfile  ="JES_MC15Prerecommendation_AFII_June2015.config"
-    calSeg     ="JetArea_Residual_Origin_EtaJES_GSC"
-  print collectionForTool
-  ToolSvc += CfgMgr.JetCalibrationTool("BTagDumpAlg_"+JetCollection+"_JCalib",
-                                       IsData=False,
-                                       ConfigFile=calibfile,
-                                       CalibSequence=calSeg,
-                                       JetCollection=collectionForTool)
+  # calibfile        = "JES_MC15cRecommendation_May2016.config"
+  # collectionForTool="AntiKt4LCTopo"
+  # calSeg           ="JetArea_Residual_Origin_EtaJES_GSC"
+  # if "EM" in JetCollection:
+  #   collectionForTool="AntiKt4EMTopo"
+  #   calibfile  ="JES_MC15cRecommendation_May2016.config"
+  #   if isAF2: calibfile  ="JES_MC15Prerecommendation_AFII_June2015.config"
+  #   calSeg     ="JetArea_Residual_Origin_EtaJES_GSC"
+  # print collectionForTool
+  # ToolSvc += CfgMgr.JetCalibrationTool("BTagDumpAlg_"+JetCollection+"_JCalib",
+  #                                      IsData=False,
+  #                                      ConfigFile=calibfile,
+  #                                      CalibSequence=calSeg,
+  #                                      JetCollection=collectionForTool)
+  from btagIBLAnalysis.configHelpers import get_calibration_tool
+  ToolSvc += get_calibration_tool(CfgMgr, JetCollection, isAF2)
 
 
 ###########################################################################################################################################################################

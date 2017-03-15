@@ -56,12 +56,6 @@ JetFitterBranches::JetFitterBranches():
   m_branches->jet_jf_phi_err      = new std::vector<float>();
   m_branches->jet_jf_theta_err    = new std::vector<float>();
 
-  m_branches->jet_jfcombnn_pb     = new std::vector<float>();
-  m_branches->jet_jfcombnn_pc     = new std::vector<float>();
-  m_branches->jet_jfcombnn_pu     = new std::vector<float>();
-  m_branches->jet_jfcombnn_llr    = new std::vector<float>();
-
-
   m_branches->nTrk_vtx1                   = new std::vector<int>();
   m_branches->mass_first_vtx              = new std::vector<float>();
   m_branches->e_first_vtx                 = new std::vector<float>();
@@ -123,10 +117,6 @@ JetFitterBranches::~JetFitterBranches() {
   delete m_branches->jet_jf_vtx_z_err;
   delete m_branches->jet_jf_phi_err;
   delete m_branches->jet_jf_theta_err;
-  delete m_branches->jet_jfcombnn_pb;
-  delete m_branches->jet_jfcombnn_pc;
-  delete m_branches->jet_jfcombnn_pu;
-  delete m_branches->jet_jfcombnn_llr;
 
   delete m_branches->nTrk_vtx1;
   delete m_branches->mass_first_vtx;
@@ -192,10 +182,6 @@ void JetFitterBranches::set_tree(TTree& output_tree) const {
   output_tree.Branch("jet_jf_vtx_z_err"   , &m_branches->jet_jf_vtx_z_err);
   output_tree.Branch("jet_jf_theta_err"   , &m_branches->jet_jf_theta_err);
   output_tree.Branch("jet_jf_phi_err"     , &m_branches->jet_jf_phi_err);
-  output_tree.Branch("jet_jfcombnn_pb"    , &m_branches->jet_jfcombnn_pb);
-  output_tree.Branch("jet_jfcombnn_pc"    , &m_branches->jet_jfcombnn_pc);
-  output_tree.Branch("jet_jfcombnn_pu"    , &m_branches->jet_jfcombnn_pu);
-  output_tree.Branch("jet_jfcombnn_llr"   , &m_branches->jet_jfcombnn_llr);
 
   output_tree.Branch( "nTrk_vtx1"                  , &m_branches->nTrk_vtx1);
   output_tree.Branch( "mass_first_vtx"             , &m_branches->mass_first_vtx);
@@ -311,12 +297,6 @@ void JetFitterBranches::fill(const xAOD::Jet& jet) {
     m_branches->jet_jf_sig3d->push_back(jfsig3d);
     m_branches->jet_jf_nvtx1t->push_back(jfnvtx1t);
     m_branches->jet_jf_n2t->push_back(jfn2t);
-
-    // JetFitterCombNN
-    m_branches->jet_jfcombnn_pb->push_back(bjet->JetFitterCombNN_pb());
-    m_branches->jet_jfcombnn_pc->push_back(bjet->JetFitterCombNN_pc());
-    m_branches->jet_jfcombnn_pu->push_back(bjet->JetFitterCombNN_pu());
-    m_branches->jet_jfcombnn_llr->push_back(bjet->JetFitterCombNN_loglikelihoodratio());
 
 
 
@@ -650,10 +630,6 @@ void JetFitterBranches::clear() {
   m_branches->jet_jf_vtx_z_err->clear();
   m_branches->jet_jf_phi_err->clear();
   m_branches->jet_jf_theta_err->clear();
-  m_branches->jet_jfcombnn_pb->clear();
-  m_branches->jet_jfcombnn_pc->clear();
-  m_branches->jet_jfcombnn_pu->clear();
-  m_branches->jet_jfcombnn_llr->clear();
 }
 
 bool JetFitterBranches :: particleInCollection( const xAOD::TrackParticle *trkPart, std::vector< ElementLink< xAOD::TrackParticleContainer > > trkColl ) {

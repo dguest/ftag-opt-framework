@@ -54,20 +54,30 @@ def setupTools(ToolSvc, CfgMgr):
 
 
 def get_calibration_tool(CfgMgr, JetCollection, isAF2):
-    calibfile        = "JES_Prerecommendation2015_Feb2015.config"
-    collectionForTool="AntiKt4LCTopo"
-    calSeg           ="JetArea_Residual_EtaJES"
+    """Pulled these from here:
+    https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/ApplyJetCalibration2016#Calibration_of_the_standard_jet
+    """
+
+    calibfile        = "JES_data2016_data2015_Recommendation_Dec2016.config"
+    calSeq           = "JetArea_Residual_Origin_EtaJES_GSC"
+
     if "EM" in JetCollection:
-        collectionForTool="AntiKt4EMTopo"
-        calibfile  ="JES_MC15Prerecommendation_April2015.config"
-    if isAF2: calibfile  ="JES_MC15Prerecommendation_AFII_June2015.config"
-    calSeg     ="JetArea_Residual_Origin_EtaJES_GSC"
+        collectionForTool = "AntiKt4EMTopo"
+        rhoKey = "Kt4EMTopoOriginEventShape"
+    else:
+        collectionForTool = "AntiKt4LCTopo"
+        rhoKey = "Kt4LCTopoOriginEventShape"
+
+    if isAF2:
+        calibfile  ="JES_MC15Prerecommendation_AFII_June2015.config"
+
     print collectionForTool
     tool = CfgMgr.JetCalibrationTool(
         "BTagDumpAlg_"+JetCollection+"_JCalib",
+        RhoKey=rhoKey,
         IsData=False,
         ConfigFile=calibfile,
-        CalibSequence=calSeg,
+        CalibSequence=calSeq,
         JetCollection=collectionForTool)
     return tool
 
