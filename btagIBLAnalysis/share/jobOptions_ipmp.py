@@ -36,14 +36,16 @@ add_to_pfc('BTag*.root')
 ##############################################################################
 ##############################################################################
 ### Define input xAOD and output ntuple file name
-import glob
 from AthenaCommon.AthenaCommonFlags import jobproperties as jp
 #jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock( vars().get('EVTMAX', -1) )
 jp.AthenaCommonFlags.EvtMax.set_Value_and_Lock(10)
 
-jp.AthenaCommonFlags.FilesInput = [
-    "/afs/cern.ch/work/m/malanfer/public/training/AOD.root"
-]
+import glob
+from os.path import join
+dan_data = '/afs/cern.ch/work/d/dguest/public/'
+dataset = 'mc16_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2997_r8903_r8906'
+file_glob = join(dan_data, dataset, '*.root*')
+jp.AthenaCommonFlags.FilesInput = glob.glob(file_glob)
 
 ##svcMgr.EventSelector.InputCollections = jp.AthenaCommonFlags.FilesInput()
 from PyUtils import AthFile
