@@ -94,6 +94,10 @@ to run. It's also preferred that you tag the version of the code you used.
 The commit requirement can be overridden (with the `-f` flag), but _use this
 with caution! It will make your ntuples hard to reproduce 6 months from now._
 
+Also note that this script isn't smart enough to know which packages you've
+checked out. If you want your ntuple to be reproducable, please add a script
+that checks out _a specific tag_ of any added packages.
+
 See `scripts/ftag-grid-sub-rnnip.sh` for an example that wraps this script.
 
 With the "old" scripts
