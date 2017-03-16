@@ -80,6 +80,25 @@ directories:
 To submit samples on the grid:
 ==============================
 
+There are a few scripts to help with this in `scripts/`. In general, go to the 
+`run/` directory and use
+
+```bash
+../scripts/ftag-grid-sub.sh -j <job-options> -d <dataset>
+```
+
+This should take care of naming the output file. Run the script with the `-h`
+option to get more info.
+Note that you'll have to **add and commit** all your changes for this script
+to run. It's also preferred that you tag the version of the code you used.
+The commit requirement can be overridden (with the `-f` flag), but _use this
+with caution! It will make your ntuples hard to reproduce 6 months from now._
+
+See `scripts/ftag-grid-sub-rnnip.sh` for an example that wraps this script.
+
+With the "old" scripts
+----------------------
+
  - edit `mc_samples.txt` with the samples you want to run
  - edit `submitJobs.py` with your grid usedName, production suffix
 
