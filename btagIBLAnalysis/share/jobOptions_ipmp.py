@@ -121,12 +121,12 @@ from BTagging.BTaggingFlags import BTaggingFlags
 BTaggingFlags.JetVertexCharge = False
 
 #### if the new file is already in the datatbase: simple edit the name
-BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-34'
+# BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-34'
 
 #### if you want to use your own calibration file use this part below
-# BTaggingFlags.CalibrationFromLocalReplica = True
-# BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
-# BTaggingFlags.CalibrationTag = 'BTagCalibRUN2-test'
+BTaggingFlags.CalibrationFromLocalReplica = True
+BTaggingFlags.CalibrationFolderRoot = '/GLOBAL/BTagCalib/'
+BTaggingFlags.CalibrationTag = 'BTagCalibRUN2-test'
 
 rnn_taggers = ['rnnip', 'rnnipll']
 
