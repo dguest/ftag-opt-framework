@@ -630,6 +630,28 @@ void JetFitterBranches::clear() {
   m_branches->jet_jf_vtx_z_err->clear();
   m_branches->jet_jf_phi_err->clear();
   m_branches->jet_jf_theta_err->clear();
+  
+  m_branches->nTrk_vtx1->clear();
+  m_branches->mass_first_vtx->clear();
+  m_branches->e_first_vtx->clear();
+  m_branches->e_frac_vtx1->clear();
+  m_branches->closestVtx_L3D->clear();
+  m_branches->JF_Lxy1->clear();
+  m_branches->vtx1_MaxTrkRapidity_jf_path->clear();
+  m_branches->vtx1_AvgTrkRapidity_jf_path->clear();
+  m_branches->vtx1_MinTrkRapidity_jf_path->clear();
+  m_branches->nTrk_vtx2->clear();
+  m_branches->mass_second_vtx->clear();
+  m_branches->e_second_vtx->clear();
+  m_branches->e_frac_vtx2->clear();
+  m_branches->second_closestVtx_L3D->clear();
+  m_branches->JF_Lxy2->clear();
+  m_branches->vtx2_MaxTrkRapidity_jf_path->clear();
+  m_branches->vtx2_AvgTrkRapidity_jf_path->clear();
+  m_branches->vtx2_MinTrkRapidity_jf_path->clear();
+  m_branches->MaxTrkRapidity_jf_path->clear();
+  m_branches->MinTrkRapidity_jf_path->clear();
+  m_branches->AvgTrkRapidity_jf_path->clear();
 }
 
 bool JetFitterBranches :: particleInCollection( const xAOD::TrackParticle *trkPart, std::vector< ElementLink< xAOD::TrackParticleContainer > > trkColl ) {
