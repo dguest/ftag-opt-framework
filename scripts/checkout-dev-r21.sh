@@ -4,7 +4,7 @@
 mkdir -p packages
 cd packages
 
-svnco JetTagTools-01-01-30
-svnco BTagging-00-07-94
+svnco JetTagTools
+svnco BTagging
 
 cd ..
