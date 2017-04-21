@@ -3,6 +3,12 @@
 
 #include <vector>
 
+struct JetFitterAccessors {
+  JetFitterAccessors();
+  SG::AuxElement::ConstAccessor<std::vector<float> > fittedCov;
+  SG::AuxElement::ConstAccessor<std::vector<float> > fittedPosition;
+};
+
 struct JetFitterBranchBuffer {
 
  // JetFitter

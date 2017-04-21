@@ -17,6 +17,7 @@ namespace xAOD {
 // branch buffers are stored as an external class to cut down on
 // (re)compile time // VD I strongly diagree with it ;-)
 struct JetFitterBranchBuffer;
+struct JetFitterAccessors;
 
 class JetFitterBranches
 {
@@ -35,6 +36,7 @@ public:
 private:
 
   JetFitterBranchBuffer* m_branches;
+  JetFitterAccessors* m_accessors;
   std::vector<float> JF_xyz_errors(float L3D, float L3Derr, float Theta, float Theta_err, float Phi, float Phi_err,float Pv_x, float Pv_y, float Pv_z);
   float JF_Transverse_error(float L3D, float Theta, float Theta_err, float Phi, float Phi_err);
   bool particleInCollection( const xAOD::TrackParticle *trkPart, std::vector< ElementLink< xAOD::TrackParticleContainer > > trkColl );

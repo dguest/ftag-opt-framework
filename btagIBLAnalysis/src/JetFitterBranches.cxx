@@ -14,8 +14,16 @@
 using xAOD::IParticle;
 
 //!-----------------------------------------------------------------------------------------------------------------------------!//
+
+JetFitterAccessors::JetFitterAccessors():
+  fittedCov("JetFitter_fittedCov"),
+  fittedPosition("JetFitter_fittedPosition")
+{
+}
+
 JetFitterBranches::JetFitterBranches():
-  m_branches(new JetFitterBranchBuffer)
+  m_branches(new JetFitterBranchBuffer),
+  m_accessors(new JetFitterAccessors)
 {
   // instantiate all the vectors here ...
 
@@ -142,6 +150,8 @@ JetFitterBranches::~JetFitterBranches() {
 
 
   delete m_branches;
+
+  delete m_accessors;
 }
 
 void JetFitterBranches::set_tree(TTree& output_tree) const {
@@ -316,8 +326,11 @@ void JetFitterBranches::fill(const xAOD::Jet& jet) {
 
     std::vector< ElementLink< xAOD::TrackParticleContainer > > JFTracks;
 
-    std::vector<float> fittedPosition = bjet->auxdata<std::vector<float> >("JetFitter_fittedPosition"); // mod Remco
-    std::vector<float> fittedCov = bjet->auxdata<std::vector<float> >("JetFitter_fittedCov"); // mod Remco
+    std::vector<float> fittedPosition = m_accessors->fittedPosition(bjet);
+    std::vector<float> fittedCov;
+    if (m_accessors->fittedCov.isAvailable(bjet)) {
+      fittedCov = m_accessors.fittedCov(bjet);
+    }
 
     float jf_theta = 0;
     float jf_phi = 0;
@@ -328,9 +341,11 @@ void JetFitterBranches::fill(const xAOD::Jet& jet) {
       m_branches->PV_jf_z = fittedPosition[2]; // mod Remco
 
       jf_theta = fittedPosition[4];
-      float jf_theta_err = TMath::Sqrt(fittedCov[4]);
+      float jf_theta_err = NAN;
+      if (fittedCov.size() > 4) jf_theta_err = TMath::Sqrt(fittedCov[4]);
       jf_phi = fittedPosition[3];
-      float jf_phi_err = TMath::Sqrt(fittedCov[3]);
+      float jf_phi_err = NAN;
+      if (fittedCov.size() > 3) jf_phi_err = TMath::Sqrt(fittedCov[3]);
 
       m_branches->jet_jf_phi->push_back(jf_phi); // mod Remco
       m_branches->jet_jf_theta->push_back(jf_theta); // mod Remco
