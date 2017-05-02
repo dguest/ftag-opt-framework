@@ -16,4 +16,6 @@ fi
 
 . build/$AtlasEvent_PLATFORM/setup.sh
 
-echo 'run `source scripts/checkout-*` to get more packages'
+echo 'runing `source scripts/checkout-*` to get more packages'
+. scripts/checkout-dev-r21.sh
+./scripts/build.sh
